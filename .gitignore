@@ -1,0 +1,54 @@
+# Large simulation outputs
+*.vtk
+*.vtp
+*.vtu
+*.csv
+*.bi4
+*.out
+*.log
+*.err
+*.tmp
+
+# Render/video outputs
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.exr
+
+# Binaries and archives
+*.so
+*.dll
+*.dylib
+*.o
+*.a
+*.exe
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Generated local working directories
+outputs/
+work/
+logs/
+tmp/
+blender-user-config/
+blender-user-scripts/
+
+# Python/cache/editor noise
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+.vscode/
+.idea/
