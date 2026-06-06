@@ -215,6 +215,26 @@ export BLENDER_USER_SCRIPTS="$VALID/blender-scripts"
   --resolution 1200
 ```
 
+Assemble rendered PNG frames into a small MP4 with technical HUD overlays and
+configurable title/closing cards:
+
+```bash
+VALID=/home/franco/stack-validation/YYYYMMDD-HHMM-dambreak-hud-card-test
+python3 scripts/assemble_dambreak_video.py \
+  --input "$VALID/frames/raw/dambreak2d_safe_0000.png" \
+  --input "$VALID/frames/raw/dambreak2d_safe_0050.png" \
+  --input "$VALID/frames/raw/dambreak2d_safe_0100.png" \
+  --input "$VALID/frames/raw/dambreak2d_safe_0150.png" \
+  --frames-dir "$VALID/frames/video" \
+  --output "$VALID/dambreak2d_hud_preview.mp4"
+```
+
+The video assembler defaults to a `6` second title card and a `5` second
+closing card. HUD overlays include frame/time information, approximate rendered
+fluid particle count, CUDA/GPU context, and the headless Blender VTK render path.
+QR-code placeholder support exists behind `--qr-placeholder` and is disabled by
+default.
+
 ## Data Policy
 
 Do not commit generated datasets above 20 MB. Large VTK/CSV/log/video/render

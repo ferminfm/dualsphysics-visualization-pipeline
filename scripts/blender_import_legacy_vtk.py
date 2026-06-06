@@ -29,10 +29,11 @@ import bpy
 from mathutils import Vector
 
 
-DEFAULT_FLUID_COLOR = (0.1, 0.45, 0.95, 0.9)
-DEFAULT_BOUNDARY_COLOR = (0.52, 0.52, 0.5, 1.0)
-DEFAULT_ISO_COLOR = (0.18, 0.65, 0.95, 0.42)
-DEFAULT_BACKGROUND_COLOR = (0.03, 0.035, 0.04)
+DEFAULT_FLUID_COLOR = (0.18, 0.58, 0.95, 0.82)
+DEFAULT_BOUNDARY_COLOR = (0.72, 0.70, 0.66, 1.0)
+DEFAULT_ISO_COLOR = (0.36, 0.78, 1.0, 0.34)
+DEFAULT_BACKGROUND_COLOR = (0.018, 0.022, 0.028)
+DEFAULT_CAPTION = "DualSPHysics dam-break VTK fallback"
 
 
 @dataclass
@@ -188,13 +189,36 @@ def parse_legacy_vtk(path: Path) -> VtkPolyData:
     return poly
 
 
-def _make_material(name: str, color: tuple[float, float, float, float]) -> bpy.types.Material:
+def _set_socket(node: bpy.types.Node, names: tuple[str, ...], value: float) -> None:
+    for name in names:
+        if name in node.inputs:
+            node.inputs[name].default_value = value
+            return
+
+
+def _make_material(
+    name: str,
+    color: tuple[float, float, float, float],
+    *,
+    roughness: float = 0.45,
+    metallic: float = 0.0,
+    specular: float = 0.5,
+    transmission: float = 0.0,
+    ior: float = 1.333,
+) -> bpy.types.Material:
     material = bpy.data.materials.new(name)
     material.use_nodes = True
-    material.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = color
-    material.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.55
-    material.node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = color[3]
+    shader = material.node_tree.nodes["Principled BSDF"]
+    shader.inputs["Base Color"].default_value = color
+    shader.inputs["Alpha"].default_value = color[3]
+    _set_socket(shader, ("Roughness",), roughness)
+    _set_socket(shader, ("Metallic",), metallic)
+    _set_socket(shader, ("Specular IOR Level", "Specular"), specular)
+    _set_socket(shader, ("Transmission Weight", "Transmission"), transmission)
+    _set_socket(shader, ("IOR",), ior)
     material.blend_method = "BLEND"
+    material.use_screen_refraction = True
+    material.show_transparent_back = True
     return material
 
 
@@ -221,6 +245,16 @@ def _parse_color(value: str) -> tuple[float, float, float, float]:
     if len(channels) != 4 or any(channel < 0.0 or channel > 1.0 for channel in channels):
         raise argparse.ArgumentTypeError("color channels must be three or four values in 0..1")
     return tuple(channels)  # type: ignore[return-value]
+
+
+def _parse_vector3(value: str) -> tuple[float, float, float]:
+    try:
+        parts = [float(part) for part in value.split(",")]
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("vectors must be x,y,z") from exc
+    if len(parts) != 3:
+        raise argparse.ArgumentTypeError("vectors must contain exactly three values")
+    return tuple(parts)  # type: ignore[return-value]
 
 
 def _bounds(points: list[tuple[float, float, float]]) -> tuple[Vector, Vector]:
@@ -283,6 +317,8 @@ def _add_surface(
 ) -> bpy.types.Object:
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(points, [], faces)
+    for polygon in mesh.polygons:
+        polygon.use_smooth = True
     mesh.update()
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
@@ -290,10 +326,10 @@ def _add_surface(
     return obj
 
 
-def _add_label(text: str, location: tuple[float, float, float]) -> None:
+def _add_label(text: str, location: tuple[float, float, float], size: float) -> None:
     font_curve = bpy.data.curves.new("label", "FONT")
     font_curve.body = text
-    font_curve.size = 0.035
+    font_curve.size = size
     font_curve.align_x = "LEFT"
     obj = bpy.data.objects.new("label", font_curve)
     obj.location = location
@@ -314,18 +350,38 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--resolution", type=int, default=1200)
     parser.add_argument(
         "--camera-preset",
-        choices=("isometric", "front", "side", "top", "close"),
+        choices=("isometric", "front", "front-ortho", "side", "top", "close"),
         default="isometric",
     )
     parser.add_argument("--fluid-color", type=_parse_color, default=DEFAULT_FLUID_COLOR)
     parser.add_argument("--boundary-color", type=_parse_color, default=DEFAULT_BOUNDARY_COLOR)
     parser.add_argument("--iso-color", type=_parse_color, default=DEFAULT_ISO_COLOR)
     parser.add_argument("--background-color", type=_parse_color, default=DEFAULT_BACKGROUND_COLOR)
+    parser.add_argument("--hide-fluid", action="store_true")
     parser.add_argument("--hide-iso", action="store_true")
+    parser.add_argument(
+        "--style-preset",
+        choices=("standard", "polished"),
+        default="polished",
+        help="standard keeps a plain technical preview; polished adds glassier materials.",
+    )
+    parser.add_argument("--camera-lens", type=float, default=55.0)
+    parser.add_argument("--ortho-scale", type=float)
+    parser.add_argument("--light-energy", type=float, default=700.0)
+    parser.add_argument("--light-size", type=float, default=1.6)
+    parser.add_argument("--light-offset", type=_parse_vector3, default=(0.15, -1.25, 1.35))
+    parser.add_argument("--samples", type=int, default=64)
+    parser.add_argument("--ambient-occlusion", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--contact-shadows", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--caption", default=DEFAULT_CAPTION)
+    parser.add_argument("--caption-size", type=float, default=0.035)
+    parser.add_argument("--no-caption", action="store_true")
     return parser.parse_args(argv)
 
 
 def _camera_location(center: Vector, span: float, preset: str) -> tuple[float, float, float]:
+    if preset == "front-ortho":
+        return (center.x, center.y - span * 2.2, center.z)
     if preset == "front":
         return (center.x, center.y - span * 2.2, center.z + span * 0.2)
     if preset == "side":
@@ -363,9 +419,31 @@ def main() -> None:
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete()
 
-    fluid_mat = _make_material("fluid_water_blue", args.fluid_color)
-    boundary_mat = _make_material("boundary_neutral", args.boundary_color)
-    iso_mat = _make_material("surface_translucent", args.iso_color)
+    if args.style_preset == "polished":
+        fluid_mat = _make_material(
+            "fluid_water_blue",
+            args.fluid_color,
+            roughness=0.28,
+            specular=0.75,
+        )
+        boundary_mat = _make_material(
+            "boundary_warm_matte",
+            args.boundary_color,
+            roughness=0.68,
+            specular=0.25,
+        )
+        iso_mat = _make_material(
+            "surface_glassy_cyan",
+            args.iso_color,
+            roughness=0.08,
+            specular=0.9,
+            transmission=0.35,
+            ior=1.333,
+        )
+    else:
+        fluid_mat = _make_material("fluid_water_blue", args.fluid_color)
+        boundary_mat = _make_material("boundary_neutral", args.boundary_color)
+        iso_mat = _make_material("surface_translucent", args.iso_color)
 
     all_points = list(fluid.points)
     if boundary:
@@ -381,13 +459,14 @@ def main() -> None:
         surface = _add_surface("dambreak_isosurface", iso.points, iso.polygons, iso_mat)
         surface.show_transparent = True
 
-    _add_point_cloud(
-        "dambreak_fluid_points",
-        fluid.points,
-        fluid_mat,
-        args.fluid_stride,
-        radius,
-    )
+    if not args.hide_fluid:
+        _add_point_cloud(
+            "dambreak_fluid_points",
+            fluid.points,
+            fluid_mat,
+            args.fluid_stride,
+            radius,
+        )
     if boundary:
         _add_point_cloud(
             "dambreak_boundary_points",
@@ -397,23 +476,41 @@ def main() -> None:
             radius * 0.8,
         )
 
-    _add_label("DualSPHysics dam-break VTK fallback", (mins.x, mins.y - span * 0.08, maxs.z))
+    if not args.no_caption and args.caption:
+        _add_label(args.caption, (mins.x, mins.y - span * 0.08, maxs.z), args.caption_size)
 
-    bpy.ops.object.light_add(type="AREA", location=(center.x, center.y - span, center.z + span))
+    light_offset = Vector(args.light_offset) * span
+    bpy.ops.object.light_add(type="AREA", location=center + light_offset)
     light = bpy.context.object
     light.name = "large_softbox"
-    light.data.energy = 450
-    light.data.size = span * 1.2
+    light.data.energy = args.light_energy
+    light.data.size = span * args.light_size
+    if hasattr(light.data, "use_shadow"):
+        light.data.use_shadow = True
+    if args.contact_shadows and hasattr(light.data, "use_contact_shadow"):
+        light.data.use_contact_shadow = True
 
     bpy.ops.object.camera_add(location=_camera_location(center, span, args.camera_preset))
     camera = bpy.context.object
     direction = center - camera.location
     camera.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
-    camera.data.lens = 55
+    auto_ortho_scale = span * 1.15 if args.camera_preset == "front-ortho" else None
+    ortho_scale = args.ortho_scale or auto_ortho_scale
+    if ortho_scale:
+        camera.data.type = "ORTHO"
+        camera.data.ortho_scale = ortho_scale
+    else:
+        camera.data.lens = args.camera_lens
     bpy.context.scene.camera = camera
 
     bpy.context.scene.render.engine = "BLENDER_EEVEE_NEXT"
-    bpy.context.scene.eevee.taa_render_samples = 32
+    bpy.context.scene.eevee.taa_render_samples = args.samples
+    if args.ambient_occlusion and hasattr(bpy.context.scene.eevee, "use_gtao"):
+        bpy.context.scene.eevee.use_gtao = True
+        if hasattr(bpy.context.scene.eevee, "gtao_distance"):
+            bpy.context.scene.eevee.gtao_distance = span * 0.35
+        if hasattr(bpy.context.scene.eevee, "gtao_factor"):
+            bpy.context.scene.eevee.gtao_factor = 0.9
     bpy.context.scene.render.resolution_x = args.resolution
     bpy.context.scene.render.resolution_y = int(args.resolution * 0.7)
     bpy.context.scene.view_settings.view_transform = "Filmic"
@@ -421,9 +518,18 @@ def main() -> None:
     bpy.context.scene.world.color = args.background_color[:3]
 
     print(f"CAMERA_PRESET={args.camera_preset}")
+    print(f"STYLE_PRESET={args.style_preset}")
+    print(f"CAMERA_LENS={args.camera_lens}")
+    print(f"ORTHO_SCALE={ortho_scale}")
+    print(f"LIGHT_ENERGY={args.light_energy}")
+    print(f"LIGHT_SIZE={args.light_size}")
+    print(f"LIGHT_OFFSET={args.light_offset}")
+    print(f"AMBIENT_OCCLUSION={args.ambient_occlusion}")
+    print(f"CONTACT_SHADOWS={args.contact_shadows}")
     print(f"FLUID_STRIDE={args.fluid_stride}")
     print(f"BOUNDARY_STRIDE={args.boundary_stride}")
     print(f"MARKER_SCALE={args.marker_scale}")
+    print(f"FLUID_VISIBLE={not args.hide_fluid}")
     print(f"ISO_VISIBLE={bool(iso and iso.polygons and not args.hide_iso)}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
