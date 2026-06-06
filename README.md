@@ -17,8 +17,9 @@ Blender, VTK, CUDA, or generated simulation outputs.
 - NVIDIA driver: `595.71.05`
 - Active DualSPHysics CUDA toolkit: `/usr/local/cuda-12.8`
 - DualSPHysics GPU executable: validated
-- VisualSPHysics/Blender status: preflight blocked until Blender and VTK dev
-  requirements are available
+- VisualSPHysics/Blender status: portable Blender is available; VisualSPHysics
+  is held pending VTK compiled Python modules compatible with that Blender
+  runtime
 
 ## DualSPHysics CUDA 12.8 Wrapper
 
@@ -48,12 +49,36 @@ lighting, and short render clips. It is a visualization layer, not the solver.
 
 Current local status:
 
-- `blender` is not available in `PATH`.
+- Portable Blender wrapper: `/home/franco/bin/blender-portable`.
 - No VisualSPHysics add-on zip/source artifact is currently present locally.
-- VTK development headers/pkg-config metadata were not visible in the latest
-  preflight.
+- VTK development headers/pkg-config metadata were not visible in the initial
+  preflight, and the VisualSPHysics path remains held until VTK Python modules
+  are compiled/packaged for the portable Blender environment.
 - Headless validation should use isolated Blender config directories and
   `blender --background`.
+
+## Direct Blender VTK Fallback
+
+The fallback path bypasses VisualSPHysics and VTK Python bindings. It imports a
+small DualSPHysics legacy VTK subset directly in Blender using a narrow parser:
+
+```bash
+/home/franco/bin/blender-portable --background \
+  --python scripts/blender_import_legacy_vtk.py -- \
+  --fluid /path/to/dambreak2d_fluid_0100.vtk \
+  --boundary /path/to/dambreak2d_boundary_0100.vtk \
+  --iso /path/to/dambreak2d_iso_0100.vtk \
+  --output /tmp/dambreak2d_vtk_fallback_0100.png
+```
+
+The importer supports the subset produced by the local DualSPHysics VTK prep:
+legacy `POLYDATA`, ASCII or big-endian binary `POINTS`, triangular `POLYGONS`,
+and simple point `SCALARS`/`VECTORS`. It is a portfolio fallback for small stills,
+not a general VTK replacement.
+
+Preview from the validated fallback run:
+
+![DualSPHysics dam-break VTK fallback preview](assets/dambreak2d_vtk_fallback_0100.png)
 
 ## Reproducible Pipeline
 
@@ -69,11 +94,19 @@ DualSPHysics GPU run via CUDA 12.8 wrapper
         v
 Small VTK/output subset export
         |
-        v
-VisualSPHysics add-on in headless Blender
-        |
-        v
-Portfolio stills / clips / reproducible report
+        +-----------------------------+
+        |                             |
+        v                             v
+VisualSPHysics target path      Direct Blender fallback
+(held pending compatible        scripts/blender_import_legacy_vtk.py
+ VTK Python modules)            no VisualSPHysics, no VTK Python
+        |                             |
+        v                             v
+Portfolio stills / clips        Small still-image preview / .blend
+        \_____________________________/
+                      |
+                      v
+        Reproducible portfolio report
 ```
 
 ## Portfolio Narrative
@@ -87,6 +120,8 @@ The intended message is narrow and defensible:
 
 - DualSPHysics validates local CUDA/SPH capability.
 - VisualSPHysics/Blender provides presentation-quality visualization.
+- The direct Blender VTK importer keeps a usable fallback path while
+  VisualSPHysics waits on compatible VTK modules.
 - Large outputs stay outside Git and are regenerated from documented commands.
 
 ## Scripts
@@ -97,6 +132,8 @@ The intended message is narrow and defensible:
   a local output subset for visualization testing.
 - `scripts/blender_headless_smoke.py`: minimal Blender Python smoke script for
   isolated add-on install/enable checks.
+- `scripts/blender_import_legacy_vtk.py`: direct Blender fallback importer for
+  small legacy DualSPHysics VTK `POLYDATA` previews.
 
 ## Data Policy
 
@@ -111,4 +148,4 @@ Small summaries are kept in `reports/`. Full logs remain outside this repo:
 - `/home/franco/stack-validation/20260606-1952-dualsphysics-benchmark-rerun/report.md`
 - `/home/franco/stack-validation/20260606-2248-visualsphysics-preflight/report.md`
 - `/home/franco/stack-validation/20260606-2252-visualsphysics-headless-smoke/report.md`
-
+- `/home/franco/stack-validation/20260606-2311-blender-vtk-fallback/report.md`

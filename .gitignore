@@ -21,6 +21,7 @@
 *.tif
 *.tiff
 *.exr
+!assets/dambreak2d_vtk_fallback_0100.png
 
 # Binaries and archives
 *.so
