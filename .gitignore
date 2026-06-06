@@ -22,6 +22,7 @@
 *.tiff
 *.exr
 !assets/dambreak2d_vtk_fallback_0100.png
+!assets/dambreak_frontview_video_thumbnail.png
 
 # Binaries and archives
 *.so

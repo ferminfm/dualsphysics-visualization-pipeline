@@ -32,6 +32,26 @@ rebound/free-surface cavity that could be misread as a render defect.
 Caption: DualSPHysics dam-break validation rendered headlessly in Blender from
 prepared legacy VTK frames. Safe four-frame sequence, frames 0000-0150.
 
+## Video
+
+The front-view dam-break video is generated locally from the validated
+visualization pipeline and is intended for external hosting. The MP4 itself is
+not committed to this repository.
+
+![Front-view dam-break video thumbnail](assets/dambreak_frontview_video_thumbnail.png)
+
+Pipeline:
+
+```text
+DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
+```
+
+Future YouTube URL: `TBD`
+
+See `docs/video_publish_notes.md` for manual upload metadata, multilingual
+descriptions, tags, and checklist. This video is a small visualization-pipeline
+demo, not production CFD validation of dam-break physics.
+
 ## Validated Machine Summary
 
 - Host: `frontera`
