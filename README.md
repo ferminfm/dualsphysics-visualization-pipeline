@@ -13,6 +13,7 @@ Blender, VTK, CUDA, or generated simulation outputs.
   for compiled VTK Python modules inside the portable Blender runtime.
 - Blender fallback path: works headlessly with `scripts/blender_import_legacy_vtk.py`
   on the small legacy VTK subset prepared under `~/stack-validation/...`.
+- See `docs/visualsphysics_decision.md` for the VisualSPHysics build decision.
 
 ## Preview
 
