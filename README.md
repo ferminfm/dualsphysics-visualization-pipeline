@@ -23,6 +23,15 @@ validation artifacts stay outside Git.
 
 ![DualSPHysics dam-break VTK fallback preview](assets/dambreak2d_vtk_fallback_0100.png)
 
+The safe four-frame sequence below uses frames `0000`, `0050`, `0100`, and
+`0150`. Frame `0200` was excluded after QA because it showed a data-level late
+rebound/free-surface cavity that could be misread as a render defect.
+
+![DualSPHysics dam-break safe four-frame sequence](assets/dambreak2d_safe_sequence_0000_0050_0100_0150.png)
+
+Caption: DualSPHysics dam-break validation rendered headlessly in Blender from
+prepared legacy VTK frames. Safe four-frame sequence, frames 0000-0150.
+
 ## Validated Machine Summary
 
 - Host: `frontera`
