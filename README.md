@@ -7,6 +7,21 @@ is the planned Blender visualization layer for stills and animations.
 This repository intentionally does not vendor DualSPHysics, VisualSPHysics,
 Blender, VTK, CUDA, or generated simulation outputs.
 
+## Status
+
+- VisualSPHysics full add-on path: held pending VTK/Blender ABI compatibility
+  for compiled VTK Python modules inside the portable Blender runtime.
+- Blender fallback path: works headlessly with `scripts/blender_import_legacy_vtk.py`
+  on the small legacy VTK subset prepared under `~/stack-validation/...`.
+
+## Preview
+
+The committed preview below is a small still from the direct Blender fallback.
+It is intended for quick repository review only; source VTK files and full
+validation artifacts stay outside Git.
+
+![DualSPHysics dam-break VTK fallback preview](assets/dambreak2d_vtk_fallback_0100.png)
+
 ## Validated Machine Summary
 
 - Host: `frontera`
@@ -76,10 +91,6 @@ legacy `POLYDATA`, ASCII or big-endian binary `POINTS`, triangular `POLYGONS`,
 and simple point `SCALARS`/`VECTORS`. It is a portfolio fallback for small stills,
 not a general VTK replacement.
 
-Preview from the validated fallback run:
-
-![DualSPHysics dam-break VTK fallback preview](assets/dambreak2d_vtk_fallback_0100.png)
-
 ## Reproducible Pipeline
 
 ```text
@@ -134,6 +145,41 @@ The intended message is narrow and defensible:
   isolated add-on install/enable checks.
 - `scripts/blender_import_legacy_vtk.py`: direct Blender fallback importer for
   small legacy DualSPHysics VTK `POLYDATA` previews.
+
+## Run Instructions
+
+Run a small DualSPHysics smoke case with the CUDA 12.8 wrapper:
+
+```bash
+scripts/run_smoke_case.sh \
+  /home/franco/opt/dualsphysics/DualSPHysics-cuda128-20260606-0340-retry2/examples/main/01_DamBreak/CaseDambreakVal2D_Def.xml \
+  outputs/dambreak-smoke
+```
+
+Export a bounded VTK subset from an existing DualSPHysics VTK output directory:
+
+```bash
+MAX_FILES=15 MAX_BYTES=20000000 \
+  scripts/export_vtk_subset.sh \
+  /home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk \
+  outputs/vtk-subset
+```
+
+Render the direct Blender fallback preview headlessly:
+
+```bash
+VALID=/home/franco/stack-validation/20260606-2311-blender-vtk-fallback
+VTK=/home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk
+export BLENDER_USER_CONFIG="$VALID/blender-config"
+export BLENDER_USER_SCRIPTS="$VALID/blender-scripts"
+
+/home/franco/bin/blender-portable --background \
+  --python scripts/blender_import_legacy_vtk.py -- \
+  --fluid "$VTK/dambreak2d_fluid_0100.vtk" \
+  --boundary "$VTK/dambreak2d_boundary_0100.vtk" \
+  --iso "$VTK/dambreak2d_iso_0100.vtk" \
+  --output "$VALID/renders/dambreak2d_vtk_fallback_0100.png"
+```
 
 ## Data Policy
 
