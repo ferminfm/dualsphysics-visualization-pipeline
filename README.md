@@ -83,13 +83,29 @@ small DualSPHysics legacy VTK subset directly in Blender using a narrow parser:
   --fluid /path/to/dambreak2d_fluid_0100.vtk \
   --boundary /path/to/dambreak2d_boundary_0100.vtk \
   --iso /path/to/dambreak2d_iso_0100.vtk \
-  --output /tmp/dambreak2d_vtk_fallback_0100.png
+  --output /tmp/dambreak2d_vtk_fallback_0100.png \
+  --camera-preset isometric \
+  --fluid-stride 2 \
+  --boundary-stride 1 \
+  --marker-scale 1.0 \
+  --resolution 1200
 ```
 
 The importer supports the subset produced by the local DualSPHysics VTK prep:
 legacy `POLYDATA`, ASCII or big-endian binary `POINTS`, triangular `POLYGONS`,
 and simple point `SCALARS`/`VECTORS`. It is a portfolio fallback for small stills,
 not a general VTK replacement.
+
+Renderer controls:
+
+- `--camera-preset`: `isometric`, `front`, `side`, `top`, or `close`.
+- `--fluid-stride` / `--boundary-stride`: downsample point markers for lighter
+  preview renders.
+- `--marker-scale`: multiply particle marker size.
+- `--fluid-color`, `--boundary-color`, `--iso-color`, `--background-color`:
+  accept `#RRGGBB[AA]` or `r,g,b[,a]` values.
+- `--resolution`: output width in pixels; height is set to 70% of width.
+- `--hide-iso`: render only fluid and boundary particle markers.
 
 ## Reproducible Pipeline
 
@@ -178,7 +194,15 @@ export BLENDER_USER_SCRIPTS="$VALID/blender-scripts"
   --fluid "$VTK/dambreak2d_fluid_0100.vtk" \
   --boundary "$VTK/dambreak2d_boundary_0100.vtk" \
   --iso "$VTK/dambreak2d_iso_0100.vtk" \
-  --output "$VALID/renders/dambreak2d_vtk_fallback_0100.png"
+  --output "$VALID/renders/dambreak2d_vtk_fallback_0100.png" \
+  --camera-preset isometric \
+  --fluid-stride 2 \
+  --boundary-stride 1 \
+  --marker-scale 1.0 \
+  --fluid-color '#1f8fffdd' \
+  --boundary-color '#8a8a86ff' \
+  --iso-color '#2fb6ff66' \
+  --resolution 1200
 ```
 
 ## Data Policy

@@ -29,6 +29,12 @@ import bpy
 from mathutils import Vector
 
 
+DEFAULT_FLUID_COLOR = (0.1, 0.45, 0.95, 0.9)
+DEFAULT_BOUNDARY_COLOR = (0.52, 0.52, 0.5, 1.0)
+DEFAULT_ISO_COLOR = (0.18, 0.65, 0.95, 0.42)
+DEFAULT_BACKGROUND_COLOR = (0.03, 0.035, 0.04)
+
+
 @dataclass
 class VtkPolyData:
     points: list[tuple[float, float, float]] = field(default_factory=list)
@@ -192,6 +198,31 @@ def _make_material(name: str, color: tuple[float, float, float, float]) -> bpy.t
     return material
 
 
+def _parse_color(value: str) -> tuple[float, float, float, float]:
+    """Parse '#RRGGBB[AA]' or comma-separated 0..1 RGBA values."""
+    if value.startswith("#"):
+        hex_value = value[1:]
+        if len(hex_value) not in {6, 8}:
+            raise argparse.ArgumentTypeError("hex colors must be #RRGGBB or #RRGGBBAA")
+        channels = [
+            int(hex_value[i : i + 2], 16) / 255.0
+            for i in range(0, len(hex_value), 2)
+        ]
+        if len(channels) == 3:
+            channels.append(1.0)
+        return tuple(channels)  # type: ignore[return-value]
+
+    try:
+        channels = [float(part) for part in value.split(",")]
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("colors must be #RRGGBB[AA] or r,g,b[,a]") from exc
+    if len(channels) == 3:
+        channels.append(1.0)
+    if len(channels) != 4 or any(channel < 0.0 or channel > 1.0 for channel in channels):
+        raise argparse.ArgumentTypeError("color channels must be three or four values in 0..1")
+    return tuple(channels)  # type: ignore[return-value]
+
+
 def _bounds(points: list[tuple[float, float, float]]) -> tuple[Vector, Vector]:
     mins = Vector((min(p[0] for p in points), min(p[1] for p in points), min(p[2] for p in points)))
     maxs = Vector((max(p[0] for p in points), max(p[1] for p in points), max(p[2] for p in points)))
@@ -279,8 +310,31 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--blend", type=Path)
     parser.add_argument("--fluid-stride", type=int, default=2)
     parser.add_argument("--boundary-stride", type=int, default=1)
+    parser.add_argument("--marker-scale", type=float, default=1.0)
     parser.add_argument("--resolution", type=int, default=1200)
+    parser.add_argument(
+        "--camera-preset",
+        choices=("isometric", "front", "side", "top", "close"),
+        default="isometric",
+    )
+    parser.add_argument("--fluid-color", type=_parse_color, default=DEFAULT_FLUID_COLOR)
+    parser.add_argument("--boundary-color", type=_parse_color, default=DEFAULT_BOUNDARY_COLOR)
+    parser.add_argument("--iso-color", type=_parse_color, default=DEFAULT_ISO_COLOR)
+    parser.add_argument("--background-color", type=_parse_color, default=DEFAULT_BACKGROUND_COLOR)
+    parser.add_argument("--hide-iso", action="store_true")
     return parser.parse_args(argv)
+
+
+def _camera_location(center: Vector, span: float, preset: str) -> tuple[float, float, float]:
+    if preset == "front":
+        return (center.x, center.y - span * 2.2, center.z + span * 0.2)
+    if preset == "side":
+        return (center.x + span * 2.0, center.y, center.z + span * 0.25)
+    if preset == "top":
+        return (center.x, center.y - span * 0.05, center.z + span * 2.4)
+    if preset == "close":
+        return (center.x + span * 0.55, center.y - span * 1.15, center.z + span * 0.5)
+    return (center.x + span * 0.9, center.y - span * 1.7, center.z + span * 0.65)
 
 
 def main() -> None:
@@ -309,9 +363,9 @@ def main() -> None:
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete()
 
-    fluid_mat = _make_material("fluid_water_blue", (0.1, 0.45, 0.95, 0.9))
-    boundary_mat = _make_material("boundary_neutral", (0.52, 0.52, 0.50, 1.0))
-    iso_mat = _make_material("surface_translucent", (0.18, 0.65, 0.95, 0.42))
+    fluid_mat = _make_material("fluid_water_blue", args.fluid_color)
+    boundary_mat = _make_material("boundary_neutral", args.boundary_color)
+    iso_mat = _make_material("surface_translucent", args.iso_color)
 
     all_points = list(fluid.points)
     if boundary:
@@ -321,9 +375,9 @@ def main() -> None:
     mins, maxs = _bounds(all_points)
     span = max(maxs.x - mins.x, maxs.y - mins.y, maxs.z - mins.z, 1e-6)
     center = (mins + maxs) * 0.5
-    radius = span * 0.006
+    radius = span * 0.006 * args.marker_scale
 
-    if iso and iso.polygons:
+    if iso and iso.polygons and not args.hide_iso:
         surface = _add_surface("dambreak_isosurface", iso.points, iso.polygons, iso_mat)
         surface.show_transparent = True
 
@@ -351,10 +405,7 @@ def main() -> None:
     light.data.energy = 450
     light.data.size = span * 1.2
 
-    bpy.ops.object.camera_add(
-        location=(center.x + span * 0.9, center.y - span * 1.7, center.z + span * 0.65),
-        rotation=(math.radians(64), 0, math.radians(28)),
-    )
+    bpy.ops.object.camera_add(location=_camera_location(center, span, args.camera_preset))
     camera = bpy.context.object
     direction = center - camera.location
     camera.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
@@ -367,7 +418,13 @@ def main() -> None:
     bpy.context.scene.render.resolution_y = int(args.resolution * 0.7)
     bpy.context.scene.view_settings.view_transform = "Filmic"
     bpy.context.scene.view_settings.look = "Medium High Contrast"
-    bpy.context.scene.world.color = (0.03, 0.035, 0.04)
+    bpy.context.scene.world.color = args.background_color[:3]
+
+    print(f"CAMERA_PRESET={args.camera_preset}")
+    print(f"FLUID_STRIDE={args.fluid_stride}")
+    print(f"BOUNDARY_STRIDE={args.boundary_stride}")
+    print(f"MARKER_SCALE={args.marker_scale}")
+    print(f"ISO_VISIBLE={bool(iso and iso.polygons and not args.hide_iso)}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.blend:
