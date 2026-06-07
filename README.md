@@ -1,56 +1,102 @@
-# DualSPHysics + VisualSPHysics Portfolio Pipeline
+# DualSPHysics CUDA To Headless Blender Visualization Pipeline
 
-Lightweight portfolio scaffold for a reproducible GPU SPH visualization pipeline:
-DualSPHysics produces free-surface/multiphase particle data, and VisualSPHysics
-is the planned Blender visualization layer for stills and animations.
+Reproducible DualSPHysics CUDA to headless Blender visualization pipeline for
+small free-surface SPH portfolio demos.
+
+The active local path is:
+
+```text
+DualSPHysics CUDA 12.8
+    -> VTK subset export
+    -> Python legacy VTK parser
+    -> portable Blender headless render
+    -> MP4
+```
 
 This repository intentionally does not vendor DualSPHysics, VisualSPHysics,
-Blender, VTK, CUDA, or generated simulation outputs.
+Blender, VTK, CUDA, generated simulation outputs, MP4 files, raw frames, `.blend`
+files, logs, or large render artifacts.
+
+## Public Position
+
+This is a visualization-pipeline demo, not production CFD validation. The
+dam-break case is a small portfolio preview used to show a reproducible
+GPU-to-render workflow. It should not be presented as atomization, spray, or
+production multiphase-physics validation.
 
 ## Status
 
-- VisualSPHysics full add-on path: held pending VTK/Blender ABI compatibility
-  for compiled VTK Python modules inside the portable Blender runtime.
-- Blender fallback path: works headlessly with `scripts/blender_import_legacy_vtk.py`
-  on the small legacy VTK subset prepared under `~/stack-validation/...`.
-- See `docs/visualsphysics_decision.md` for the VisualSPHysics build decision.
+- Active renderer: direct Blender VTK fallback using
+  `scripts/blender_import_legacy_vtk.py`.
+- Final video pipeline: committed source/docs; MP4 generated locally outside
+  Git.
+- VisualSPHysics: investigated, but full build is held for now because
+  `vtkimporter` and `diffuseparticles` require VTK development metadata and
+  Blender-compatible Python extension modules.
+- Portable Blender: used headlessly through `/home/franco/bin/blender-portable`.
+
+See:
+
+- `docs/visualsphysics_decision.md`
+- `docs/video_publish_notes.md`
 
 ## Preview
 
-The committed preview below is a small still from the direct Blender fallback.
-It is intended for quick repository review only; source VTK files and full
-validation artifacts stay outside Git.
+The committed still below is a small direct Blender VTK fallback preview. It is
+intended for quick repository review only; source VTK files and full validation
+artifacts stay outside Git.
 
 ![DualSPHysics dam-break VTK fallback preview](assets/dambreak2d_vtk_fallback_0100.png)
 
-The safe four-frame sequence below uses frames `0000`, `0050`, `0100`, and
+The safe four-frame contact sheet uses frames `0000`, `0050`, `0100`, and
 `0150`. Frame `0200` was excluded after QA because it showed a data-level late
 rebound/free-surface cavity that could be misread as a render defect.
 
 ![DualSPHysics dam-break safe four-frame sequence](assets/dambreak2d_safe_sequence_0000_0050_0100_0150.png)
 
-Caption: DualSPHysics dam-break validation rendered headlessly in Blender from
-prepared legacy VTK frames. Safe four-frame sequence, frames 0000-0150.
+Caption: DualSPHysics dam-break visualization-pipeline preview rendered
+headlessly in Blender from prepared legacy VTK frames. Safe four-frame sequence,
+frames `0000-0150`.
 
 ## Video
 
-The front-view dam-break video is generated locally from the validated
-visualization pipeline and is intended for external hosting. The MP4 itself is
-not committed to this repository.
+The front-view dam-break MP4 was generated locally and intentionally not
+committed:
+
+```text
+/home/franco/stack-validation/20260607-0219-dambreak-frontview-final-video/dambreak2d_frontview_final_0000_0150.mp4
+```
+
+Committed thumbnail:
 
 ![Front-view dam-break video thumbnail](assets/dambreak_frontview_video_thumbnail.png)
 
-Pipeline:
+Final video facts:
 
-```text
-DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
-```
+- Duration: about `22.7 s`
+- Resolution: `1280 x 720`
+- Codec/pixel format: H.264 / `yuv420p`
+- View: front orthographic
+- Title card: `6 s`
+- Closing card: `5 s`
+- Frame `0200`: excluded
+- Recommended manual hosting: upload as unlisted first
 
 Future YouTube URL: `TBD`
 
-See `docs/video_publish_notes.md` for manual upload metadata, multilingual
-descriptions, tags, and checklist. This video is a small visualization-pipeline
-demo, not production CFD validation of dam-break physics.
+## VisualSPHysics Decision
+
+VisualSPHysics was investigated as a Blender visualization layer. A disposable
+UI registration patch showed that its UI can register headlessly in Blender 4.5
+after guarded imports, but the real data path still depends on compiled modules:
+
+- `vtkimporter`
+- `diffuseparticles`
+
+Those modules require VTK development headers/CMake metadata and extension
+modules compatible with portable Blender's Python 3.11 ABI. The active
+reproducible path for this portfolio is therefore the direct Blender VTK
+fallback, not a full VisualSPHysics build.
 
 ## Validated Machine Summary
 
@@ -61,10 +107,7 @@ demo, not production CFD validation of dam-break physics.
 - GPU: NVIDIA GeForce RTX 5070 Laptop GPU, about 8 GB VRAM
 - NVIDIA driver: `595.71.05`
 - Active DualSPHysics CUDA toolkit: `/usr/local/cuda-12.8`
-- DualSPHysics GPU executable: validated
-- VisualSPHysics/Blender status: portable Blender is available; VisualSPHysics
-  is held pending VTK compiled Python modules compatible with that Blender
-  runtime
+- DualSPHysics GPU executable: validated for small local examples
 
 ## DualSPHysics CUDA 12.8 Wrapper
 
@@ -86,56 +129,134 @@ Safe usage pattern:
 /home/franco/bin/dualsphysics5.4-cuda128 -gpu CASE_INPUT OUTPUT_DIR
 ```
 
-## VisualSPHysics Role
+## Renderer Controls
 
-VisualSPHysics is intended to import DualSPHysics outputs into Blender for
-portfolio-grade visualization: water surfaces, particle effects, camera paths,
-lighting, and short render clips. It is a visualization layer, not the solver.
+`scripts/blender_import_legacy_vtk.py` imports a narrow legacy VTK `POLYDATA`
+subset directly inside Blender. It supports ASCII or big-endian binary `POINTS`,
+triangular `POLYGONS`, and simple point `SCALARS`/`VECTORS`.
 
-Current local status:
+Current render controls include:
 
-- Portable Blender wrapper: `/home/franco/bin/blender-portable`.
-- No VisualSPHysics add-on zip/source artifact is currently present locally.
-- VTK development headers/pkg-config metadata were not visible in the initial
-  preflight, and the VisualSPHysics path remains held until VTK Python modules
-  are compiled/packaged for the portable Blender environment.
-- Headless validation should use isolated Blender config directories and
-  `blender --background`.
+- Camera presets: `isometric`, `front`, `front-ortho`, `side`, `top`, `close`.
+- Orthographic control: `--ortho-scale`.
+- Camera lens control: `--camera-lens`.
+- Point visibility/downsampling: `--hide-fluid`, `--fluid-stride`,
+  `--boundary-stride`, `--marker-scale`.
+- Surface visibility: `--hide-iso`.
+- Style/material controls: `--style-preset`, `--fluid-color`,
+  `--boundary-color`, `--iso-color`, `--background-color`.
+- Light controls: `--light-energy`, `--light-size`, `--light-offset`.
+- Render quality controls: `--samples`, `--ambient-occlusion`,
+  `--no-ambient-occlusion`, `--contact-shadows`, `--no-contact-shadows`.
+- Caption controls: `--caption`, `--caption-size`, `--no-caption`.
+- Optional `.blend` output: `--blend`, kept outside Git.
 
-## Direct Blender VTK Fallback
+`scripts/assemble_dambreak_video.py` assembles already-rendered PNG frames into
+an MP4 and supports:
 
-The fallback path bypasses VisualSPHysics and VTK Python bindings. It imports a
-small DualSPHysics legacy VTK subset directly in Blender using a narrow parser:
+- title and subtitle text,
+- closing card text,
+- title/closing/simulation durations,
+- FPS and output size,
+- HUD text for frame/time, particle count, toolchain, and render path,
+- HUD timing and alpha controls: `--seconds-per-frame-index`, `--hud-alpha`,
+- card/HUD color controls: `--background`, `--foreground`, `--accent`,
+- optional QR placeholder controls: `--qr-placeholder`,
+  `--qr-placeholder-text`.
+
+## Commands
+
+### 1. Run A Small Smoke Case
 
 ```bash
-/home/franco/bin/blender-portable --background \
-  --python scripts/blender_import_legacy_vtk.py -- \
-  --fluid /path/to/dambreak2d_fluid_0100.vtk \
-  --boundary /path/to/dambreak2d_boundary_0100.vtk \
-  --iso /path/to/dambreak2d_iso_0100.vtk \
-  --output /tmp/dambreak2d_vtk_fallback_0100.png \
-  --camera-preset isometric \
-  --fluid-stride 2 \
-  --boundary-stride 1 \
-  --marker-scale 1.0 \
-  --resolution 1200
+scripts/run_smoke_case.sh \
+  /home/franco/opt/dualsphysics/DualSPHysics-cuda128-20260606-0340-retry2/examples/main/01_DamBreak/CaseDambreakVal2D_Def.xml \
+  outputs/dambreak-smoke
 ```
 
-The importer supports the subset produced by the local DualSPHysics VTK prep:
-legacy `POLYDATA`, ASCII or big-endian binary `POINTS`, triangular `POLYGONS`,
-and simple point `SCALARS`/`VECTORS`. It is a portfolio fallback for small stills,
-not a general VTK replacement.
+Generated case outputs should remain outside Git or in ignored local output
+directories.
 
-Renderer controls:
+### 2. Export A Small VTK Subset
 
-- `--camera-preset`: `isometric`, `front`, `side`, `top`, or `close`.
-- `--fluid-stride` / `--boundary-stride`: downsample point markers for lighter
-  preview renders.
-- `--marker-scale`: multiply particle marker size.
-- `--fluid-color`, `--boundary-color`, `--iso-color`, `--background-color`:
-  accept `#RRGGBB[AA]` or `r,g,b[,a]` values.
-- `--resolution`: output width in pixels; height is set to 70% of width.
-- `--hide-iso`: render only fluid and boundary particle markers.
+```bash
+MAX_FILES=15 MAX_BYTES=20000000 \
+  scripts/export_vtk_subset.sh \
+  /home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk \
+  outputs/vtk-subset
+```
+
+The export script copies only a bounded subset of `.vtk`, `.vtp`, or `.vtu`
+files. Raw VTK files are ignored and should not be committed.
+
+### 3. Render One Front-Orthographic Frame
+
+```bash
+VALID=/home/franco/stack-validation/YYYYMMDD-HHMM-single-frame-render
+VTK=/home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk
+mkdir -p "$VALID/renders" "$VALID/blender-config" "$VALID/blender-scripts"
+export BLENDER_USER_CONFIG="$VALID/blender-config"
+export BLENDER_USER_SCRIPTS="$VALID/blender-scripts"
+
+/home/franco/bin/blender-portable --background \
+  --python scripts/blender_import_legacy_vtk.py -- \
+  --fluid "$VTK/dambreak2d_fluid_0100.vtk" \
+  --boundary "$VTK/dambreak2d_boundary_0100.vtk" \
+  --iso "$VTK/dambreak2d_iso_0100.vtk" \
+  --output "$VALID/renders/dambreak2d_front_0100.png" \
+  --camera-preset front-ortho \
+  --ortho-scale 6.2 \
+  --fluid-stride 6 \
+  --boundary-stride 1 \
+  --marker-scale 0.22 \
+  --resolution 1280 \
+  --style-preset polished \
+  --light-energy 850 \
+  --light-size 1.8 \
+  --light-offset 0.0,-1.25,1.25 \
+  --fluid-color 0.18,0.58,0.95,0.16 \
+  --iso-color 0.36,0.78,1.0,0.48 \
+  --boundary-color 0.78,0.76,0.70,1.0 \
+  --ambient-occlusion \
+  --contact-shadows \
+  --no-caption
+```
+
+Use `--hide-fluid` for a cleaner iso-surface-only preview when particle markers
+are visually distracting.
+
+### 4. Assemble A Front-View MP4 From Rendered Frames
+
+This command expects PNG frames that have already been rendered outside Git.
+
+```bash
+VALID=/home/franco/stack-validation/YYYYMMDD-HHMM-dambreak-frontview-video
+
+python3 scripts/assemble_dambreak_video.py \
+  --input "$VALID/frames/raw/dambreak2d_front_0000.png" \
+  --input "$VALID/frames/raw/dambreak2d_front_0050.png" \
+  --input "$VALID/frames/raw/dambreak2d_front_0100.png" \
+  --input "$VALID/frames/raw/dambreak2d_front_0150.png" \
+  --frames-dir "$VALID/frames/final" \
+  --output "$VALID/dambreak2d_frontview_preview.mp4" \
+  --title "DualSPHysics To Headless Blender" \
+  --subtitle "Small dam-break visualization-pipeline demo, not production CFD validation" \
+  --closing-title "DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4" \
+  --closing-subtitle "Frames 0000-0150; frame 0200 excluded after QA" \
+  --title-duration 6 \
+  --closing-duration 5 \
+  --sim-frame-duration 1.0 \
+  --fps 24 \
+  --width 1280 \
+  --height 720 \
+  --particle-text "Particles: small prepared VTK subset" \
+  --platform-text "DualSPHysics CUDA 12.8 | RTX 5070 Laptop GPU" \
+  --render-text "Python legacy VTK parser | Headless Blender render"
+```
+
+For the final overnight video, 76 source frames from `0000-0150` step `2` were
+rendered front-orthographic and interpolated to 24 fps before HUD/card assembly.
+The MP4 stays under `~/stack-validation/...` and is not committed.
 
 ## Reproducible Pipeline
 
@@ -151,115 +272,38 @@ DualSPHysics GPU run via CUDA 12.8 wrapper
         v
 Small VTK/output subset export
         |
-        +-----------------------------+
-        |                             |
-        v                             v
-VisualSPHysics target path      Direct Blender fallback
-(held pending compatible        scripts/blender_import_legacy_vtk.py
- VTK Python modules)            no VisualSPHysics, no VTK Python
-        |                             |
-        v                             v
-Portfolio stills / clips        Small still-image preview / .blend
-        \_____________________________/
-                      |
-                      v
-        Reproducible portfolio report
+        v
+Python legacy VTK parser inside portable Blender
+        |
+        v
+Headless Blender PNG renders
+        |
+        v
+Python HUD/title/closing card assembly
+        |
+        v
+MP4 for manual external hosting
 ```
-
-## Portfolio Narrative
-
-This project demonstrates a local GPU-backed SPH workflow for free-surface and
-multiphase CFD visualization. The research angle is pressure-atomized turbulent
-liquid jet work; the portfolio angle is a reproducible path from validated GPU
-simulation to Blender-based visual communication.
-
-The intended message is narrow and defensible:
-
-- DualSPHysics validates local CUDA/SPH capability.
-- VisualSPHysics/Blender provides presentation-quality visualization.
-- The direct Blender VTK importer keeps a usable fallback path while
-  VisualSPHysics waits on compatible VTK modules.
-- Large outputs stay outside Git and are regenerated from documented commands.
 
 ## Scripts
 
-- `scripts/run_smoke_case.sh`: run or document a small DualSPHysics smoke case
-  through the CUDA 12.8 wrapper.
+- `scripts/run_smoke_case.sh`: run a small DualSPHysics smoke case through the
+  CUDA 12.8 wrapper.
 - `scripts/export_vtk_subset.sh`: copy a bounded number of small VTK files into
   a local output subset for visualization testing.
 - `scripts/blender_headless_smoke.py`: minimal Blender Python smoke script for
   isolated add-on install/enable checks.
 - `scripts/blender_import_legacy_vtk.py`: direct Blender fallback importer for
   small legacy DualSPHysics VTK `POLYDATA` previews.
-
-## Run Instructions
-
-Run a small DualSPHysics smoke case with the CUDA 12.8 wrapper:
-
-```bash
-scripts/run_smoke_case.sh \
-  /home/franco/opt/dualsphysics/DualSPHysics-cuda128-20260606-0340-retry2/examples/main/01_DamBreak/CaseDambreakVal2D_Def.xml \
-  outputs/dambreak-smoke
-```
-
-Export a bounded VTK subset from an existing DualSPHysics VTK output directory:
-
-```bash
-MAX_FILES=15 MAX_BYTES=20000000 \
-  scripts/export_vtk_subset.sh \
-  /home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk \
-  outputs/vtk-subset
-```
-
-Render the direct Blender fallback preview headlessly:
-
-```bash
-VALID=/home/franco/stack-validation/20260606-2311-blender-vtk-fallback
-VTK=/home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk
-export BLENDER_USER_CONFIG="$VALID/blender-config"
-export BLENDER_USER_SCRIPTS="$VALID/blender-scripts"
-
-/home/franco/bin/blender-portable --background \
-  --python scripts/blender_import_legacy_vtk.py -- \
-  --fluid "$VTK/dambreak2d_fluid_0100.vtk" \
-  --boundary "$VTK/dambreak2d_boundary_0100.vtk" \
-  --iso "$VTK/dambreak2d_iso_0100.vtk" \
-  --output "$VALID/renders/dambreak2d_vtk_fallback_0100.png" \
-  --camera-preset isometric \
-  --fluid-stride 2 \
-  --boundary-stride 1 \
-  --marker-scale 1.0 \
-  --fluid-color '#1f8fffdd' \
-  --boundary-color '#8a8a86ff' \
-  --iso-color '#2fb6ff66' \
-  --resolution 1200
-```
-
-Assemble rendered PNG frames into a small MP4 with technical HUD overlays and
-configurable title/closing cards:
-
-```bash
-VALID=/home/franco/stack-validation/YYYYMMDD-HHMM-dambreak-hud-card-test
-python3 scripts/assemble_dambreak_video.py \
-  --input "$VALID/frames/raw/dambreak2d_safe_0000.png" \
-  --input "$VALID/frames/raw/dambreak2d_safe_0050.png" \
-  --input "$VALID/frames/raw/dambreak2d_safe_0100.png" \
-  --input "$VALID/frames/raw/dambreak2d_safe_0150.png" \
-  --frames-dir "$VALID/frames/video" \
-  --output "$VALID/dambreak2d_hud_preview.mp4"
-```
-
-The video assembler defaults to a `6` second title card and a `5` second
-closing card. HUD overlays include frame/time information, approximate rendered
-fluid particle count, CUDA/GPU context, and the headless Blender VTK render path.
-QR-code placeholder support exists behind `--qr-placeholder` and is disabled by
-default.
+- `scripts/assemble_dambreak_video.py`: assemble rendered PNG frames into a
+  title/HUD/closing-card MP4.
 
 ## Data Policy
 
-Do not commit generated datasets above 20 MB. Large VTK/CSV/log/video/render
-artifacts are ignored by `.gitignore` and should remain under
-`~/stack-validation/...` or another documented external output directory.
+Do not commit generated datasets above 20 MB. Large VTK, CSV, logs, MP4, render
+frames, `.blend` files, and simulation outputs are ignored by `.gitignore` and
+should remain under `~/stack-validation/...` or another documented external
+output directory.
 
 ## Current External Reports
 
@@ -269,3 +313,4 @@ Small summaries are kept in `reports/`. Full logs remain outside this repo:
 - `/home/franco/stack-validation/20260606-2248-visualsphysics-preflight/report.md`
 - `/home/franco/stack-validation/20260606-2252-visualsphysics-headless-smoke/report.md`
 - `/home/franco/stack-validation/20260606-2311-blender-vtk-fallback/report.md`
+- `/home/franco/stack-validation/20260607-0219-dambreak-frontview-final-video/report.md`

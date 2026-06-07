@@ -1,7 +1,7 @@
 # VisualSPHysics Build Decision
 
-This repository uses the direct Blender VTK fallback as the active visualization
-path instead of pursuing a full VisualSPHysics build now.
+This repository uses the direct Blender VTK fallback as the active
+visualization path instead of pursuing a full VisualSPHysics build now.
 
 ## Decision
 
@@ -18,6 +18,9 @@ diagnostic. After guarding the top-level `vtkimporter` and `diffuseparticles`
 imports in a disposable copy, portable Blender imported, registered, and
 unregistered the VisualSPHysics UI classes headlessly with no Blender API
 traceback.
+
+That diagnostic only proved that the UI layer can be made to register. It did
+not prove the full data-import path, foam features, or compiled module path.
 
 The full VisualSPHysics path remains held because its real data import and foam
 features require compiled modules:
@@ -51,5 +54,5 @@ This is sufficient for the current portfolio goal:
 DualSPHysics GPU run -> prepared VTK subset -> portable Blender fallback render
 ```
 
-Generated VTK files, renders, `.blend` files, and logs remain outside Git unless
-they are deliberately small portfolio assets.
+Generated VTK files, renders, `.blend` files, MP4 files, raw frames, and logs
+remain outside Git unless they are deliberately small portfolio assets.

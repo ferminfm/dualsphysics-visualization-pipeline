@@ -13,6 +13,11 @@ in Git.
 - Committed thumbnail:
   `assets/dambreak_frontview_video_thumbnail.png`
 - Technical format: H.264, yuv420p, 1280 x 720, 24 fps, 22.708333 s
+- View/camera: front orthographic
+- Title card: 6 s
+- Closing card: 5 s
+- Frame policy: frames 0000-0150 only; frame 0200 excluded after QA
+- Upload policy: manual upload only; recommended first visibility is unlisted
 
 ## Titles
 
@@ -39,13 +44,13 @@ De DualSPHysics a Blender: visualizacion frontal de dam-break
 English:
 
 ```text
-Front-view dam-break visualization pipeline demo generated from a local
+Front-view dam-break visualization-pipeline demo generated from a local
 DualSPHysics CUDA run, converted to VTK, assembled with Python, rendered in
 headless Blender, and encoded as MP4.
 
-This is a small visualization-pipeline demonstration, not production CFD
-validation of dam-break physics. Frame 0200 was excluded after visual QA; the
-published sequence uses frames 0000-0150.
+This is a small visualization-pipeline demo, not production CFD validation.
+Frame 0200 was excluded after visual QA; the prepared sequence uses frames
+0000-0150.
 
 Pipeline: DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
 
@@ -59,9 +64,9 @@ Japanese:
 PythonでHUDとカードを追加し、ヘッドレスBlenderで可視化してMP4にした
 可視化パイプラインのデモです。
 
-これは可視化ワークフローのデモであり、ダムブレイク物理の本格的なCFD検証では
-ありません。視覚QAの結果、フレーム0200は除外し、公開用シーケンスは
-0000-0150の範囲を使用しています。
+これは可視化ワークフローのデモであり、本格的なCFD検証ではありません。
+視覚QAの結果、フレーム0200は除外し、準備したシーケンスは0000-0150の範囲を
+使用しています。
 
 パイプライン: DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
 
@@ -76,8 +81,8 @@ corrida local de DualSPHysics CUDA, convertida a VTK, ensamblada con Python,
 renderizada con Blender en modo headless y codificada como MP4.
 
 Este video es una demostracion pequena de la tuberia de visualizacion, no una
-validacion CFD de produccion de la fisica del dam-break. El frame 0200 fue
-excluido despues de QA visual; la secuencia publicada usa frames 0000-0150.
+validacion CFD de produccion. El frame 0200 fue excluido despues de QA visual;
+la secuencia preparada usa frames 0000-0150.
 
 Pipeline: DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
 
@@ -97,6 +102,7 @@ scientific visualization, portfolio, fluid simulation
 - Rewatch the full MP4 locally before upload.
 - Confirm the title card remains readable on mobile-sized preview.
 - Confirm the HUD text is not too small after YouTube compression.
+- Confirm the front orthographic view is the intended final visual style.
 - Use the committed thumbnail:
   `assets/dambreak_frontview_video_thumbnail.png`.
 - Recommended visibility: upload as unlisted first.

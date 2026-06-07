@@ -17,9 +17,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-DEFAULT_TITLE = "DualSPHysics Dam-Break Validation"
+DEFAULT_TITLE = "DualSPHysics Dam-Break Visualization Pipeline"
 DEFAULT_SUBTITLE = "Headless Blender render from prepared legacy VTK frames"
-DEFAULT_CLOSING = "Validated local GPU SPH-to-Blender fallback pipeline"
+DEFAULT_CLOSING = "Reproducible local GPU SPH-to-Blender visualization pipeline"
 DEFAULT_TITLE_DURATION = 6.0
 DEFAULT_CLOSING_DURATION = 5.0
 DEFAULT_FPS = 2
