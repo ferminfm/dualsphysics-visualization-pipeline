@@ -85,6 +85,47 @@ z, time, frame, particle_or_cell_count, area_proxy, centroid_x, centroid_y,
 major_extent, minor_extent, aspect_ratio, orientation, quality_flags
 ```
 
+## Cross-Repo Data Contract
+
+The canonical stationary jet geometry metrics contract lives in the SprayGeo
+repo:
+
+```text
+spray-jet-geometry-reduced-model/docs/stationary_jet_geometry_contract.md
+```
+
+For this simulation/source repo, the responsibility is to generate or document
+source data and source metadata. It should not duplicate SprayGeo geometry
+extraction or Ideal Momentum Jet Explorer fitting.
+
+Future source outputs should be convertible to these fields before handoff:
+
+```text
+source_id, source_type, simulation_source, physical_validation,
+z, zeta, time, frame, post_transient, stationarity_window_id,
+area, area_proxy, Ahat, area_uncertainty, Ahat_error,
+centroid_x, centroid_y, aspect_ratio, orientation_rad,
+orientation_unwrapped_rad, particle_count, u_axial_mean, u_axial_std,
+mass_or_particle_flux_proxy, quality_flags, metadata
+```
+
+Division of labor:
+
+- DualSPHysics/Basilisk/OpenFOAM/literature source: generate data and report
+  solver/source provenance.
+- SprayGeo: extract cross-section geometry, filter post-transient rows, compute
+  uncertainty/spread, and export `zeta,Ahat,Ahat_error`.
+- Ideal Momentum Jet Explorer: import overlays, visualize the reduced model,
+  and run existing calibration/fitting tools.
+
+Required source caveats:
+
+- `physical_validation=false` unless a documented validation protocol exists.
+- `post_transient=true` only after a stated transient rejection rule.
+- `stationarity_window_id` only after a defined averaging window.
+- `area_proxy` instead of `area` when particle, 2D VOF, or line-sample geometry
+  is not a true 3D cross-section area.
+
 ## Fallback Route
 
 Fallback route: **recover official DualSPHysics inlet examples manually, then run
