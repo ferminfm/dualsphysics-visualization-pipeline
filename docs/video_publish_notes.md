@@ -6,10 +6,10 @@ in Git.
 
 ## Source Artifact
 
-- Local MP4:
-  `/home/franco/stack-validation/20260607-0219-dambreak-frontview-final-video/dambreak2d_frontview_final_0000_0150.mp4`
-- Local thumbnail:
-  `/home/franco/stack-validation/20260607-0219-dambreak-frontview-final-video/thumbs/dambreak2d_frontview_final_thumbnail.png`
+- Example local MP4 path, not committed and replace as needed:
+  `$HOME/stack-validation/20260607-0219-dambreak-frontview-final-video/dambreak2d_frontview_final_0000_0150.mp4`
+- Example local thumbnail path, not committed and replace as needed:
+  `$HOME/stack-validation/20260607-0219-dambreak-frontview-final-video/thumbs/dambreak2d_frontview_final_thumbnail.png`
 - Committed thumbnail:
   `assets/dambreak_frontview_video_thumbnail.png`
 - Technical format: H.264, yuv420p, 1280 x 720, 24 fps, 22.708333 s

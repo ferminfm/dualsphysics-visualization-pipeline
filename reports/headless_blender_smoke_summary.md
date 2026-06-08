@@ -1,7 +1,8 @@
 # Headless Blender Smoke Summary
 
 Source report:
-`/home/franco/stack-validation/20260606-2252-visualsphysics-headless-smoke/report.md`
+external generated-artifact report
+`20260606-2252-visualsphysics-headless-smoke/report.md`
 
 Summary:
 
@@ -14,4 +15,3 @@ Summary:
 
 Conclusion: install or unpack a user-space Blender binary first, then rerun the
 headless smoke using isolated `BLENDER_USER_CONFIG` and `BLENDER_USER_SCRIPTS`.
-

@@ -3,7 +3,7 @@
 Reproducible DualSPHysics CUDA to headless Blender visualization pipeline for
 small free-surface SPH portfolio demos.
 
-The active local path is:
+The active reproducible path is:
 
 ```text
 DualSPHysics CUDA 12.8
@@ -33,7 +33,8 @@ production multiphase-physics validation.
 - VisualSPHysics: investigated, but full build is held for now because
   `vtkimporter` and `diffuseparticles` require VTK development metadata and
   Blender-compatible Python extension modules.
-- Portable Blender: used headlessly through `/home/franco/bin/blender-portable`.
+- Portable Blender: used headlessly through a user-space wrapper such as
+  `$HOME/bin/blender-portable`.
 
 See:
 
@@ -61,10 +62,10 @@ frames `0000-0150`.
 ## Video
 
 The front-view dam-break MP4 was generated locally and intentionally not
-committed:
+committed. Example local artifact path, replace as needed:
 
 ```text
-/home/franco/stack-validation/20260607-0219-dambreak-frontview-final-video/dambreak2d_frontview_final_0000_0150.mp4
+$HOME/stack-validation/20260607-0219-dambreak-frontview-final-video/dambreak2d_frontview_final_0000_0150.mp4
 ```
 
 Committed thumbnail:
@@ -111,22 +112,22 @@ fallback, not a full VisualSPHysics build.
 
 ## DualSPHysics CUDA 12.8 Wrapper
 
-Canonical local wrapper:
+Canonical local wrapper pattern:
 
 ```bash
-/home/franco/bin/dualsphysics5.4-cuda128
+DUALSPHYSICS_WRAPPER=${DUALSPHYSICS_WRAPPER:-$HOME/bin/dualsphysics5.4-cuda128}
 ```
 
-Known target executable:
+Example local target executable, replace for your installation:
 
 ```bash
-/home/franco/opt/dualsphysics/DualSPHysics-cuda128-20260606-0340-retry2/bin/linux/DualSPHysics5.4_linux64
+$HOME/opt/dualsphysics/DualSPHysics-cuda128-YYYYMMDD/bin/linux/DualSPHysics5.4_linux64
 ```
 
 Safe usage pattern:
 
 ```bash
-/home/franco/bin/dualsphysics5.4-cuda128 -gpu CASE_INPUT OUTPUT_DIR
+"$DUALSPHYSICS_WRAPPER" -gpu CASE_INPUT OUTPUT_DIR
 ```
 
 ## Renderer Controls
@@ -169,8 +170,10 @@ an MP4 and supports:
 ### 1. Run A Small Smoke Case
 
 ```bash
+DUALSPHYSICS_CASE=${DUALSPHYSICS_CASE:-$HOME/opt/dualsphysics/DualSPHysics-cuda128-YYYYMMDD/examples/main/01_DamBreak/CaseDambreakVal2D_Def.xml}
+
 scripts/run_smoke_case.sh \
-  /home/franco/opt/dualsphysics/DualSPHysics-cuda128-20260606-0340-retry2/examples/main/01_DamBreak/CaseDambreakVal2D_Def.xml \
+  "$DUALSPHYSICS_CASE" \
   outputs/dambreak-smoke
 ```
 
@@ -180,9 +183,11 @@ directories.
 ### 2. Export A Small VTK Subset
 
 ```bash
+VTK_SOURCE=${VTK_SOURCE:-$HOME/stack-validation/YYYYMMDD-HHMM-dualsphysics-vtk-prep/vtk}
+
 MAX_FILES=15 MAX_BYTES=20000000 \
   scripts/export_vtk_subset.sh \
-  /home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk \
+  "$VTK_SOURCE" \
   outputs/vtk-subset
 ```
 
@@ -192,13 +197,14 @@ files. Raw VTK files are ignored and should not be committed.
 ### 3. Render One Front-Orthographic Frame
 
 ```bash
-VALID=/home/franco/stack-validation/YYYYMMDD-HHMM-single-frame-render
-VTK=/home/franco/stack-validation/20260606-2248-dualsphysics-vtk-prep/vtk
+VALID=${VALID:-$HOME/stack-validation/YYYYMMDD-HHMM-single-frame-render}
+VTK=${VTK:-$HOME/stack-validation/YYYYMMDD-HHMM-dualsphysics-vtk-prep/vtk}
+BLENDER=${BLENDER:-$HOME/bin/blender-portable}
 mkdir -p "$VALID/renders" "$VALID/blender-config" "$VALID/blender-scripts"
 export BLENDER_USER_CONFIG="$VALID/blender-config"
 export BLENDER_USER_SCRIPTS="$VALID/blender-scripts"
 
-/home/franco/bin/blender-portable --background \
+"$BLENDER" --background \
   --python scripts/blender_import_legacy_vtk.py -- \
   --fluid "$VTK/dambreak2d_fluid_0100.vtk" \
   --boundary "$VTK/dambreak2d_boundary_0100.vtk" \
@@ -230,7 +236,7 @@ are visually distracting.
 This command expects PNG frames that have already been rendered outside Git.
 
 ```bash
-VALID=/home/franco/stack-validation/YYYYMMDD-HHMM-dambreak-frontview-video
+VALID=${VALID:-$HOME/stack-validation/YYYYMMDD-HHMM-dambreak-frontview-video}
 
 python3 scripts/assemble_dambreak_video.py \
   --input "$VALID/frames/raw/dambreak2d_front_0000.png" \
@@ -256,7 +262,8 @@ python3 scripts/assemble_dambreak_video.py \
 
 For the final overnight video, 76 source frames from `0000-0150` step `2` were
 rendered front-orthographic and interpolated to 24 fps before HUD/card assembly.
-The MP4 stays under `~/stack-validation/...` and is not committed.
+The MP4 stays in a local generated-artifact directory outside Git and is not
+committed.
 
 ## Reproducible Pipeline
 
@@ -302,15 +309,16 @@ MP4 for manual external hosting
 
 Do not commit generated datasets above 20 MB. Large VTK, CSV, logs, MP4, render
 frames, `.blend` files, and simulation outputs are ignored by `.gitignore` and
-should remain under `~/stack-validation/...` or another documented external
-output directory.
+should remain under a local generated-artifact directory or another documented
+external output directory.
 
 ## Current External Reports
 
-Small summaries are kept in `reports/`. Full logs remain outside this repo:
+Small summaries are kept in `reports/`. Full logs remain outside this repo in
+local generated-artifact directories. Example report directory names:
 
-- `/home/franco/stack-validation/20260606-1952-dualsphysics-benchmark-rerun/report.md`
-- `/home/franco/stack-validation/20260606-2248-visualsphysics-preflight/report.md`
-- `/home/franco/stack-validation/20260606-2252-visualsphysics-headless-smoke/report.md`
-- `/home/franco/stack-validation/20260606-2311-blender-vtk-fallback/report.md`
-- `/home/franco/stack-validation/20260607-0219-dambreak-frontview-final-video/report.md`
+- `20260606-1952-dualsphysics-benchmark-rerun/report.md`
+- `20260606-2248-visualsphysics-preflight/report.md`
+- `20260606-2252-visualsphysics-headless-smoke/report.md`
+- `20260606-2311-blender-vtk-fallback/report.md`
+- `20260607-0219-dambreak-frontview-final-video/report.md`

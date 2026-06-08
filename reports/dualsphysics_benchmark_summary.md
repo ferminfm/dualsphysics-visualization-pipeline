@@ -1,12 +1,13 @@
 # DualSPHysics Benchmark Summary
 
 Source report:
-`/home/franco/stack-validation/20260606-1952-dualsphysics-benchmark-rerun/report.md`
+external generated-artifact report
+`20260606-1952-dualsphysics-benchmark-rerun/report.md`
 
 Summary:
 
 - Status: PASS
-- Wrapper: `/home/franco/bin/dualsphysics5.4-cuda128`
+- Wrapper: user-space DualSPHysics CUDA 12.8 wrapper
 - Case: `examples/main/01_DamBreak/CaseDambreak_Def.xml`
 - Particles: 171,496
 - Solver exit: 0
@@ -19,4 +20,3 @@ Summary:
 - Output size: 864M
 
 No large outputs are copied into this repository.
-

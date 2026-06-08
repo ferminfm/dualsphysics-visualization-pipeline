@@ -1,7 +1,8 @@
 # VisualSPHysics Preflight Summary
 
 Source report:
-`/home/franco/stack-validation/20260606-2248-visualsphysics-preflight/report.md`
+external generated-artifact report
+`20260606-2248-visualsphysics-preflight/report.md`
 
 Summary:
 
@@ -19,4 +20,3 @@ Summary:
 Conclusion: VisualSPHysics remains feasible as the Blender visualization layer,
 but local build/configuration is held until Blender and VTK development
 requirements are available.
-
