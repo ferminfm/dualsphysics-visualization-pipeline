@@ -40,6 +40,7 @@ See:
 
 - `docs/visualsphysics_decision.md`
 - `docs/video_publish_notes.md`
+- `docs/jet_workflow_feasibility_20260608.md`
 
 ## Preview
 
