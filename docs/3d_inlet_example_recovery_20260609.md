@@ -223,3 +223,30 @@ recover a complete case safely.
   setup.
 - Do not claim fully atomized or multiphase pressure-atomization behavior from
   the current main solver path.
+
+## Overnight Audit Refresh - 2026-06-09
+
+The local audit was repeated against the current filesystem before any smoke
+case was attempted.
+
+Additional evidence:
+
+- `/` still had about `13G` available, above the `5 GB` stop threshold.
+- All scoped repos were clean before edits.
+- Searches under `/home/franco/opt/dualsphysics` found only dam-break XML cases
+  plus XML-format templates, not the full-package inlet/open-boundary XML case
+  directories.
+- Searches under `/home/franco/stack-validation` and shallow archive searches
+  under `/home/franco` did not find recovered `05_SHAPESINLET3D`,
+  `06_BOX4INLET3D`, `8_IMPINGINGJET`, or a full DualSPHysics package archive.
+- Source/header searches still confirm inlet/open-boundary implementation
+  support, but not a safe runnable case definition.
+
+Decision: no DualSPHysics 3D inlet smoke run was safe in this pass. Running the
+dam-break case again would not advance statistically stationary jet/spray
+geometry generation and could blur the evidence boundary.
+
+Next recoverable checkpoint: obtain the official v5.4 full-package example
+directory outside Git, inspect `05_SHAPESINLET3D` XML first, then run only a
+bounded smoke case outside Git if the case is understandable without unknown XML
+assumptions.

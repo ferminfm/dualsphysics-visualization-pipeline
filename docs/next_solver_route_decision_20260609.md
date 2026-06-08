@@ -291,3 +291,18 @@ solver route, until calibrated final CSVs exist.
   droplet evidence, and resolution/threshold sensitivity.
 - Keep raw solver outputs outside Git.
 - Commit only scripts, docs, tiny fixtures, metrics summaries, and small plots.
+
+## Overnight Decision Refresh - 2026-06-09
+
+After the repeated local search, the route decision remains unchanged:
+
+1. DualSPHysics is useful but blocked until official 3D inlet examples are
+   recovered.
+2. Do not fabricate a stationary jet XML from `_FmtXML_InOut.xml` fragments.
+3. Use the SprayGeo stationary metrics contract as the handoff target.
+4. Prefer the already-demonstrated Basilisk/VOF adapter route for the next small
+   local data-generation step if no official DualSPHysics examples are
+   recovered.
+
+No simulation, OCR, package install, network download, or GPU-heavy job was run
+for this refresh.
