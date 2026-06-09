@@ -41,6 +41,40 @@ See:
 - `docs/visualsphysics_decision.md`
 - `docs/video_publish_notes.md`
 - `docs/jet_workflow_feasibility_20260608.md`
+- `docs/basilisk_jet_showcase.md`
+
+## 3D Jet/Spray Showcase Fallback
+
+The official DualSPHysics 3D inlet/open-boundary XML examples are documented
+locally but were not present in the current checkout, so this repo now includes
+a bounded Basilisk fallback for a solver-generated 3D VOF jet visualization
+smoke test.
+
+The fallback path is:
+
+```text
+Basilisk tiny 3D VOF smoke case
+    -> per-frame liquid/interface CSV
+    -> legacy VTK point clouds
+    -> preliminary slice geometry proxy metrics
+    -> headless Blender point-cloud render
+    -> MP4/contact sheet outside Git
+```
+
+Latest local smoke result:
+
+- Case: `cases/basilisk/tiny_atomisation3d_export.c`
+- Runner: `scripts/run_basilisk_jet_showcase.py`
+- Renderer: `scripts/blender_render_basilisk_showcase.py`
+- Frames: `5`
+- Raw VOF-cell rows: `1162`
+- Preliminary slice-metric rows: `25`
+- Render: `1280 x 720`, five-frame MP4 assembled outside Git
+- Caveat: solver-generated 3D VOF smoke/export case only; not validated
+  atomization, not production CFD, and not experimental agreement
+
+The current DualSPHysics route remains blocked until the official full-package
+3D inlet or impinging-jet XML examples are recovered and inspected.
 
 ## Preview
 
