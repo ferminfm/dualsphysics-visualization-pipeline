@@ -2,8 +2,9 @@
 """Run a tiny Basilisk 3D VOF jet smoke case and export visualization data.
 
 The generated CSV, VTK, logs, and metrics are intended to stay outside Git,
-typically under /tmp. The case is a solver-generated visualization/data-contract
-proof, not a validated atomization simulation.
+typically under /home/franco/stack-validation/YYYYMMDD-basilisk-jet-showcase.
+The case is a solver-generated visualization/data-contract proof, not a
+validated atomization simulation.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ import subprocess
 import sys
 import time
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 from typing import Iterable
 
@@ -24,12 +26,25 @@ from typing import Iterable
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CASE_SOURCE = REPO_ROOT / "cases" / "basilisk" / "tiny_atomisation3d_export.c"
 DEFAULT_QCC = Path("/home/franco/opt/basilisk-survey-20260606/basilisk/src/qcc")
+DEFAULT_OUTPUT_ROOT = Path("/home/franco/stack-validation")
+
+
+def default_work_dir() -> Path:
+    return DEFAULT_OUTPUT_ROOT / f"{date.today():%Y%m%d}-basilisk-jet-showcase"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--qcc", type=Path, default=DEFAULT_QCC)
-    parser.add_argument("--work-dir", type=Path, default=Path("/tmp/basilisk-jet-showcase"))
+    parser.add_argument(
+        "--work-dir",
+        type=Path,
+        default=default_work_dir(),
+        help=(
+            "Output directory for solver logs, CSV, VTK, metrics, and summaries. "
+            "Defaults to /home/franco/stack-validation/YYYYMMDD-basilisk-jet-showcase."
+        ),
+    )
     parser.add_argument("--maxlevel", type=int, default=5)
     parser.add_argument("--end-time", type=float, default=0.14)
     parser.add_argument("--output-interval", type=float, default=0.035)

@@ -66,6 +66,9 @@ Latest local smoke result:
 - Case: `cases/basilisk/tiny_atomisation3d_export.c`
 - Runner: `scripts/run_basilisk_jet_showcase.py`
 - Renderer: `scripts/blender_render_basilisk_showcase.py`
+- Stable convenience command: `scripts/run_basilisk_jet_showcase_stable.sh`
+- Output root pattern:
+  `/home/franco/stack-validation/YYYYMMDD-basilisk-jet-showcase`
 - Frames: `5`
 - Raw VOF-cell rows: `1162`
 - Preliminary slice-metric rows: `25`
