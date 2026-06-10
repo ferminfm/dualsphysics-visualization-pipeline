@@ -347,7 +347,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--fluid-stride", type=int, default=2)
     parser.add_argument("--boundary-stride", type=int, default=1)
     parser.add_argument("--marker-scale", type=float, default=1.0)
-    parser.add_argument("--resolution", type=int, default=1200)
+    parser.add_argument("--resolution", type=int, default=1280)
     parser.add_argument(
         "--camera-preset",
         choices=("isometric", "front", "front-ortho", "side", "top", "close"),
@@ -512,7 +512,7 @@ def main() -> None:
         if hasattr(bpy.context.scene.eevee, "gtao_factor"):
             bpy.context.scene.eevee.gtao_factor = 0.9
     bpy.context.scene.render.resolution_x = args.resolution
-    bpy.context.scene.render.resolution_y = int(args.resolution * 0.7)
+    bpy.context.scene.render.resolution_y = int(args.resolution * 0.5625)  # 16:9 for video (1280x720)
     bpy.context.scene.view_settings.view_transform = "Filmic"
     bpy.context.scene.view_settings.look = "Medium High Contrast"
     bpy.context.scene.world.color = args.background_color[:3]

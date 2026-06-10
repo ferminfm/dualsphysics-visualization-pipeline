@@ -105,3 +105,46 @@ See prior docs for exact Blender headless patterns used on dam-break VTKs and Ba
 - Official case: `examples/inletoutlet/05_ShapesInlet3D`
 - Script: `xCaseShapesInlet3D_linux64_GPU.sh`
 - Tools: GenCase_linux64, DualSPHysics5.4_linux64, PartVTK_linux64, PartVTKOut (via script)
+
+## Render Pipeline (Headless Blender VTK)
+
+After solver success, rendered the 101 PartFluid VTK point clouds to PNG frames + MP4/contact sheet using the repo's existing legacy VTK Blender pipeline.
+
+**Render output root (stable, outside Git):**
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-render`
+
+**Key artifacts:**
+- Frames (101): `frames/inlet3d_0000.png` ... `inlet3d_0100.png` (and internal frame_%04d copies from assembler)
+- MP4 ( ~11s @9fps, 1280x720, H.264 yuv420p ): `dualsphysics_official_inlet3d_showcase.mp4`
+- Contact sheet (3x3 key evolution): `inlet3d_official_contact_sheet.png`
+- Previews (every-10th): `previews/inlet3d_preview_*.png`
+- Logs + `artifact_manifest.txt`
+
+**Render commands / params (used):**
+- Preflight + inspect: `scripts/blender_import_legacy_vtk.py`, `assemble_dambreak_video.py`, `blender_render_basilisk_showcase.py` (reference), stable basilisk sh pattern.
+- Preview (11 frames): loop over 0000/0010/.../0100 with `--camera-preset isometric --marker-scale 3.0 --fluid-stride 4 --resolution 1280 --style-preset polished --samples 32 --caption "Official DualSPHysics 3D inlet example — visualization demo, not validation"`
+- Full (101 frames): same but `--fluid-stride 2 --samples 24 --marker-scale 2.5` (denser, 16:9 via patch to script default + y= *0.5625)
+- Patch: minimal edit to `scripts/blender_import_legacy_vtk.py` (default res 1280, 16:9 ratio) for video-ready output.
+- MP4 + titles/HUD: `python3 scripts/assemble_dambreak_video.py --frames-dir ... --fps 9 --width 1280 --height 720 ...` (custom title/subtitle/particle/platform text for inlet case)
+- Contact: PIL grid (3x3) from key frames 0000,0012,...,0100 (resized tiles)
+
+**Visual notes:**
+- Isometric oblique camera + faceted point markers (scale 2.5-3) produce legible 3D jet/lobe structures evolving over time (compact inlet → multi-finger spray-like).
+- Not sparse dots; chunky visible particle volumes.
+- Caption included on frames.
+- 1280x720 16:9, clean for portfolio.
+- Small file sizes due to EEVEE + low-motion encode; visually sufficient for demo.
+
+**Caveats (repeated):**
+This is official DualSPHysics solver-generated 3D inlet particle visualization preparation. Not production CFD, not validated atomization/spray, no experimental agreement. For public portfolio pipeline demo only. Heavy outputs (frames, MP4, contact, logs, .blend if any) stay outside Git under the stable render root.
+
+**Public preview candidate:** Yes — the MP4 + contact sheet + selected frames provide a credible first visual of the official 3D inlet case for the visualization portfolio. Update README if one-sentence link added.
+
+**Next:** Optional tighter camera crop, higher quality samples, or VisualSPHysics if built later; or Basilisk cross-comparison.
+
+## Verification (post-render)
+- git diff --check, py_compile scripts/*.py, bash -n scripts/*.sh (after patch)
+- ffprobe on MP4 (1280x720 h264 yuv420p confirmed)
+- artifact_manifest.txt (217 entries)
+- heavy scan (no new .mp4/.png etc committed to Git)
+- git status clean on main (docs + 1 small script patch only)
