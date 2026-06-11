@@ -186,6 +186,56 @@ visualization. Closer-to-photorealistic water would require surface
 reconstruction, a denser/spray-oriented simulation, or a solver output that
 provides a clean interface/mesh field.
 
+## Multiview Showcase v2
+
+Output root:
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-showcase-v2`
+
+This second polish pass supersedes the first branded preview as the recommended
+public review artifact. It still uses only the existing official
+`PartFluid_*.vtk` frames; DualSPHysics was not rerun.
+
+Changes from the first branded render:
+
+- Fixed camera bounds from `PartFluid_0100.vtk` to remove auto-follow /
+  auto-crop motion.
+- Three fixed camera views:
+  - View A: oblique hero angle.
+  - View B: side/profile angle.
+  - View C: top/plan view.
+- Dam-break-style dark title/section/outro cards with cyan accent color.
+- Intro card includes software, hardware, pipeline, case summary, and caveat.
+- Outro card includes frame count, final particle count, rendered views,
+  classification, and caveat.
+- Optional analysis segment uses VTK `Vel` FIELD data binned by velocity
+  magnitude. This is an analysis visualization cue, not a validation result.
+
+Artifacts:
+
+- Clean fixed-camera multiview animation:
+  `dualsphysics_shapesinlet3d_multiview_clean.mp4`
+- Branded multiview showcase:
+  `dualsphysics_shapesinlet3d_multiview_showcase.mp4`
+- Contact sheet:
+  `dualsphysics_shapesinlet3d_multiview_contact_sheet.png`
+- Handoff:
+  `CODEX_SHOWCASE_V2_REPORT.md`, `CODEX_SHOWCASE_V2_SUMMARY.json`
+
+Verification:
+
+- Clean multiview clip: 303 frames, 303 unique encoded frame hashes,
+  1280x720, H.264/yuv420p, 12 fps, 25.25 s.
+- Branded showcase: 489 frames, 1280x720, H.264/yuv420p, 12 fps,
+  40.75 s.
+- Analysis coloring: `Vel` FIELD data present in VTK and rendered as binned
+  velocity-magnitude colors for a short segment.
+
+Public-use classification: **public preview candidate**. The v2 clip is a
+stronger presentation artifact than the earlier single-view render, but it is
+still a solver-generated visualization demo, not fully atomized spray
+validation, statistically stationary spray validation, production CFD, or
+experimental agreement.
+
 **Visual notes:**
 - The original render used faceted point markers and an in-frame caption; it is
   useful as technical evidence but less polished.

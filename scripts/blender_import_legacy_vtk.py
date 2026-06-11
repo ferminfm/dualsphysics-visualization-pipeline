@@ -185,6 +185,27 @@ def parse_legacy_vtk(path: Path) -> VtkPolyData:
             poly.point_scalars[name] = [
                 tuple(values[i : i + 3]) for i in range(0, len(values), 3)
             ]
+        elif key == "FIELD":
+            arrays = int(parts[2]) if len(parts) > 2 else 0
+            for _ in range(arrays):
+                field_line, offset = _read_line(data, offset)
+                field_parts = field_line.split()
+                if len(field_parts) < 4:
+                    continue
+                name = field_parts[0]
+                components = int(field_parts[1])
+                tuples = int(field_parts[2])
+                dtype = field_parts[3]
+                values, offset = _read_numeric_block(
+                    data, offset, components * tuples, dtype, binary
+                )
+                if components == 1:
+                    poly.point_scalars[name] = values
+                else:
+                    poly.point_scalars[name] = [
+                        tuple(values[i : i + components])
+                        for i in range(0, len(values), components)
+                    ]
 
     return poly
 
@@ -356,6 +377,77 @@ def _add_point_cloud(
     return obj
 
 
+def _magnitude(value: float | int | tuple[float, ...]) -> float:
+    if isinstance(value, tuple):
+        return math.sqrt(sum(float(component) ** 2 for component in value))
+    return float(value)
+
+
+def _heat_color(t: float) -> tuple[float, float, float, float]:
+    stops = (
+        (0.06, 0.16, 0.55),
+        (0.00, 0.62, 0.95),
+        (0.55, 0.92, 0.55),
+        (1.00, 0.78, 0.18),
+        (0.95, 0.20, 0.12),
+    )
+    t = min(1.0, max(0.0, t))
+    scaled = t * (len(stops) - 1)
+    low = min(len(stops) - 2, int(math.floor(scaled)))
+    frac = scaled - low
+    color = tuple(
+        stops[low][i] * (1.0 - frac) + stops[low + 1][i] * frac
+        for i in range(3)
+    )
+    return (color[0], color[1], color[2], 0.96)
+
+
+def _add_colored_point_cloud(
+    points: list[tuple[float, float, float]],
+    values: list[float],
+    stride: int,
+    particle_radius: float,
+    marker_style: str,
+    bins: int,
+    value_min: float | None = None,
+    value_max: float | None = None,
+) -> tuple[float, float]:
+    sampled_points = points[:: max(1, stride)]
+    sampled_values = values[:: max(1, stride)]
+    if not sampled_points or not sampled_values:
+        raise SystemExit("ERROR: no sampled points available for color mapping")
+    vmin = min(sampled_values) if value_min is None else value_min
+    vmax = max(sampled_values) if value_max is None else value_max
+    if not math.isfinite(vmin) or not math.isfinite(vmax) or vmax <= vmin:
+        raise SystemExit("ERROR: invalid color mapping range")
+
+    bucket_count = max(2, bins)
+    buckets: list[list[tuple[float, float, float]]] = [[] for _ in range(bucket_count)]
+    for point, value in zip(sampled_points, sampled_values, strict=False):
+        normalized = (value - vmin) / (vmax - vmin)
+        index = min(bucket_count - 1, max(0, int(normalized * bucket_count)))
+        buckets[index].append(point)
+
+    for index, bucket in enumerate(buckets):
+        if not bucket:
+            continue
+        material = _make_material(
+            f"analysis_heat_bin_{index:02d}",
+            _heat_color(index / max(1, bucket_count - 1)),
+            roughness=0.22,
+            specular=0.68,
+        )
+        _add_point_cloud(
+            f"analysis_points_bin_{index:02d}",
+            bucket,
+            material,
+            1,
+            particle_radius,
+            marker_style,
+        )
+    return vmin, vmax
+
+
 def _add_surface(
     name: str,
     points: list[tuple[float, float, float]],
@@ -429,6 +521,15 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--caption", default=DEFAULT_CAPTION)
     parser.add_argument("--caption-size", type=float, default=0.035)
     parser.add_argument("--no-caption", action="store_true")
+    parser.add_argument(
+        "--camera-reference",
+        type=Path,
+        help="Optional VTK file used only for stable camera bounds and marker scale.",
+    )
+    parser.add_argument("--color-by", help="Point FIELD/SCALAR name to color by, e.g. Vel or Press.")
+    parser.add_argument("--color-bins", type=int, default=6)
+    parser.add_argument("--color-min", type=float)
+    parser.add_argument("--color-max", type=float)
     return parser.parse_args(argv)
 
 
@@ -456,6 +557,14 @@ def main() -> None:
     print(f"FLUID_VTK={args.fluid}")
     fluid = parse_legacy_vtk(args.fluid)
     print(f"FLUID_POINTS={len(fluid.points)}")
+
+    reference = None
+    if args.camera_reference:
+        if not args.camera_reference.exists():
+            raise SystemExit(f"ERROR: missing camera reference VTK: {args.camera_reference}")
+        print(f"CAMERA_REFERENCE_VTK={args.camera_reference}")
+        reference = parse_legacy_vtk(args.camera_reference)
+        print(f"CAMERA_REFERENCE_POINTS={len(reference.points)}")
 
     boundary = None
     if args.boundary:
@@ -498,12 +607,12 @@ def main() -> None:
         boundary_mat = _make_material("boundary_neutral", args.boundary_color)
         iso_mat = _make_material("surface_translucent", args.iso_color)
 
-    all_points = list(fluid.points)
-    if boundary:
-        all_points.extend(boundary.points)
-    if iso and iso.points:
-        all_points.extend(iso.points)
-    mins, maxs = _bounds(all_points)
+    bounds_points = list(reference.points) if reference else list(fluid.points)
+    if boundary and not reference:
+        bounds_points.extend(boundary.points)
+    if iso and iso.points and not reference:
+        bounds_points.extend(iso.points)
+    mins, maxs = _bounds(bounds_points)
     span = max(maxs.x - mins.x, maxs.y - mins.y, maxs.z - mins.z, 1e-6)
     center = (mins + maxs) * 0.5
     radius = span * 0.006 * args.marker_scale
@@ -512,7 +621,28 @@ def main() -> None:
         surface = _add_surface("dambreak_isosurface", iso.points, iso.polygons, iso_mat)
         surface.show_transparent = True
 
-    if not args.hide_fluid:
+    if not args.hide_fluid and args.color_by:
+        if args.color_by not in fluid.point_scalars:
+            available = ", ".join(sorted(fluid.point_scalars))
+            raise SystemExit(
+                f"ERROR: --color-by {args.color_by!r} not found. Available: {available}"
+            )
+        values = [_magnitude(value) for value in fluid.point_scalars[args.color_by]]
+        color_min, color_max = _add_colored_point_cloud(
+            fluid.points,
+            values,
+            args.fluid_stride,
+            radius,
+            args.marker_style,
+            args.color_bins,
+            args.color_min,
+            args.color_max,
+        )
+        print(f"COLOR_BY={args.color_by}")
+        print(f"COLOR_MIN={color_min}")
+        print(f"COLOR_MAX={color_max}")
+        print(f"COLOR_BINS={args.color_bins}")
+    elif not args.hide_fluid:
         _add_point_cloud(
             "dambreak_fluid_points",
             fluid.points,
