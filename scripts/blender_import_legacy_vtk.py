@@ -269,28 +269,72 @@ def _add_point_cloud(
     material: bpy.types.Material,
     stride: int,
     particle_radius: float,
+    marker_style: str,
 ) -> bpy.types.Object:
     sampled = points[:: max(1, stride)]
     verts: list[tuple[float, float, float]] = []
     faces: list[tuple[int, int, int]] = []
-    marker = [
-        (particle_radius, 0.0, 0.0),
-        (-particle_radius, 0.0, 0.0),
-        (0.0, particle_radius, 0.0),
-        (0.0, -particle_radius, 0.0),
-        (0.0, 0.0, particle_radius),
-        (0.0, 0.0, -particle_radius),
-    ]
-    marker_faces = [
-        (0, 2, 4),
-        (2, 1, 4),
-        (1, 3, 4),
-        (3, 0, 4),
-        (2, 0, 5),
-        (1, 2, 5),
-        (3, 1, 5),
-        (0, 3, 5),
-    ]
+    if marker_style == "icosahedron":
+        phi = (1.0 + math.sqrt(5.0)) / 2.0
+        raw_marker = [
+            (-1.0, phi, 0.0),
+            (1.0, phi, 0.0),
+            (-1.0, -phi, 0.0),
+            (1.0, -phi, 0.0),
+            (0.0, -1.0, phi),
+            (0.0, 1.0, phi),
+            (0.0, -1.0, -phi),
+            (0.0, 1.0, -phi),
+            (phi, 0.0, -1.0),
+            (phi, 0.0, 1.0),
+            (-phi, 0.0, -1.0),
+            (-phi, 0.0, 1.0),
+        ]
+        marker = [
+            tuple((Vector(point).normalized() * particle_radius))
+            for point in raw_marker
+        ]
+        marker_faces = [
+            (0, 11, 5),
+            (0, 5, 1),
+            (0, 1, 7),
+            (0, 7, 10),
+            (0, 10, 11),
+            (1, 5, 9),
+            (5, 11, 4),
+            (11, 10, 2),
+            (10, 7, 6),
+            (7, 1, 8),
+            (3, 9, 4),
+            (3, 4, 2),
+            (3, 2, 6),
+            (3, 6, 8),
+            (3, 8, 9),
+            (4, 9, 5),
+            (2, 4, 11),
+            (6, 2, 10),
+            (8, 6, 7),
+            (9, 8, 1),
+        ]
+    else:
+        marker = [
+            (particle_radius, 0.0, 0.0),
+            (-particle_radius, 0.0, 0.0),
+            (0.0, particle_radius, 0.0),
+            (0.0, -particle_radius, 0.0),
+            (0.0, 0.0, particle_radius),
+            (0.0, 0.0, -particle_radius),
+        ]
+        marker_faces = [
+            (0, 2, 4),
+            (2, 1, 4),
+            (1, 3, 4),
+            (3, 0, 4),
+            (2, 0, 5),
+            (1, 2, 5),
+            (3, 1, 5),
+            (0, 3, 5),
+        ]
     for point in sampled:
         base = len(verts)
         verts.extend(
@@ -300,6 +344,9 @@ def _add_point_cloud(
 
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(verts, [], faces)
+    if marker_style == "icosahedron":
+        for polygon in mesh.polygons:
+            polygon.use_smooth = True
     mesh.update()
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
@@ -347,6 +394,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--fluid-stride", type=int, default=2)
     parser.add_argument("--boundary-stride", type=int, default=1)
     parser.add_argument("--marker-scale", type=float, default=1.0)
+    parser.add_argument(
+        "--marker-style",
+        choices=("octahedron", "icosahedron"),
+        default="octahedron",
+        help="Particle marker mesh. Icosahedron is smoother but heavier.",
+    )
     parser.add_argument("--resolution", type=int, default=1280)
     parser.add_argument(
         "--camera-preset",
@@ -466,6 +519,7 @@ def main() -> None:
             fluid_mat,
             args.fluid_stride,
             radius,
+            args.marker_style,
         )
     if boundary:
         _add_point_cloud(
@@ -474,6 +528,7 @@ def main() -> None:
             boundary_mat,
             args.boundary_stride,
             radius * 0.8,
+            args.marker_style,
         )
 
     if not args.no_caption and args.caption:
@@ -529,6 +584,7 @@ def main() -> None:
     print(f"FLUID_STRIDE={args.fluid_stride}")
     print(f"BOUNDARY_STRIDE={args.boundary_stride}")
     print(f"MARKER_SCALE={args.marker_scale}")
+    print(f"MARKER_STYLE={args.marker_style}")
     print(f"FLUID_VISIBLE={not args.hide_fluid}")
     print(f"ISO_VISIBLE={bool(iso and iso.polygons and not args.hide_iso)}")
 

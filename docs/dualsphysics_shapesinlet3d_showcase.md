@@ -136,12 +136,65 @@ After solver success, rendered the 101 PartFluid VTK point clouds to PNG frames 
 **MP4 repair note (2026-06-11):**
 The first MP4 was diagnosed as an assembly issue, not a solver or Blender render failure. The true animation sequence `frames/inlet3d_*.png` contains 101 unique rendered frames. The generated `frames/frame_*.png` family used by the first assembly contained only three unique images because the assembly command effectively consumed too few source frames. `scripts/assemble_dambreak_video.py` now supports `--input-dir`, `--input-pattern`, `--input-glob`, and `--min-input-frames` so source frames are resolved deterministically inside Python rather than by fragile shell glob usage.
 
+## Branded Showcase Render
+
+Output root:
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-branded-render`
+
+This pass re-rendered the same 101 official `PartFluid_*.vtk` frames, with no
+solver rerun. It uses a cleaner camera/framing setup, no in-scene caption, a
+brighter cyan water material, and the new optional `--marker-style icosahedron`
+particle marker for a less faceted particle-cloud look.
+
+Branding is restricted to intro/outro cards so no text overlaps the active
+fluid view:
+
+- `Fermín Franco-Medrano, Ph.D.`
+- `Computational Scientist | UABC Ensenada Campus · IMI, Kyushu University`
+- `Official DualSPHysics 3D inlet example`
+- `GPU SPH visualization workflow — not validation`
+
+Artifacts:
+
+- Main branded MP4: `dualsphysics_shapesinlet3d_branded_showcase.mp4`
+- Clean no-text animation: `dualsphysics_shapesinlet3d_clean_animation.mp4`
+- Branded contact sheet: `dualsphysics_shapesinlet3d_branded_contact_sheet.png`
+- Diagnosis/report files: `visual_quality_diagnosis.md`, `CODEX_BRANDED_RENDER_REPORT.md`
+
+Render parameters:
+
+- `--marker-style icosahedron`
+- `--marker-scale 2.0`
+- `--fluid-stride 3`
+- `--camera-preset isometric`
+- `--camera-lens 70`
+- `--samples 96`
+- `--fluid-color "#42C7FFFF"`
+- `--background-color "#071018FF"`
+- `--no-caption`
+
+Verification:
+
+- Clean animation: 101 frames, 101 unique encoded frame hashes, 1280x720,
+  H.264/yuv420p, 12 fps, about 8.42 s.
+- Branded version: 137 frames including title/outro cards, 1280x720,
+  H.264/yuv420p, 12 fps, about 11.42 s.
+
+Public-use classification: **public preview candidate**. It is stronger and
+cleaner than the first technical render, but it is still a particle-cloud
+visualization. Closer-to-photorealistic water would require surface
+reconstruction, a denser/spray-oriented simulation, or a solver output that
+provides a clean interface/mesh field.
+
 **Visual notes:**
-- Isometric oblique camera + faceted point markers (scale 2.5-3) produce legible 3D jet/lobe structures evolving over time (compact inlet → multi-finger spray-like).
-- Not sparse dots; chunky visible particle volumes.
-- Caption included on frames.
-- 1280x720 16:9, clean for portfolio.
-- The repaired MP4 has a normal size for this frame sequence and verifies as 101 unique encoded frames.
+- The original render used faceted point markers and an in-frame caption; it is
+  useful as technical evidence but less polished.
+- The branded render uses smoother icosahedron markers and removes in-scene
+  captions, keeping title/identity text on intro/outro cards only.
+- Isometric oblique camera placement keeps the three inlet shapes readable while
+  showing downstream particle-cloud evolution.
+- 1280x720 16:9, H.264/yuv420p, clean for local portfolio review.
+- The repaired and branded MP4s verify as ordered, non-static sequences.
 
 **Caveats (repeated):**
 This is official DualSPHysics solver-generated 3D inlet particle visualization preparation. Not production CFD, not validated atomization/spray, no experimental agreement. For public portfolio pipeline demo only. Heavy outputs (frames, MP4, contact, logs, .blend if any) stay outside Git under the stable render root.

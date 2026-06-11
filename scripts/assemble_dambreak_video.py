@@ -318,6 +318,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--particle-text", default=DEFAULT_PARTICLE_TEXT)
     parser.add_argument("--platform-text", default=DEFAULT_PLATFORM_TEXT)
     parser.add_argument("--render-text", default=DEFAULT_RENDER_TEXT)
+    parser.add_argument(
+        "--no-hud",
+        action="store_true",
+        help="Do not draw the per-frame technical HUD on animation frames.",
+    )
     parser.add_argument("--seconds-per-frame-index", type=float)
     parser.add_argument("--hud-alpha", type=int, default=176)
     parser.add_argument("--background", type=_parse_color, default=(6, 11, 15))
@@ -368,7 +373,8 @@ def main() -> None:
     for input_path in source_frames:
         frame = SourceFrame(path=input_path, label=_frame_label(input_path))
         image = _fit_cover(Image.open(input_path), args.width, args.height)
-        image = _draw_hud(image, frame, args)
+        if not args.no_hud:
+            image = _draw_hud(image, frame, args)
         index = _save_repeated(image, args.frames_dir, index, sim_frames_each)
     index = _save_repeated(closing, args.frames_dir, index, closing_frames)
 
