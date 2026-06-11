@@ -17,7 +17,8 @@ in Git.
 - Title card: 6 s
 - Closing card: 5 s
 - Frame policy: frames 0000-0150 only; frame 0200 excluded after QA
-- Upload policy: manual upload only; recommended first visibility is unlisted
+- Upload policy: manual upload only; hosted copy:
+  `https://youtu.be/EDUGMpGn5MI`
 
 ## Titles
 
@@ -54,7 +55,7 @@ Frame 0200 was excluded after visual QA; the prepared sequence uses frames
 
 Pipeline: DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
 
-Future YouTube URL: TBD
+YouTube: https://youtu.be/EDUGMpGn5MI
 ```
 
 Japanese:
@@ -70,7 +71,7 @@ PythonでHUDとカードを追加し、ヘッドレスBlenderで可視化してM
 
 パイプライン: DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
 
-将来のYouTube URL: TBD
+YouTube: https://youtu.be/EDUGMpGn5MI
 ```
 
 Spanish:
@@ -86,7 +87,7 @@ la secuencia preparada usa frames 0000-0150.
 
 Pipeline: DualSPHysics CUDA -> VTK -> Python -> Headless Blender -> MP4
 
-URL futura de YouTube: TBD
+YouTube: https://youtu.be/EDUGMpGn5MI
 ```
 
 ## Tags
@@ -105,14 +106,13 @@ scientific visualization, portfolio, fluid simulation
 - Confirm the front orthographic view is the intended final visual style.
 - Use the committed thumbnail:
   `assets/dambreak_frontview_video_thumbnail.png`.
-- Recommended visibility: upload as unlisted first.
+- Hosted copy: `https://youtu.be/EDUGMpGn5MI`.
 - Add the caveat in the first paragraph of the description.
 - Verify frame 0200 is not referenced as included.
-- After review, replace the placeholder below with the final public or unlisted
-  URL.
+- Keep the large MP4 outside Git; this file records only the hosted URL.
 
-## Future YouTube URL
+## YouTube URL
 
 ```text
-TBD
+https://youtu.be/EDUGMpGn5MI
 ```

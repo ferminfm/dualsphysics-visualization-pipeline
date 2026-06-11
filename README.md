@@ -98,8 +98,14 @@ validation.
 **Accepted scientific-demonstration artifact:** The accepted v1 video stitches
 particle provenance, reconstructed free surface, and velocity-magnitude analysis
 views into one 34.75 s H.264 MP4. Large media are generated and hosted manually
-outside Git; the accepted local artifact set is under
+outside Git; the YouTube-hosted copy is linked below, and the accepted local
+artifact set is under
 `/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-accepted-v1`.
+
+Watch: [3D Inlet-Flow Scientific Demonstration](https://youtu.be/eMUbVgLRkHY)
+
+Caption: Visualization and post-processing demonstration; not physical
+validation.
 
 ## Preview
 
@@ -128,9 +134,9 @@ committed. Example local artifact path, replace as needed:
 $HOME/stack-validation/20260607-0219-dambreak-frontview-final-video/dambreak2d_frontview_final_0000_0150.mp4
 ```
 
-Committed thumbnail:
+Committed thumbnail and hosted video:
 
-![Front-view dam-break video thumbnail](assets/dambreak_frontview_video_thumbnail.png)
+[![Front-view dam-break video thumbnail](assets/dambreak_frontview_video_thumbnail.png)](https://youtu.be/EDUGMpGn5MI)
 
 Final video facts:
 
@@ -141,9 +147,10 @@ Final video facts:
 - Title card: `6 s`
 - Closing card: `5 s`
 - Frame `0200`: excluded
-- Recommended manual hosting: upload as unlisted first
+- Hosted manually outside Git: <https://youtu.be/EDUGMpGn5MI>
 
-Future YouTube URL: `TBD`
+Caption: GPU SPH to Blender workflow demonstration; not production CFD
+validation.
 
 ## VisualSPHysics Decision
 

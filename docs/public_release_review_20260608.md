@@ -38,14 +38,13 @@ external report names.
 ## Markdown And HTML Formatting Status
 
 - README command examples remain fenced and replaceable.
-- Video publishing notes keep `TBD` for the future YouTube URL.
+- Superseded after manual upload: video publishing notes now record the hosted
+  dam-break YouTube URL.
 - Image references point to committed thumbnail/preview assets.
 
 ## Remaining Manual Checks
 
-- Inspect the final MP4 locally before any YouTube upload.
-- Upload manually as unlisted first if chosen.
-- Add a YouTube URL only after upload.
+- Review the hosted video description and thumbnail after publication.
 - Review README rendering on GitHub before public push.
 
 ## Verdict

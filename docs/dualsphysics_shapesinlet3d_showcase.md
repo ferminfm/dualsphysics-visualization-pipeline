@@ -365,6 +365,8 @@ scientific-demonstration artifact set:
 
 - Primary video:
   `dualsphysics_shapesinlet3d_final_scientific_demo.mp4`
+- YouTube-hosted primary video:
+  `https://youtu.be/eMUbVgLRkHY`
 - Clean companion video:
   `dualsphysics_shapesinlet3d_final_clean.mp4`
 - Contact sheet:
@@ -382,6 +384,9 @@ scientific demonstration. It is not fully atomized spray validation, not
 statistically stationary spray validation, not production CFD, and not
 experimental agreement. Large media remain outside Git and should be hosted
 manually before website embedding.
+
+Suggested caption: Visualization and post-processing demonstration; not
+physical validation.
 
 ## Verification (post-render)
 - git diff --check, py_compile scripts/*.py, bash -n scripts/*.sh (after patch)

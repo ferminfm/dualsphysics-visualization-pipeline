@@ -17,6 +17,13 @@ put large MP4 files in Git.
 - Checksums:
   `SHA256SUMS.txt`
 
+## Hosted Video URLs
+
+- ShapesInlet3D scientific demonstration:
+  `https://youtu.be/eMUbVgLRkHY`
+- Dam-break visualization demo:
+  `https://youtu.be/EDUGMpGn5MI`
+
 ## Recommended Title
 
 ```text
@@ -56,16 +63,43 @@ Contact sheet for a DualSPHysics 3D inlet-flow demonstration showing intro card,
 Visualization and post-processing demonstration; not physical validation.
 ```
 
-## Hosting Placeholder
+## Video Hosting
 
 ```text
-Video hosting URL: TBD
-Preferred first visibility: unlisted/manual review
+ShapesInlet3D video URL: https://youtu.be/eMUbVgLRkHY
+Dam-break video URL: https://youtu.be/EDUGMpGn5MI
 ```
 
-Do not commit the MP4 directly to this repository. Host it manually through an
-external video platform or a release/media storage path chosen later, then add
-only the final public or unlisted URL to the README or website.
+Do not commit MP4 files directly to this repository. Keep using hosted video
+URLs or a separate media storage path, and commit only lightweight Markdown,
+metadata, or intentionally small poster images.
+
+## Dam-Break Video Metadata
+
+Recommended title:
+
+```text
+DualSPHysics Dam-Break Visualization
+```
+
+Short description:
+
+```text
+GPU SPH to Blender workflow demonstration using a small dam-break case, VTK
+export, headless Blender rendering, and ffmpeg assembly.
+```
+
+Suggested caption:
+
+```text
+GPU SPH to Blender workflow demonstration; not production CFD validation.
+```
+
+Thumbnail Markdown:
+
+```markdown
+[![Front-view dam-break video thumbnail](assets/dambreak_frontview_video_thumbnail.png)](https://youtu.be/EDUGMpGn5MI)
+```
 
 ## Vercel / GitHub Pages Integration Notes
 
