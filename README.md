@@ -39,9 +39,32 @@ production multiphase-physics validation.
 See:
 
 - `docs/visualsphysics_decision.md`
+- `docs/walkthrough_dualsphysics_to_blender.md`
+- `docs/troubleshooting.md`
+- `docs/cloud_extension_plan.md`
+- `docs/video_metadata.md`
 - `docs/video_publish_notes.md`
 - `docs/jet_workflow_feasibility_20260608.md`
 - `docs/basilisk_jet_showcase.md`
+
+## What Developers Can Learn
+
+- How to keep solver outputs, render frames, MP4s, logs, and manifests under
+  stable `$HOME/stack-validation/...` paths instead of transient `/tmp`
+  locations.
+- How to move from solver-generated data to public media:
+  DualSPHysics GPU output -> VTK/IsoSurface -> headless Blender -> ffmpeg.
+- How to document reproducible command patterns without committing large BI4,
+  VTK/VTP, frame, `.blend`, log, or MP4 artifacts.
+- Why particle rendering is useful for SPH provenance, while reconstructed
+  surface rendering can be clearer for water-like free-surface presentation.
+- How velocity-magnitude analysis views can add scientific context without
+  claiming physical validation.
+- How to debug common release blockers such as missing full-package examples,
+  executable permissions after ZIP extraction, lost `/tmp` artifacts, and
+  static/incorrect MP4 assembly.
+- How to describe future cloud extensions as roadmap work rather than deployed
+  Google Cloud, Gemini, or Vertex AI implementation.
 
 ## 3D Jet/Spray Showcase Fallback
 
