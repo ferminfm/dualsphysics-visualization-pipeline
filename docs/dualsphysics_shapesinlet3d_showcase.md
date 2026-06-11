@@ -114,8 +114,10 @@ After solver success, rendered the 101 PartFluid VTK point clouds to PNG frames 
 `/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-render`
 
 **Key artifacts:**
-- Frames (101): `frames/inlet3d_0000.png` ... `inlet3d_0100.png` (and internal frame_%04d copies from assembler)
-- MP4 ( ~11s @9fps, 1280x720, H.264 yuv420p ): `dualsphysics_official_inlet3d_showcase.mp4`
+- Frames (101): `frames/inlet3d_0000.png` ... `inlet3d_0100.png`
+- Repaired animation-only MP4 (~11.22s @9fps, 101 frames, 1280x720, H.264 yuv420p): `dualsphysics_official_inlet3d_showcase_fixed.mp4`
+- Repaired titled MP4 (~22.22s @9fps, 200 frames, 1280x720, H.264 yuv420p): `dualsphysics_official_inlet3d_showcase_fixed_titled_short.mp4`
+- Original MP4 with assembly issue, kept for provenance: `dualsphysics_official_inlet3d_showcase.mp4`
 - Contact sheet (3x3 key evolution): `inlet3d_official_contact_sheet.png`
 - Previews (every-10th): `previews/inlet3d_preview_*.png`
 - Logs + `artifact_manifest.txt`
@@ -125,15 +127,21 @@ After solver success, rendered the 101 PartFluid VTK point clouds to PNG frames 
 - Preview (11 frames): loop over 0000/0010/.../0100 with `--camera-preset isometric --marker-scale 3.0 --fluid-stride 4 --resolution 1280 --style-preset polished --samples 32 --caption "Official DualSPHysics 3D inlet example — visualization demo, not validation"`
 - Full (101 frames): same but `--fluid-stride 2 --samples 24 --marker-scale 2.5` (denser, 16:9 via patch to script default + y= *0.5625)
 - Patch: minimal edit to `scripts/blender_import_legacy_vtk.py` (default res 1280, 16:9 ratio) for video-ready output.
-- MP4 + titles/HUD: `python3 scripts/assemble_dambreak_video.py --frames-dir ... --fps 9 --width 1280 --height 720 ...` (custom title/subtitle/particle/platform text for inlet case)
+- MP4 repair: canonical sequence created from `frames/inlet3d_*.png` as `frames_canonical/frame_%05d.png`, then encoded with:
+  `ffmpeg -y -framerate 9 -i frames_canonical/frame_%05d.png -c:v libx264 -pix_fmt yuv420p dualsphysics_official_inlet3d_showcase_fixed.mp4`
+- MP4 + titles/HUD: use the safer deterministic input resolver:
+  `python3 scripts/assemble_dambreak_video.py --input-dir "$RENDER_ROOT/frames" --input-pattern 'inlet3d_*.png' --min-input-frames 101 --frames-dir "$RENDER_ROOT/frames_titled_fixed_short" --output "$RENDER_ROOT/dualsphysics_official_inlet3d_showcase_fixed_titled_short.mp4" --fps 9 --width 1280 --height 720 --sim-frame-duration 0.111111 ...`
 - Contact: PIL grid (3x3) from key frames 0000,0012,...,0100 (resized tiles)
+
+**MP4 repair note (2026-06-11):**
+The first MP4 was diagnosed as an assembly issue, not a solver or Blender render failure. The true animation sequence `frames/inlet3d_*.png` contains 101 unique rendered frames. The generated `frames/frame_*.png` family used by the first assembly contained only three unique images because the assembly command effectively consumed too few source frames. `scripts/assemble_dambreak_video.py` now supports `--input-dir`, `--input-pattern`, `--input-glob`, and `--min-input-frames` so source frames are resolved deterministically inside Python rather than by fragile shell glob usage.
 
 **Visual notes:**
 - Isometric oblique camera + faceted point markers (scale 2.5-3) produce legible 3D jet/lobe structures evolving over time (compact inlet → multi-finger spray-like).
 - Not sparse dots; chunky visible particle volumes.
 - Caption included on frames.
 - 1280x720 16:9, clean for portfolio.
-- Small file sizes due to EEVEE + low-motion encode; visually sufficient for demo.
+- The repaired MP4 has a normal size for this frame sequence and verifies as 101 unique encoded frames.
 
 **Caveats (repeated):**
 This is official DualSPHysics solver-generated 3D inlet particle visualization preparation. Not production CFD, not validated atomization/spray, no experimental agreement. For public portfolio pipeline demo only. Heavy outputs (frames, MP4, contact, logs, .blend if any) stay outside Git under the stable render root.

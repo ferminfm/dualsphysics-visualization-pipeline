@@ -8,6 +8,7 @@ VisualSPHysics, VTK Python modules, or GUI access.
 from __future__ import annotations
 
 import argparse
+import glob
 import re
 import shutil
 import subprocess
@@ -66,6 +67,50 @@ def _parse_color(value: str) -> tuple[int, int, int]:
 def _frame_label(path: Path) -> str:
     match = re.search(r"(\d{4})(?=\.[^.]+$)", path.name)
     return match.group(1) if match else path.stem
+
+
+def _natural_key(path: Path) -> tuple[object, ...]:
+    parts = re.split(r"(\d+)", path.name)
+    return tuple(int(part) if part.isdigit() else part for part in parts)
+
+
+def _resolve_inputs(args: argparse.Namespace) -> list[Path]:
+    inputs: list[Path] = []
+    if args.input:
+        inputs.extend(args.input)
+    if args.input_glob:
+        for pattern in args.input_glob:
+            matches = [Path(match) for match in glob.glob(pattern)]
+            if not matches:
+                raise SystemExit(f"ERROR: --input-glob matched no frames: {pattern}")
+            inputs.extend(matches)
+    if args.input_dir:
+        matches = sorted(args.input_dir.glob(args.input_pattern), key=_natural_key)
+        if not matches:
+            raise SystemExit(
+                f"ERROR: --input-dir/--input-pattern matched no frames: "
+                f"{args.input_dir}/{args.input_pattern}"
+            )
+        inputs.extend(matches)
+
+    if not inputs:
+        raise SystemExit("ERROR: provide --input, --input-glob, or --input-dir")
+
+    resolved = sorted({path.resolve() for path in inputs}, key=_natural_key)
+    for path in resolved:
+        if not path.exists():
+            raise SystemExit(f"ERROR: missing input frame: {path}")
+        if path.name.startswith("frame_") and path.parent == args.frames_dir.resolve():
+            raise SystemExit(
+                "ERROR: refusing to read frame_*.png from --frames-dir; "
+                "use a separate source sequence such as inlet3d_*.png"
+            )
+    if args.min_input_frames and len(resolved) < args.min_input_frames:
+        raise SystemExit(
+            f"ERROR: resolved only {len(resolved)} input frame(s); "
+            f"expected at least {args.min_input_frames}"
+        )
+    return resolved
 
 
 def _fit_cover(image: Image.Image, width: int, height: int) -> Image.Image:
@@ -244,7 +289,20 @@ def _write_video(frames_dir: Path, output: Path, fps: int) -> None:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=Path, action="append", required=True)
+    parser.add_argument("--input", type=Path, action="append")
+    parser.add_argument(
+        "--input-glob",
+        action="append",
+        help="Resolve one or more frame glob patterns inside Python, sorted naturally.",
+    )
+    parser.add_argument("--input-dir", type=Path, help="Directory containing source PNG frames.")
+    parser.add_argument("--input-pattern", default="*.png", help="Pattern used with --input-dir.")
+    parser.add_argument(
+        "--min-input-frames",
+        type=int,
+        default=1,
+        help="Fail if fewer source frames are resolved. Use >1 for animation assembly.",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--frames-dir", type=Path, required=True)
     parser.add_argument("--title", default=DEFAULT_TITLE)
@@ -272,11 +330,10 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = _parse_args()
-    for path in args.input:
-        if not path.exists():
-            raise SystemExit(f"ERROR: missing input frame: {path}")
     if args.fps <= 0:
         raise SystemExit("ERROR: --fps must be positive")
+
+    source_frames = _resolve_inputs(args)
 
     args.frames_dir.mkdir(parents=True, exist_ok=True)
     for stale in args.frames_dir.glob("frame_*.png"):
@@ -308,7 +365,7 @@ def main() -> None:
     )
 
     index = _save_repeated(title, args.frames_dir, 0, title_frames)
-    for input_path in args.input:
+    for input_path in source_frames:
         frame = SourceFrame(path=input_path, label=_frame_label(input_path))
         image = _fit_cover(Image.open(input_path), args.width, args.height)
         image = _draw_hud(image, frame, args)
