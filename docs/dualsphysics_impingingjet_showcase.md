@@ -2,6 +2,18 @@
 
 Date: 2026-06-12
 
+## Public Title And Caption
+
+Public title:
+
+**Official DualSPHysics 2D Impinging-Jet Visualization Demo**
+
+Short caption:
+
+Official DualSPHysics `08_ImpingingJet` / `CaseJet2D` rendered as a
+front-on reconstructed-surface, particle, impact-zoom, and scalar-analysis
+showcase. Visualization demo only: 2D single-phase, not validation.
+
 ## Case Classification
 
 This showcase uses the official DualSPHysics v5.4 example:
@@ -11,6 +23,16 @@ This showcase uses the official DualSPHysics v5.4 example:
 The case is classified as a 2D single-phase inlet/outlet impinging-jet demo. It
 is not a 3D atomized jet, liquid-gas spray breakup, statistically stationary
 spray simulation, or validation against experiment.
+
+Exact scientific caveats:
+
+- Not a 3D atomized jet.
+- Not a liquid-gas spray-breakup simulation.
+- Not a statistically stationary spray result.
+- Not production CFD.
+- Not experimental validation or experimental agreement.
+- Not a pressure-validation result; pressure appears only as a postprocessed
+  field in the reconstructed surface outputs described below.
 
 ## Source Outputs
 
@@ -54,6 +76,14 @@ The analysis video uses velocity magnitude and pressure from those
 postprocessed surface VTK files. Pressure is therefore a real exported
 postprocessing field from existing BI4 data, not a fabricated overlay.
 
+Pressure caveat:
+
+`Press` was absent from the original `PartFluid_*.vtk` files created by the
+official particle VTK export. It became available only after running the
+official `IsoSurface_linux64` postprocessor on the existing BI4 data. The
+analysis video labels and uses that reconstructed-surface `Press` field; it
+does not claim experimental pressure validation.
+
 ## Output Package
 
 Composite output root:
@@ -71,6 +101,33 @@ Deliverables:
 
 Visual-quality classification: public showcase candidate, with the explicit
 caveat that this is a visualization demo rather than validation.
+
+## Video Roles
+
+- Hero showcase: front-on reconstructed-surface view first, with public-safe
+  branding and a non-obstructive lower-third. This is the strongest visual lead.
+- Analysis clip: side-by-side scalar postprocessing panels for velocity
+  magnitude and reconstructed-surface pressure, with in-frame stats and a final
+  stats/caveat card.
+- Final composite: branded intro, hero reconstructed-surface section,
+  particle-view section, impact-region zoom, scalar-analysis section, and final
+  stats/caveat outro.
+- Clean animation: no-text front-view particle animation retained as a reusable
+  neutral visual asset.
+
+## Public Hosting
+
+Do not commit the MP4s, contact sheet, VTK/BI4 files, raw frames, logs, or
+`.blend` files to this repository.
+
+Recommended public hosting path:
+
+- Upload the final composite MP4 to YouTube, or attach it as a release asset.
+- Use the contact sheet or a still frame as a poster/card image only if hosted
+  outside Git or added later through an intentionally reviewed lightweight web
+  asset process.
+- Link to this repository documentation for provenance and caveats rather than
+  vendoring the heavy generated artifacts.
 
 ## Difference From ShapesInlet3D
 
