@@ -88,6 +88,13 @@ velocity-colored analysis segments. See
 `docs/dualsphysics_shapesinlet3d_showcase.md` for paths, params, repair notes,
 and caveats. All heavy artifacts remain outside Git.
 
+**Surface render update:** A follow-up pass used the official
+`IsoSurface_linux64` postprocessor on the existing `05_ShapesInlet3D` BI4
+outputs and rendered the reconstructed VTK surface in headless Blender. This
+surface version is smoother and more water-like than the raw particle-cloud
+view, but it is still a visualization workflow preview, not atomization or CFD
+validation.
+
 ## Preview
 
 The committed still below is a small direct Blender VTK fallback preview. It is

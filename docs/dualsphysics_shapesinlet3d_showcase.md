@@ -253,6 +253,62 @@ This is official DualSPHysics solver-generated 3D inlet particle visualization p
 
 **Next:** Optional tighter camera crop, higher quality samples, or VisualSPHysics if built later; or Basilisk cross-comparison.
 
+## Surface Render Pass
+
+Output root:
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-surface-render`
+
+This pass uses only the existing successful official `05_ShapesInlet3D` outputs.
+DualSPHysics was not rerun. The official `IsoSurface_linux64` postprocessor
+reads the existing `Part_*.bi4` files and writes legacy VTK polygon meshes,
+which are rendered by the same headless Blender fallback importer using
+`--iso` and `--hide-fluid`.
+
+Primary command:
+
+```bash
+python3 scripts/run_shapesinlet3d_surface_showcase.py \
+  --frames 20:100:4 \
+  --fps 3 \
+  --samples 48 \
+  --resolution 1280
+```
+
+Artifacts:
+
+- Clean surface animation:
+  `dualsphysics_shapesinlet3d_surface_clean.mp4`
+- Branded surface showcase:
+  `dualsphysics_shapesinlet3d_surface_showcase.mp4`
+- Surface contact sheet:
+  `dualsphysics_shapesinlet3d_surface_contact_sheet.png`
+- Generated surface VTK files:
+  `surface_vtk/Surface_0020.vtk` ... `Surface_0100.vtk`
+- Handoff:
+  `CODEX_SURFACE_RENDER_REPORT.md`, `CODEX_SURFACE_RENDER_SUMMARY.json`
+
+Verification:
+
+- IsoSurface frame subset: 21 frames (`0020, 0024, ..., 0100`)
+- Clean animation: 21 frames, 1280x720, H.264/yuv420p, 3 fps, 7.0 s
+- Branded showcase: 48 frames including title/outro, 1280x720,
+  H.264/yuv420p, 3 fps, 16.0 s
+
+Visual-quality verdict: **public preview candidate**. The surface render is
+more fluid-like than the particle-cloud render because it hides marker faceting
+and reconstructs continuous inlet columns and the downstream free surface. It
+still shows interpolation texture and sparse-data limitations, so the strongest
+public story remains a visualization workflow rather than physical validation.
+
+Recommended use:
+
+- Use the v2 multiview particle showcase when the goal is solver provenance and
+  raw SPH particle evolution.
+- Use the surface render when the goal is a smoother, more water-like portfolio
+  preview.
+- A final public video could combine both: raw particle view followed by
+  reconstructed surface view.
+
 ## Verification (post-render)
 - git diff --check, py_compile scripts/*.py, bash -n scripts/*.sh (after patch)
 - ffprobe on MP4 (1280x720 h264 yuv420p confirmed)
