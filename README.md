@@ -95,6 +95,12 @@ surface version is smoother and more water-like than the raw particle-cloud
 view, but it is still a visualization workflow preview, not atomization or CFD
 validation.
 
+**Final package:** The current best review artifact is a combined scientific
+demonstration video that stitches particle provenance, reconstructed free
+surface, and velocity-magnitude analysis views into one 34.75 s H.264 MP4. It
+is generated locally outside Git under
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-final-package`.
+
 ## Preview
 
 The committed still below is a small direct Blender VTK fallback preview. It is

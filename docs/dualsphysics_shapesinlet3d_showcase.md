@@ -309,6 +309,52 @@ Recommended use:
 - A final public video could combine both: raw particle view followed by
   reconstructed surface view.
 
+## Final Scientific-Demonstration Package
+
+Output root:
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-final-package`
+
+This package combines the strongest already-generated views into one polished
+scientific-demonstration video. It does not rerun the solver or regenerate
+Blender views. It uses:
+
+- raw particle provenance from the fixed-camera v2 particle render,
+- reconstructed free-surface frames from the IsoSurface render pass, and
+- velocity-magnitude analysis frames from existing VTK `Vel` field data.
+
+Primary command:
+
+```bash
+python3 scripts/build_shapesinlet3d_final_package.py
+```
+
+Artifacts:
+
+- Main final video:
+  `dualsphysics_shapesinlet3d_final_scientific_demo.mp4`
+- Clean companion video:
+  `dualsphysics_shapesinlet3d_final_clean.mp4`
+- Final contact sheet:
+  `dualsphysics_shapesinlet3d_final_contact_sheet.png`
+- Handoff:
+  `CODEX_FINAL_PACKAGE_REPORT.md`, `CODEX_FINAL_PACKAGE_SUMMARY.json`
+
+Verification:
+
+- Main final video: 417 frames, 1280x720, H.264/yuv420p, 12 fps,
+  34.75 s.
+- Clean companion video: 261 frames, 1280x720, H.264/yuv420p, 12 fps,
+  21.75 s.
+- Segment structure: intro card, raw particle provenance, reconstructed
+  surface, velocity-magnitude analysis, outro summary.
+
+Recommended public-use classification: **public showcase candidate after manual
+review**. It is the best single artifact for explaining the simulation-to-
+visualization workflow because it includes solver provenance, surface
+reconstruction, and analysis-oriented coloring. It remains a scientific
+demonstration and workflow artifact, not atomization validation, statistically
+stationary spray validation, production CFD, or experimental agreement.
+
 ## Verification (post-render)
 - git diff --check, py_compile scripts/*.py, bash -n scripts/*.sh (after patch)
 - ffprobe on MP4 (1280x720 h264 yuv420p confirmed)
