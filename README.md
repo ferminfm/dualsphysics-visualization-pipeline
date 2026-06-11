@@ -95,11 +95,11 @@ surface version is smoother and more water-like than the raw particle-cloud
 view, but it is still a visualization workflow preview, not atomization or CFD
 validation.
 
-**Final package:** The current best review artifact is a combined scientific
-demonstration video that stitches particle provenance, reconstructed free
-surface, and velocity-magnitude analysis views into one 34.75 s H.264 MP4. It
-is generated locally outside Git under
-`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-final-package`.
+**Accepted scientific-demonstration artifact:** The accepted v1 video stitches
+particle provenance, reconstructed free surface, and velocity-magnitude analysis
+views into one 34.75 s H.264 MP4. Large media are generated and hosted manually
+outside Git; the accepted local artifact set is under
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-accepted-v1`.
 
 ## Preview
 

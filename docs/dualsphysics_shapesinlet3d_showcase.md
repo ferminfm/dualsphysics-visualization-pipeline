@@ -355,6 +355,34 @@ reconstruction, and analysis-oriented coloring. It remains a scientific
 demonstration and workflow artifact, not atomization validation, statistically
 stationary spray validation, production CFD, or experimental agreement.
 
+## Accepted Artifact v1
+
+Accepted artifact root:
+`/home/franco/stack-validation/20260611-dualsphysics-shapesinlet3d-accepted-v1`
+
+The following files were manually reviewed and accepted as the v1 public
+scientific-demonstration artifact set:
+
+- Primary video:
+  `dualsphysics_shapesinlet3d_final_scientific_demo.mp4`
+- Clean companion video:
+  `dualsphysics_shapesinlet3d_final_clean.mp4`
+- Contact sheet:
+  `dualsphysics_shapesinlet3d_final_contact_sheet.png`
+- Checksums:
+  `SHA256SUMS.txt`
+- ffprobe summary:
+  `ffprobe_final_scientific_demo.txt`
+
+Recommended public use: **scientific demonstration of GPU SPH visualization and
+post-processing workflow**.
+
+Publication caveat: this is an official DualSPHysics 3D inlet/open-boundary
+scientific demonstration. It is not fully atomized spray validation, not
+statistically stationary spray validation, not production CFD, and not
+experimental agreement. Large media remain outside Git and should be hosted
+manually before website embedding.
+
 ## Verification (post-render)
 - git diff --check, py_compile scripts/*.py, bash -n scripts/*.sh (after patch)
 - ffprobe on MP4 (1280x720 h264 yuv420p confirmed)
