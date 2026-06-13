@@ -145,6 +145,12 @@ domain, `12 m/s` inlet speed, particle and IsoSurface post-processing,
 preliminary slice metrics, and a stitched particle/surface/velocity showcase
 video outside Git.
 
+Accepted v2 rebuild: `$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-v2`.
+This version uses a copied `v2` profile with one rectangular inlet, `15 m/s`
+velocity, `dp=0.025`, an open downstream boundary in the generated box, about
+`34.7` equivalent nozzle diameters of measured axial coverage, and accepted
+particle/surface/velocity render artifacts outside Git.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See

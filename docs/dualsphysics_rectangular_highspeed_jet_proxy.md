@@ -191,6 +191,127 @@ downstream boundary, so the render package emphasizes the pre-boundary
 development window and the result should still be read as a bounded jet-geometry
 proxy.
 
+## Accepted v2 Rebuild
+
+The v2 rebuild is the accepted review package for this rectangular proxy. It
+keeps the same scientific caveat, but fixes the main presentation failures of
+the first two attempts: weak downstream framing, coarse appearance, possible
+downstream wall interpretation, single-view presentation, and lack of a clear
+surface-centered render.
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v2
+```
+
+Final showcase root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v2/showcase
+```
+
+Key setup changes relative to the first upgraded run:
+
+- profile: `v2`
+- particle spacing: `dp = 0.025`
+- inlet speed: `15 m/s`
+- physical time: `0.70 s`
+- output interval: `0.025 s`
+- retained geometry: one rectangular inlet/nozzle only
+- generated tank boundary: `bottom | left | front | back`, leaving the
+  downstream/right side open in the copied case
+- larger generated box: about `x = -1.5` to `x = 26.0`
+- raised inlet near `z = 3.8` to delay immediate floor interaction
+- corrected temporal frame selection so late downstream-development frames are
+  included in render packages
+- accepted render package with particle provenance, surface-wide, surface-hero,
+  and velocity-front views
+
+Run command pattern:
+
+```bash
+python3 scripts/run_rectangular_highspeed_jet_proxy.py \
+  --output-root /home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v2/showcase \
+  --profile v2 \
+  --dp 0.025 \
+  --velocity 15 \
+  --time-max 0.70 \
+  --time-out 0.025 \
+  --solver-timeout 7200 \
+  --post-timeout 1800 \
+  --iso-timeout 1200 \
+  --render-timeout 1200 \
+  --max-render-frames 20 \
+  --stations 28 \
+  --min-particles-per-slice 20 \
+  --fps 8 \
+  --velocity-color-max 22 \
+  --v2-render-package \
+  --force
+```
+
+If the final solver outputs already exist and only the accepted render package
+should be regenerated:
+
+```bash
+python3 scripts/run_rectangular_highspeed_jet_proxy.py \
+  --output-root /home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v2/showcase \
+  --profile v2 \
+  --dp 0.025 \
+  --velocity 15 \
+  --time-max 0.70 \
+  --time-out 0.025 \
+  --max-render-frames 20 \
+  --stations 28 \
+  --min-particles-per-slice 20 \
+  --fps 8 \
+  --velocity-color-max 22 \
+  --v2-render-package \
+  --reuse-existing-run
+```
+
+Staged execution:
+
+| Stage | Purpose | Status | Notes |
+| --- | --- | --- | --- |
+| GenCase only | copied XML/domain sanity check | success | confirmed one inlet, open downstream boundary, and `15 m/s` inlet speed |
+| Smoke | low-cost solver stability | success | `dp = 0.035`, `0.18 s`, `0` excluded particles |
+| Medium | finer stability and axial-development check | success | `dp = 0.03`, `0.45 s`, about `22.8` equivalent nozzle diameters |
+| Showcase | accepted render/metrics package | success | `dp = 0.025`, `0.70 s`, PartVTK, IsoSurface, metrics, accepted render package |
+
+Final solver summary:
+
+- PART files: `29`
+- maximum simulation particles: `1,542,446`
+- exported fluid particles: up to `181,050`
+- excluded particles: `0`
+- solver runtime: about `181.85 s`
+- solver-reported GPU memory: about `339.93 MiB`
+
+Accepted v2 artifacts:
+
+- final stitched MP4:
+  `showcase/rectangular_jet_v2_accepted_scientific_demonstration.mp4`
+- particle provenance MP4:
+  `showcase/rectangular_jet_v2_accepted_particle_provenance_clean.mp4`
+- surface-wide MP4:
+  `showcase/rectangular_jet_v2_accepted_surface_wide_clean.mp4`
+- surface-hero MP4:
+  `showcase/rectangular_jet_v2_accepted_surface_hero_clean.mp4`
+- velocity post-processing MP4:
+  `showcase/rectangular_jet_v2_accepted_velocity_postprocess_clean.mp4`
+- curated multiview contact sheet:
+  `showcase/rectangular_jet_v2_accepted_multiview_contact_sheet.png`
+- metrics CSV:
+  `showcase/metrics/rectangular_highspeed_jet_slice_metrics.csv`
+- acceptance checklist:
+  `/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v2/acceptance_checklist.md`
+
+The accepted v2 output root is about `2.7G` on disk and is intentionally not
+tracked by Git. The final stitched accepted MP4 is H.264/yuv420p, `1280 x 720`,
+`8 fps`, `144` frames, and `18.0 s`.
+
 ## Metrics
 
 The script extracts preliminary particle-slice metrics from `PartFluid_*.vtk`.
@@ -228,6 +349,15 @@ Upgraded showcase metric result:
 - velocity fields: `u_axial_mean`, `u_axial_std`, `speed_mean`, and
   `speed_std` exported from the particle VTK vectors when available
 
+Accepted v2 metric result:
+
+- frames parsed: `29`
+- metric rows: `434`
+- particle count range per frame: `2,550` to `181,050`
+- axial coordinate range: about `-1.625` to `17.554`
+- axial coverage: about `34.7` equivalent nozzle diameters, using the
+  rectangular inlet area proxy `0.6 * 0.4`
+
 ## Visualization
 
 The runner renders a bounded subset of frames with the existing headless Blender
@@ -251,6 +381,13 @@ scientific-demonstration MP4 in the `showcase` directory. It combines a particle
 provenance segment, a reconstructed-surface hero segment, and a velocity-colored
 post-processing segment. This improves visual framing and data density compared
 with the first proxy, but the scientific caveat is unchanged.
+
+For the accepted v2 package, use the `rectangular_jet_v2_accepted_*` artifacts.
+The `v2` render path uses a curated contact sheet and fixed views for particle
+provenance, surface-wide, surface-hero, and velocity-front segments. The surface
+hero is the main visual reference. The velocity segment is useful as a
+post-processing view, but scalar contrast is limited because the coherent inlet
+stream remains near high speed.
 
 ## Limitations
 

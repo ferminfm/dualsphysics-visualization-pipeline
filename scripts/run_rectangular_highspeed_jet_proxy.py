@@ -52,6 +52,21 @@ UPGRADE_DEFAULTS = {
 }
 
 
+V2_DEFAULTS = {
+    "dp": 0.025,
+    "tank_point": (-1.5, -4.0, -4.5),
+    "tank_size": (27.5, 8.0, 10.0),
+    "tank_boxfill": "bottom | left | front | back",
+    "inlet_point": (-1.5, -0.3, 3.8),
+    "inlet_size": (0.0, 0.6, 0.4),
+    "pointmin": (-2.5, -4.5, -5.0),
+    "pointmax": (27.0, 4.5, 6.0),
+    "sim_posmin": (-2.2, -4.5, -4.9),
+    "sim_posmax": (26.5, 4.5, 5.9),
+    "freecentre": (10.0, 0.0, 0.4),
+}
+
+
 @dataclass(frozen=True)
 class Paths:
     repo_root: Path
@@ -178,6 +193,14 @@ def _set_vector_attrs(element: ET.Element, values: tuple[float, float, float]) -
         element.set(key, f"{value:g}")
 
 
+def _profile_defaults(profile: str) -> dict[str, object] | None:
+    if profile == "upgraded":
+        return UPGRADE_DEFAULTS
+    if profile == "v2":
+        return V2_DEFAULTS
+    return None
+
+
 def _copy_and_modify_case(
     paths: Paths,
     velocity: float,
@@ -204,18 +227,18 @@ def _copy_and_modify_case(
     tree = ET.parse(base_xml)
     root = tree.getroot()
 
-    upgraded = profile == "upgraded"
-    if upgraded:
+    profile_defaults = _profile_defaults(profile)
+    if profile_defaults:
         definition = root.find("./casedef/geometry/definition")
         if definition is None:
             raise SystemExit("ERROR: missing geometry/definition in Box4Inlet3D XML")
-        definition.set("dp", f"{(dp or UPGRADE_DEFAULTS['dp']):g}")
+        definition.set("dp", f"{(dp or profile_defaults['dp']):g}")
         pointmin = definition.find("pointmin")
         pointmax = definition.find("pointmax")
         if pointmin is None or pointmax is None:
             raise SystemExit("ERROR: missing pointmin/pointmax in geometry/definition")
-        _set_vector_attrs(pointmin, UPGRADE_DEFAULTS["pointmin"])
-        _set_vector_attrs(pointmax, UPGRADE_DEFAULTS["pointmax"])
+        _set_vector_attrs(pointmin, profile_defaults["pointmin"])  # type: ignore[arg-type]
+        _set_vector_attrs(pointmax, profile_defaults["pointmax"])  # type: ignore[arg-type]
 
         for tag, attrs in [
             ("gravity", (0.0, 0.0, -9.81)),
@@ -244,7 +267,7 @@ def _copy_and_modify_case(
             skip_next_drawbox = False
             if child.tag == "drawbox":
                 continue
-        if upgraded and child.tag == "setmkvoid":
+        if profile_defaults and child.tag == "setmkvoid":
             skip_next_drawbox = True
             continue
         if child.tag == "setmkfluid" and child.attrib.get("mk") in {"1", "2", "3"}:
@@ -253,7 +276,7 @@ def _copy_and_modify_case(
         keep.append(child)
     mainlist[:] = keep
 
-    if upgraded:
+    if profile_defaults:
         drawboxes = mainlist.findall("drawbox")
         if len(drawboxes) < 2:
             raise SystemExit("ERROR: upgraded profile expected tank and inlet drawbox")
@@ -262,18 +285,18 @@ def _copy_and_modify_case(
         tank_point = tank.find("point")
         tank_size = tank.find("size")
         if tank_boxfill is not None:
-            tank_boxfill.text = "all^top"
+            tank_boxfill.text = str(profile_defaults.get("tank_boxfill", "all^top"))
         if tank_point is not None:
-            _set_vector_attrs(tank_point, UPGRADE_DEFAULTS["tank_point"])
+            _set_vector_attrs(tank_point, profile_defaults["tank_point"])  # type: ignore[arg-type]
         if tank_size is not None:
-            _set_vector_attrs(tank_size, UPGRADE_DEFAULTS["tank_size"])
+            _set_vector_attrs(tank_size, profile_defaults["tank_size"])  # type: ignore[arg-type]
         inlet = drawboxes[1]
         inlet_point = inlet.find("point")
         inlet_size = inlet.find("size")
         if inlet_point is not None:
-            _set_vector_attrs(inlet_point, UPGRADE_DEFAULTS["inlet_point"])
+            _set_vector_attrs(inlet_point, profile_defaults["inlet_point"])  # type: ignore[arg-type]
         if inlet_size is not None:
-            _set_vector_attrs(inlet_size, UPGRADE_DEFAULTS["inlet_size"])
+            _set_vector_attrs(inlet_size, profile_defaults["inlet_size"])  # type: ignore[arg-type]
 
     inout = root.find("./execution/special/inout")
     if inout is None:
@@ -296,16 +319,16 @@ def _copy_and_modify_case(
             parameter.set("value", f"{time_max:g}")
         elif key == "TimeOut":
             parameter.set("value", f"{time_out:g}")
-    if upgraded:
+    if profile_defaults:
         freecentre = root.find("./execution/special/inout/useboxlimit/freecentre")
         if freecentre is not None:
-            _set_vector_attrs(freecentre, (5.0, 0.0, 0.5))
+            _set_vector_attrs(freecentre, profile_defaults.get("freecentre", (5.0, 0.0, 0.5)))  # type: ignore[arg-type]
         sim_posmin = root.find("./execution/parameters/simulationdomain/posmin")
         sim_posmax = root.find("./execution/parameters/simulationdomain/posmax")
         if sim_posmin is not None:
-            _set_vector_attrs(sim_posmin, UPGRADE_DEFAULTS["sim_posmin"])
+            _set_vector_attrs(sim_posmin, profile_defaults["sim_posmin"])  # type: ignore[arg-type]
         if sim_posmax is not None:
-            _set_vector_attrs(sim_posmax, UPGRADE_DEFAULTS["sim_posmax"])
+            _set_vector_attrs(sim_posmax, profile_defaults["sim_posmax"])  # type: ignore[arg-type]
 
     _indent_xml(tree)
     tree.write(paths.case_xml_def, encoding="UTF-8", xml_declaration=True)
@@ -319,7 +342,7 @@ def _copy_and_modify_case(
                 f"Velocity: {velocity:g} m/s",
                 f"TimeMax: {time_max:g} s",
                 f"TimeOut: {time_out:g} s",
-                f"dp: {(dp or UPGRADE_DEFAULTS['dp']) if upgraded else 'base'}",
+                f"dp: {(dp or profile_defaults['dp']) if profile_defaults else 'base'}",
                 "Caveat: modified DualSPHysics inlet-jet geometry proxy; not validation.",
                 "",
             ]
@@ -407,11 +430,20 @@ def _selected_frame_numbers(frames: list[Path], max_frames: int) -> list[int]:
     numbers = [_frame_number(path) for path in frames]
     if len(numbers) <= max_frames:
         return numbers
-    step = max(1, math.floor((len(numbers) - 1) / (max_frames - 1)))
-    selected = numbers[::step]
+    if max_frames <= 1:
+        return [numbers[-1]]
+    indices = [
+        round(index * (len(numbers) - 1) / (max_frames - 1))
+        for index in range(max_frames)
+    ]
+    selected: list[int] = []
+    for index in indices:
+        value = numbers[index]
+        if not selected or selected[-1] != value:
+            selected.append(value)
     if selected[-1] != numbers[-1]:
-        selected.append(numbers[-1])
-    return selected[:max_frames]
+        selected[-1] = numbers[-1]
+    return selected
 
 
 def _run_isosurface(paths: Paths, frames: list[int], timeout_seconds: int) -> list[Path]:
@@ -735,6 +767,15 @@ def _render_frames(
     color_max: float = 6.0,
     resolution: int = 1280,
     samples: int = 48,
+    camera_lens: float = 70.0,
+    marker_scale: float = 1.15,
+    marker_style: str = "octahedron",
+    fluid_stride: int = 1,
+    iso_color: str = "#5DD9FF66",
+    fluid_color: str = "#5DD9FF66",
+    background_color: str = "#071018FF",
+    light_energy: float = 1200.0,
+    light_size: float = 2.0,
 ) -> list[Path]:
     _require(paths.blender, "Blender executable")
     paths.render_dir.mkdir(parents=True, exist_ok=True)
@@ -766,21 +807,23 @@ def _render_frames(
             "--camera-preset",
             camera_preset,
             "--camera-lens",
-            "70",
+            f"{camera_lens:g}",
             "--style-preset",
             "polished",
             "--samples",
             str(samples),
             "--marker-scale",
-            "1.15",
+            f"{marker_scale:g}",
+            "--marker-style",
+            marker_style,
             "--fluid-stride",
-            "1",
+            str(fluid_stride),
             "--background-color",
-            "#071018FF",
+            background_color,
             "--light-energy",
-            "1200",
+            f"{light_energy:g}",
             "--light-size",
-            "2.0",
+            f"{light_size:g}",
             "--no-caption",
         ]
         if mode == "velocity":
@@ -803,13 +846,13 @@ def _render_frames(
                     "--iso",
                     str(surface),
                     "--iso-color",
-                    "#65DFFFF0",
+                    iso_color,
                     "--fluid-color",
-                    "#5DD9FF66",
+                    fluid_color,
                 ]
             )
         elif surface.exists() and surface.stat().st_size > 0:
-            command.extend(["--iso", str(surface), "--iso-color", "#5DD9FF66"])
+            command.extend(["--iso", str(surface), "--iso-color", iso_color])
         _run(command, paths.logs_dir / f"06_blender_{output_prefix}_{frame:04d}.log", timeout_seconds)
         rendered.append(output)
     return rendered
@@ -878,6 +921,19 @@ def _make_contact_sheet(paths: Paths, rendered: list[Path], output_name: str) ->
         300,
     )
     return contact_sheet
+
+
+def _contact_sheet_samples(*segments: list[Path]) -> list[Path]:
+    sampled: list[Path] = []
+    for segment in segments:
+        if not segment:
+            continue
+        picks = [0, len(segment) // 2, len(segment) - 1]
+        for index in picks:
+            path = segment[index]
+            if path not in sampled:
+                sampled.append(path)
+    return sampled
 
 
 def _assemble_titled_video(
@@ -1050,6 +1106,141 @@ def _render_upgrade_package(
     }
 
 
+def _render_v2_package(
+    paths: Paths,
+    frames: list[int],
+    timeout_seconds: int,
+    fps: int,
+    color_max: float,
+) -> dict[str, str | int]:
+    particle_wide = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="particle",
+        camera_preset="front-ortho",
+        output_prefix="v2_accept_particle_wide",
+        color_max=color_max,
+        samples=64,
+        camera_lens=50,
+        marker_scale=0.85,
+        marker_style="icosahedron",
+        fluid_stride=2,
+        iso_color="#118BB855",
+        background_color="#EEF4F8FF",
+        light_energy=3200,
+        light_size=2.4,
+    )
+    surface_wide = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="isometric",
+        output_prefix="v2_accept_surface_wide",
+        color_max=color_max,
+        samples=96,
+        camera_lens=42,
+        marker_scale=0.8,
+        iso_color="#05AEEFFF",
+        fluid_color="#66DFFFF0",
+        background_color="#EEF4F8FF",
+        light_energy=4200,
+        light_size=2.6,
+    )
+    surface_close = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="v2_accept_surface_hero",
+        color_max=color_max,
+        samples=96,
+        camera_lens=36,
+        marker_scale=0.8,
+        iso_color="#00B8F4FF",
+        fluid_color="#7FE8FFFF",
+        background_color="#EEF4F8FF",
+        light_energy=4600,
+        light_size=2.8,
+    )
+    velocity_side = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="velocity",
+        camera_preset="front-ortho",
+        output_prefix="v2_accept_velocity_front",
+        color_max=color_max,
+        samples=64,
+        camera_lens=48,
+        marker_scale=0.95,
+        marker_style="octahedron",
+        fluid_stride=2,
+        iso_color="#108ABF55",
+        background_color="#EEF4F8FF",
+        light_energy=3200,
+        light_size=2.4,
+    )
+    if not surface_wide or not surface_close:
+        raise RuntimeError("v2 render package requires successful IsoSurface frames")
+
+    particle_mp4 = _assemble_clean_video(
+        paths,
+        particle_wide,
+        fps,
+        "rectangular_jet_v2_accepted_particle_provenance_clean",
+    )
+    surface_wide_mp4 = _assemble_clean_video(
+        paths,
+        surface_wide,
+        fps,
+        "rectangular_jet_v2_accepted_surface_wide_clean",
+    )
+    surface_close_mp4 = _assemble_clean_video(
+        paths,
+        surface_close,
+        fps,
+        "rectangular_jet_v2_accepted_surface_hero_clean",
+    )
+    velocity_mp4 = _assemble_clean_video(
+        paths,
+        velocity_side,
+        fps,
+        "rectangular_jet_v2_accepted_velocity_postprocess_clean",
+    )
+    combined = [*particle_wide, *surface_wide, *surface_close, *velocity_side]
+    contact_sheet = _make_contact_sheet(
+        paths,
+        _contact_sheet_samples(particle_wide, surface_wide, surface_close, velocity_side),
+        "rectangular_jet_v2_accepted_multiview_contact_sheet",
+    )
+    final_mp4 = _assemble_titled_video(
+        paths,
+        combined,
+        fps,
+        "rectangular_jet_v2_accepted_scientific_demonstration",
+        "Rectangular Inlet Jet Geometry Proxy v2",
+        "Long-domain single-phase DualSPHysics demonstration | not validation",
+        "Particle provenance | IsoSurface hero | velocity magnitude",
+        "Fixed multiview render | open downstream boundary in copied case",
+    )
+    return {
+        "particle_clean_mp4": str(particle_mp4),
+        "surface_wide_mp4": str(surface_wide_mp4),
+        "surface_hero_mp4": str(surface_close_mp4),
+        "velocity_postprocess_mp4": str(velocity_mp4),
+        "final_showcase_mp4": str(final_mp4),
+        "contact_sheet": str(contact_sheet),
+        "particle_frames": len(particle_wide),
+        "surface_wide_frames": len(surface_wide),
+        "surface_hero_frames": len(surface_close),
+        "velocity_frames": len(velocity_side),
+        "total_source_frames": len(combined),
+    }
+
+
 def _inventory(paths: Paths, summary: dict) -> None:
     lines = [
         "Rectangular high-speed jet proxy artifact manifest",
@@ -1078,9 +1269,12 @@ def main() -> int:
     parser.add_argument("--blender", type=Path, default=DEFAULT_BLENDER)
     parser.add_argument(
         "--profile",
-        choices=("coarse", "upgraded"),
+        choices=("coarse", "upgraded", "v2"),
         default="coarse",
-        help="coarse reproduces the first proxy; upgraded stretches the domain and raises the inlet",
+        help=(
+            "coarse reproduces the first proxy; upgraded stretches the domain; "
+            "v2 uses a longer open-downstream box for accepted-quality renders"
+        ),
     )
     parser.add_argument("--dp", type=float, help="particle spacing for upgraded profile")
     parser.add_argument("--velocity", type=float, default=4.0)
@@ -1100,6 +1294,11 @@ def main() -> int:
         "--upgrade-render-package",
         action="store_true",
         help="render particle, surface, velocity, and combined multiview showcase outputs",
+    )
+    parser.add_argument(
+        "--v2-render-package",
+        action="store_true",
+        help="render the stricter v2 particle, surface-wide, surface-hero, velocity, and stitched outputs",
     )
     parser.add_argument("--force", action="store_true", help="replace generated case_work if it exists")
     parser.add_argument(
@@ -1148,7 +1347,7 @@ def main() -> int:
     surface_frames: list[Path] = []
     selected_for_surface = (
         selected_for_render
-        if args.upgrade_render_package
+        if args.upgrade_render_package or args.v2_render_package
         else _selected_frame_numbers(particle_frames, args.max_surface_frames)
     )
     if not args.no_surface:
@@ -1162,7 +1361,18 @@ def main() -> int:
     contact_sheet = None
     render_package: dict[str, str | int] = {}
     if not args.no_render:
-        if args.upgrade_render_package:
+        if args.v2_render_package:
+            render_package = _render_v2_package(
+                paths,
+                selected_for_render,
+                args.render_timeout,
+                args.fps,
+                args.velocity_color_max,
+            )
+            showcase_mp4 = Path(str(render_package["final_showcase_mp4"]))
+            contact_sheet = Path(str(render_package["contact_sheet"]))
+            rendered = sorted(paths.render_dir.glob("v2_accept_*.png"))
+        elif args.upgrade_render_package:
             render_package = _render_upgrade_package(
                 paths,
                 selected_for_render,
@@ -1187,7 +1397,7 @@ def main() -> int:
         "case_name": CASE_NAME,
         "base_case": "examples/inletoutlet/06_Box4Inlet3D",
         "profile": args.profile,
-        "dp": args.dp if args.dp is not None else (UPGRADE_DEFAULTS["dp"] if args.profile == "upgraded" else None),
+        "dp": args.dp if args.dp is not None else (_profile_defaults(args.profile) or {}).get("dp"),
         "velocity_m_per_s": args.velocity,
         "time_max_seconds": args.time_max,
         "time_out_seconds": args.time_out,
