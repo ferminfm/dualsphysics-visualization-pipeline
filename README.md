@@ -138,6 +138,13 @@ speed from `2 m/s` to `4 m/s`, and exports particle VTK, IsoSurface, fixed-camer
 Blender previews, and preliminary slice geometry metrics under
 `$HOME/stack-validation/20260612-dualsphysics-rectangular-highspeed-jet`.
 
+An upgraded long-domain package is also available under
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-upgrade`. It uses
+the same one-rectangular-inlet framing with finer spacing, a larger downstream
+domain, `12 m/s` inlet speed, particle and IsoSurface post-processing,
+preliminary slice metrics, and a stitched particle/surface/velocity showcase
+video outside Git.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See

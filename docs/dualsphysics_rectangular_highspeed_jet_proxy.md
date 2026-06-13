@@ -109,6 +109,88 @@ Post-processing outputs:
 
 All generated BI4, VTK, PNG, MP4, log, and manifest files remain outside Git.
 
+## Upgraded Long-Domain Run
+
+A follow-up run used the same official `06_Box4Inlet3D` base but switched the
+runner to the `upgraded` profile. The goal was to turn the first coarse proxy
+into a more useful single-rectangular-inlet geometry demonstration with a longer
+development distance, higher speed, finer particle spacing, and separate
+particle, surface, and velocity-view render segments.
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-upgrade
+```
+
+Final showcase output:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-upgrade/showcase
+```
+
+Key setup changes:
+
+- profile: `upgraded`
+- particle spacing: `dp = 0.03`
+- inlet speed: `12 m/s`
+- physical time: `0.9 s`
+- output interval: `0.02 s`
+- retained geometry: one rectangular inlet/nozzle only
+- larger computational domain, with the downstream simulation limit raised to
+  include the generated boundary extents
+- inherited central educational obstacle removed from the modified XML
+- fixed-camera render package with separate particle, IsoSurface, and velocity
+  post-processing views
+
+Staged execution:
+
+| Stage | Purpose | Status | Notes |
+| --- | --- | --- | --- |
+| Smoke | GenCase plus short GPU run | success after one domain-limit patch | Initial `simdomain` maximum did not include the generated downstream boundary; the copied case was patched from `x = 13.0` to `x = 14.0`. |
+| Medium | Higher-resolution stability check | success | `dp = 0.03`, `12 m/s`, `0.36 s`, 13 particle VTK frames. |
+| Showcase | Final bounded demonstration run | success | `0.9 s`, 46 particle VTK frames, 18 IsoSurface frames, 54 rendered PNG frames. |
+
+Showcase solver summary:
+
+- physical time reached: about `0.900023 s`
+- solver steps: `30,746`
+- PART files: `46`
+- maximum simulation particles: `465,042`
+- exported fluid-particle range: `1,890` to `115,290`
+- excluded particles: `0`
+- total solver runtime: about `70.65 s`
+- solver-reported GPU memory: about `91.30 MiB`
+
+Generated upgraded artifacts:
+
+- particle provenance MP4:
+  `showcase/rectangular_jet_upgrade_particle_provenance_clean.mp4`
+- surface hero MP4:
+  `showcase/rectangular_jet_upgrade_surface_hero_clean.mp4`
+- velocity post-processing MP4:
+  `showcase/rectangular_jet_upgrade_velocity_postprocess_clean.mp4`
+- stitched scientific-demonstration MP4:
+  `showcase/rectangular_jet_upgrade_scientific_showcase.mp4`
+- multiview contact sheet:
+  `showcase/rectangular_jet_upgrade_multiview_contact_sheet.png`
+- metrics CSV:
+  `showcase/metrics/rectangular_highspeed_jet_slice_metrics.csv`
+- metrics summary JSON:
+  `showcase/metrics/rectangular_highspeed_jet_metrics_summary.json`
+
+The upgraded output root is about `1.2G` on disk and is intentionally not
+tracked by Git.
+
+Compared with the first proxy, the upgraded run increased the inlet speed from
+`4 m/s` to `12 m/s`, reduced particle spacing from `0.05` to `0.03`, increased
+maximum simulated particles from `21,105` to `465,042`, increased exported fluid
+particles from `8,190` to `115,290`, and extended the observed downstream range
+from about `x = 1.56` to about `x = 13.45`. The latest frames approach the
+downstream boundary, so the render package emphasizes the pre-boundary
+development window and the result should still be read as a bounded jet-geometry
+proxy.
+
 ## Metrics
 
 The script extracts preliminary particle-slice metrics from `PartFluid_*.vtk`.
@@ -137,6 +219,15 @@ Run result:
 - particle count range per frame: `702` to `8,190`
 - axial coordinate range: about `-1.77` to `1.56`
 
+Upgraded showcase metric result:
+
+- frames parsed: `46`
+- metric rows: `711`
+- particle count range per frame: `1,890` to `115,290`
+- axial coordinate range: about `-1.66` to `13.45`
+- velocity fields: `u_axial_mean`, `u_axial_std`, `speed_mean`, and
+  `speed_std` exported from the particle VTK vectors when available
+
 ## Visualization
 
 The runner renders a bounded subset of frames with the existing headless Blender
@@ -155,6 +246,12 @@ Visual-quality classification: internal technical evidence / early public
 preview candidate. The case shows a single rectangular inlet stream and derived
 geometry/velocity outputs, but it remains a single-phase SPH inlet proxy.
 
+For the upgraded package, the recommended review artifact is the stitched
+scientific-demonstration MP4 in the `showcase` directory. It combines a particle
+provenance segment, a reconstructed-surface hero segment, and a velocity-colored
+post-processing segment. This improves visual framing and data density compared
+with the first proxy, but the scientific caveat is unchanged.
+
 ## Limitations
 
 - The case is modified from an educational inlet/outlet example.
@@ -162,9 +259,14 @@ geometry/velocity outputs, but it remains a single-phase SPH inlet proxy.
   atomization.
 - The "area" metric is a particle cross-section proxy, not a resolved
   experimental or VOF interface area.
-- The run is short and is not a statistically stationary spray dataset.
-- Higher speed here means a modest increase from the official `2 m/s` to
-  `4 m/s`, bounded to keep the smoke run stable.
+- The first run is short and is not a statistically stationary spray dataset;
+  the upgraded run is longer and better resolved, but it is still not a
+  statistically stationary spray validation case.
+- Higher speed here means a bounded inlet speed increase within the copied
+  educational-example geometry, not a validated nozzle or atomizer setup.
+- The upgraded run's late frames approach the downstream boundary. Downstream
+  metrics near that limit should be treated as visualization/proxy evidence,
+  not unconstrained free-jet data.
 
 ## Next Step Toward True Atomization
 

@@ -39,6 +39,19 @@ BASE_CASE_NAME = "CaseBox4Inlet3D"
 NOZZLE_AREA = 0.6 * 0.4
 
 
+UPGRADE_DEFAULTS = {
+    "dp": 0.03,
+    "tank_point": (-1.5, -2.5, -2.5),
+    "tank_size": (15.0, 5.0, 6.0),
+    "inlet_point": (-1.5, -0.3, 2.2),
+    "inlet_size": (0.0, 0.6, 0.4),
+    "pointmin": (-2.5, -3.0, -3.0),
+    "pointmax": (14.5, 3.0, 5.0),
+    "sim_posmin": (-2.0, -3.0, -2.6),
+    "sim_posmax": (14.0, 3.0, 3.8),
+}
+
+
 @dataclass(frozen=True)
 class Paths:
     repo_root: Path
@@ -160,7 +173,20 @@ def _indent_xml(tree: ET.ElementTree) -> None:
         pass
 
 
-def _copy_and_modify_case(paths: Paths, velocity: float, time_max: float, time_out: float, force: bool) -> None:
+def _set_vector_attrs(element: ET.Element, values: tuple[float, float, float]) -> None:
+    for key, value in zip(("x", "y", "z"), values):
+        element.set(key, f"{value:g}")
+
+
+def _copy_and_modify_case(
+    paths: Paths,
+    velocity: float,
+    time_max: float,
+    time_out: float,
+    force: bool,
+    profile: str,
+    dp: float | None,
+) -> None:
     _require(paths.base_case_dir, "official Box4Inlet3D case")
     paths.output_root.mkdir(parents=True, exist_ok=True)
     paths.logs_dir.mkdir(parents=True, exist_ok=True)
@@ -178,8 +204,35 @@ def _copy_and_modify_case(paths: Paths, velocity: float, time_max: float, time_o
     tree = ET.parse(base_xml)
     root = tree.getroot()
 
+    upgraded = profile == "upgraded"
+    if upgraded:
+        definition = root.find("./casedef/geometry/definition")
+        if definition is None:
+            raise SystemExit("ERROR: missing geometry/definition in Box4Inlet3D XML")
+        definition.set("dp", f"{(dp or UPGRADE_DEFAULTS['dp']):g}")
+        pointmin = definition.find("pointmin")
+        pointmax = definition.find("pointmax")
+        if pointmin is None or pointmax is None:
+            raise SystemExit("ERROR: missing pointmin/pointmax in geometry/definition")
+        _set_vector_attrs(pointmin, UPGRADE_DEFAULTS["pointmin"])
+        _set_vector_attrs(pointmax, UPGRADE_DEFAULTS["pointmax"])
+
+        for tag, attrs in [
+            ("gravity", (0.0, 0.0, -9.81)),
+        ]:
+            element = root.find(f"./casedef/constantsdef/{tag}")
+            if element is not None:
+                _set_vector_attrs(element, attrs)
+        speedsystem = root.find("./casedef/constantsdef/speedsystem")
+        if speedsystem is not None:
+            speedsystem.set("value", f"{velocity:g}")
+            speedsystem.set("auto", "false")
+
     # Keep the official tank and the first rectangular inlet seed. Remove the
     # other three seed blocks plus their in/out zones to avoid a four-jet demo.
+    # In upgraded mode, also remove the central bottom void from the educational
+    # four-inlet case and stretch the tank so downstream wall interaction is
+    # outside the short showcase run.
     mainlist = root.find("./casedef/geometry/commands/mainlist")
     if mainlist is None:
         raise SystemExit("ERROR: missing geometry/mainlist in Box4Inlet3D XML")
@@ -191,11 +244,36 @@ def _copy_and_modify_case(paths: Paths, velocity: float, time_max: float, time_o
             skip_next_drawbox = False
             if child.tag == "drawbox":
                 continue
+        if upgraded and child.tag == "setmkvoid":
+            skip_next_drawbox = True
+            continue
         if child.tag == "setmkfluid" and child.attrib.get("mk") in {"1", "2", "3"}:
             skip_next_drawbox = True
             continue
         keep.append(child)
     mainlist[:] = keep
+
+    if upgraded:
+        drawboxes = mainlist.findall("drawbox")
+        if len(drawboxes) < 2:
+            raise SystemExit("ERROR: upgraded profile expected tank and inlet drawbox")
+        tank = drawboxes[0]
+        tank_boxfill = tank.find("boxfill")
+        tank_point = tank.find("point")
+        tank_size = tank.find("size")
+        if tank_boxfill is not None:
+            tank_boxfill.text = "all^top"
+        if tank_point is not None:
+            _set_vector_attrs(tank_point, UPGRADE_DEFAULTS["tank_point"])
+        if tank_size is not None:
+            _set_vector_attrs(tank_size, UPGRADE_DEFAULTS["tank_size"])
+        inlet = drawboxes[1]
+        inlet_point = inlet.find("point")
+        inlet_size = inlet.find("size")
+        if inlet_point is not None:
+            _set_vector_attrs(inlet_point, UPGRADE_DEFAULTS["inlet_point"])
+        if inlet_size is not None:
+            _set_vector_attrs(inlet_size, UPGRADE_DEFAULTS["inlet_size"])
 
     inout = root.find("./execution/special/inout")
     if inout is None:
@@ -218,6 +296,16 @@ def _copy_and_modify_case(paths: Paths, velocity: float, time_max: float, time_o
             parameter.set("value", f"{time_max:g}")
         elif key == "TimeOut":
             parameter.set("value", f"{time_out:g}")
+    if upgraded:
+        freecentre = root.find("./execution/special/inout/useboxlimit/freecentre")
+        if freecentre is not None:
+            _set_vector_attrs(freecentre, (5.0, 0.0, 0.5))
+        sim_posmin = root.find("./execution/parameters/simulationdomain/posmin")
+        sim_posmax = root.find("./execution/parameters/simulationdomain/posmax")
+        if sim_posmin is not None:
+            _set_vector_attrs(sim_posmin, UPGRADE_DEFAULTS["sim_posmin"])
+        if sim_posmax is not None:
+            _set_vector_attrs(sim_posmax, UPGRADE_DEFAULTS["sim_posmax"])
 
     _indent_xml(tree)
     tree.write(paths.case_xml_def, encoding="UTF-8", xml_declaration=True)
@@ -226,10 +314,12 @@ def _copy_and_modify_case(paths: Paths, velocity: float, time_max: float, time_o
             [
                 "Generated modified case: rectangular_highspeed_jet_proxy",
                 f"Base case: {paths.base_case_dir}",
+                f"Profile: {profile}",
                 "Modification: kept only mkfluid=0 rectangular inlet and first inoutzone.",
                 f"Velocity: {velocity:g} m/s",
                 f"TimeMax: {time_max:g} s",
                 f"TimeOut: {time_out:g} s",
+                f"dp: {(dp or UPGRADE_DEFAULTS['dp']) if upgraded else 'base'}",
                 "Caveat: modified DualSPHysics inlet-jet geometry proxy; not validation.",
                 "",
             ]
@@ -634,7 +724,18 @@ def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[P
     return csv_path, json_path, summary
 
 
-def _render_frames(paths: Paths, frames: list[int], timeout_seconds: int) -> list[Path]:
+def _render_frames(
+    paths: Paths,
+    frames: list[int],
+    timeout_seconds: int,
+    *,
+    mode: str = "velocity",
+    camera_preset: str = "isometric",
+    output_prefix: str = "rectangular_highspeed_jet",
+    color_max: float = 6.0,
+    resolution: int = 1280,
+    samples: int = 48,
+) -> list[Path]:
     _require(paths.blender, "Blender executable")
     paths.render_dir.mkdir(parents=True, exist_ok=True)
     reference = paths.particles_dir / f"PartFluid_{frames[-1]:04d}.vtk"
@@ -642,7 +743,9 @@ def _render_frames(paths: Paths, frames: list[int], timeout_seconds: int) -> lis
     for frame in frames:
         fluid = paths.particles_dir / f"PartFluid_{frame:04d}.vtk"
         surface = paths.surface_dir / f"Surface_{frame:04d}.vtk"
-        output = paths.render_dir / f"rectangular_highspeed_jet_{frame:04d}.png"
+        if mode == "surface" and (not surface.exists() or surface.stat().st_size == 0):
+            continue
+        output = paths.render_dir / f"{output_prefix}_{frame:04d}.png"
         if output.exists() and output.stat().st_size > 0:
             rendered.append(output)
             continue
@@ -659,27 +762,19 @@ def _render_frames(paths: Paths, frames: list[int], timeout_seconds: int) -> lis
             "--output",
             str(output),
             "--resolution",
-            "1280",
+            str(resolution),
             "--camera-preset",
-            "isometric",
+            camera_preset,
             "--camera-lens",
             "70",
             "--style-preset",
             "polished",
             "--samples",
-            "48",
+            str(samples),
             "--marker-scale",
             "1.15",
             "--fluid-stride",
             "1",
-            "--color-by",
-            "Vel",
-            "--color-bins",
-            "7",
-            "--color-min",
-            "0",
-            "--color-max",
-            "6",
             "--background-color",
             "#071018FF",
             "--light-energy",
@@ -688,21 +783,51 @@ def _render_frames(paths: Paths, frames: list[int], timeout_seconds: int) -> lis
             "2.0",
             "--no-caption",
         ]
-        if surface.exists() and surface.stat().st_size > 0:
+        if mode == "velocity":
+            command.extend(
+                [
+                    "--color-by",
+                    "Vel",
+                    "--color-bins",
+                    "7",
+                    "--color-min",
+                    "0",
+                    "--color-max",
+                    f"{color_max:g}",
+                ]
+            )
+        if mode == "surface":
+            command.extend(
+                [
+                    "--hide-fluid",
+                    "--iso",
+                    str(surface),
+                    "--iso-color",
+                    "#65DFFFF0",
+                    "--fluid-color",
+                    "#5DD9FF66",
+                ]
+            )
+        elif surface.exists() and surface.stat().st_size > 0:
             command.extend(["--iso", str(surface), "--iso-color", "#5DD9FF66"])
-        _run(command, paths.logs_dir / f"06_blender_{frame:04d}.log", timeout_seconds)
+        _run(command, paths.logs_dir / f"06_blender_{output_prefix}_{frame:04d}.log", timeout_seconds)
         rendered.append(output)
     return rendered
 
 
-def _assemble_video(paths: Paths, rendered: list[Path], fps: int) -> tuple[Path, Path]:
-    sequence_dir = paths.output_root / "render_frames_canonical"
+def _assemble_clean_video(
+    paths: Paths,
+    rendered: list[Path],
+    fps: int,
+    stem: str,
+) -> Path:
+    sequence_dir = paths.output_root / f"{stem}_frames_canonical"
     sequence_dir.mkdir(parents=True, exist_ok=True)
     for stale in sequence_dir.glob("frame_*.png"):
         stale.unlink()
     for index, frame in enumerate(rendered):
         shutil.copy2(frame, sequence_dir / f"frame_{index:04d}.png")
-    clean_mp4 = paths.output_root / "rectangular_highspeed_jet_proxy_clean.mp4"
+    clean_mp4 = paths.output_root / f"{stem}.mp4"
     _run(
         [
             "ffmpeg",
@@ -723,40 +848,67 @@ def _assemble_video(paths: Paths, rendered: list[Path], fps: int) -> tuple[Path,
             "+faststart",
             str(clean_mp4),
         ],
-        paths.logs_dir / "07_ffmpeg_clean.log",
+        paths.logs_dir / f"07_ffmpeg_{stem}.log",
         300,
     )
-    contact_sheet = paths.output_root / "rectangular_highspeed_jet_proxy_contact_sheet.png"
+    return clean_mp4
+
+
+def _make_contact_sheet(paths: Paths, rendered: list[Path], output_name: str) -> Path:
+    sequence_dir = paths.output_root / f"{output_name}_contact_inputs"
+    sequence_dir.mkdir(parents=True, exist_ok=True)
+    for stale in sequence_dir.glob("frame_*.png"):
+        stale.unlink()
+    for index, frame in enumerate(rendered):
+        shutil.copy2(frame, sequence_dir / f"frame_{index:04d}.png")
+    contact_sheet = paths.output_root / f"{output_name}.png"
     _run(
         [
             "ffmpeg",
             "-y",
-            "-pattern_type",
-            "glob",
             "-i",
-            str(paths.render_dir / "rectangular_highspeed_jet_*.png"),
+            str(sequence_dir / "frame_%04d.png"),
             "-vf",
             "scale=320:-1,tile=4x3",
             "-frames:v",
             "1",
             str(contact_sheet),
         ],
-        paths.logs_dir / "08_ffmpeg_contact_sheet.log",
+        paths.logs_dir / f"08_ffmpeg_{output_name}.log",
         300,
     )
-    showcase_mp4 = paths.output_root / "rectangular_highspeed_jet_proxy_showcase.mp4"
+    return contact_sheet
+
+
+def _assemble_titled_video(
+    paths: Paths,
+    rendered: list[Path],
+    fps: int,
+    stem: str,
+    title: str,
+    subtitle: str,
+    particle_text: str,
+    render_text: str,
+) -> Path:
+    source_dir = paths.output_root / f"{stem}_source_frames"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    for stale in source_dir.glob("frame_*.png"):
+        stale.unlink()
+    for index, frame in enumerate(rendered):
+        shutil.copy2(frame, source_dir / f"frame_{index:04d}.png")
+    showcase_mp4 = paths.output_root / f"{stem}.mp4"
     _run(
         [
             "python3",
             str(paths.repo_root / "scripts/assemble_dambreak_video.py"),
             "--input-dir",
-            str(paths.render_dir),
+            str(source_dir),
             "--input-pattern",
-            "rectangular_highspeed_jet_*.png",
+            "frame_*.png",
             "--min-input-frames",
             str(len(rendered)),
             "--frames-dir",
-            str(paths.output_root / "render_frames_titled"),
+            str(paths.output_root / f"{stem}_frames_titled"),
             "--output",
             str(showcase_mp4),
             "--fps",
@@ -766,17 +918,17 @@ def _assemble_video(paths: Paths, rendered: list[Path], fps: int) -> tuple[Path,
             "--height",
             "720",
             "--title",
-            "Rectangular High-Speed Inlet Jet Proxy",
+            title,
             "--subtitle",
-            "Modified DualSPHysics Box4Inlet3D | geometry proxy, not validation",
+            subtitle,
             "--closing-title",
             "Particle/velocity visualization and preliminary slice metrics",
             "--particle-text",
-            "Single rectangular inlet retained from Box4Inlet3D",
+            particle_text,
             "--platform-text",
             "DualSPHysics v5.4 GPU | headless Blender | ffmpeg",
             "--render-text",
-            "Velocity-colored particles; optional IsoSurface overlay",
+            render_text,
             "--title-duration",
             "4",
             "--closing-duration",
@@ -784,10 +936,118 @@ def _assemble_video(paths: Paths, rendered: list[Path], fps: int) -> tuple[Path,
             "--sim-frame-duration",
             str(1.0 / fps),
         ],
-        paths.logs_dir / "09_assemble_showcase.log",
+        paths.logs_dir / f"09_assemble_{stem}.log",
         300,
     )
+    return showcase_mp4
+
+
+def _assemble_video(paths: Paths, rendered: list[Path], fps: int) -> tuple[Path, Path]:
+    clean_mp4 = _assemble_clean_video(
+        paths,
+        rendered,
+        fps,
+        "rectangular_highspeed_jet_proxy_clean",
+    )
+    contact_sheet = _make_contact_sheet(
+        paths,
+        rendered,
+        "rectangular_highspeed_jet_proxy_contact_sheet",
+    )
+    showcase_mp4 = _assemble_titled_video(
+        paths,
+        rendered,
+        fps,
+        "rectangular_highspeed_jet_proxy_showcase",
+        "Rectangular High-Speed Inlet Jet Proxy",
+        "Modified DualSPHysics Box4Inlet3D | geometry proxy, not validation",
+        "Single rectangular inlet retained from Box4Inlet3D",
+        "Velocity-colored particles; optional IsoSurface overlay",
+    )
     return showcase_mp4, contact_sheet
+
+
+def _render_upgrade_package(
+    paths: Paths,
+    frames: list[int],
+    timeout_seconds: int,
+    fps: int,
+    color_max: float,
+) -> dict[str, str | int]:
+    particle_frames = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="particle",
+        camera_preset="isometric",
+        output_prefix="upgrade_particle_isometric",
+        color_max=color_max,
+        samples=64,
+    )
+    surface_frames = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="upgrade_surface_close",
+        color_max=color_max,
+        samples=72,
+    )
+    velocity_frames = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="velocity",
+        camera_preset="side",
+        output_prefix="upgrade_velocity_side",
+        color_max=color_max,
+        samples=64,
+    )
+    particle_mp4 = _assemble_clean_video(
+        paths,
+        particle_frames,
+        fps,
+        "rectangular_jet_upgrade_particle_provenance_clean",
+    )
+    surface_mp4 = _assemble_clean_video(
+        paths,
+        surface_frames,
+        fps,
+        "rectangular_jet_upgrade_surface_hero_clean",
+    )
+    velocity_mp4 = _assemble_clean_video(
+        paths,
+        velocity_frames,
+        fps,
+        "rectangular_jet_upgrade_velocity_postprocess_clean",
+    )
+    combined = [*particle_frames, *surface_frames, *velocity_frames]
+    contact_sheet = _make_contact_sheet(
+        paths,
+        combined,
+        "rectangular_jet_upgrade_multiview_contact_sheet",
+    )
+    final_mp4 = _assemble_titled_video(
+        paths,
+        combined,
+        fps,
+        "rectangular_jet_upgrade_scientific_showcase",
+        "Rectangular High-Speed Inlet Jet Proxy",
+        "Long-domain DualSPHysics single-phase geometry proxy | not validation",
+        "Particle provenance | surface reconstruction | velocity magnitude",
+        "Fixed multiview render | IsoSurface and PartVTK post-processing",
+    )
+    return {
+        "particle_clean_mp4": str(particle_mp4),
+        "surface_hero_mp4": str(surface_mp4),
+        "velocity_postprocess_mp4": str(velocity_mp4),
+        "final_showcase_mp4": str(final_mp4),
+        "contact_sheet": str(contact_sheet),
+        "particle_frames": len(particle_frames),
+        "surface_frames": len(surface_frames),
+        "velocity_frames": len(velocity_frames),
+    }
 
 
 def _inventory(paths: Paths, summary: dict) -> None:
@@ -816,6 +1076,13 @@ def main() -> int:
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--blender", type=Path, default=DEFAULT_BLENDER)
+    parser.add_argument(
+        "--profile",
+        choices=("coarse", "upgraded"),
+        default="coarse",
+        help="coarse reproduces the first proxy; upgraded stretches the domain and raises the inlet",
+    )
+    parser.add_argument("--dp", type=float, help="particle spacing for upgraded profile")
     parser.add_argument("--velocity", type=float, default=4.0)
     parser.add_argument("--time-max", type=float, default=0.8)
     parser.add_argument("--time-out", type=float, default=0.02)
@@ -828,6 +1095,12 @@ def main() -> int:
     parser.add_argument("--stations", type=int, default=12)
     parser.add_argument("--min-particles-per-slice", type=int, default=8)
     parser.add_argument("--fps", type=int, default=6)
+    parser.add_argument("--velocity-color-max", type=float, default=6.0)
+    parser.add_argument(
+        "--upgrade-render-package",
+        action="store_true",
+        help="render particle, surface, velocity, and combined multiview showcase outputs",
+    )
     parser.add_argument("--force", action="store_true", help="replace generated case_work if it exists")
     parser.add_argument(
         "--reuse-existing-run",
@@ -852,7 +1125,15 @@ def main() -> int:
         _tool(paths, "IsoSurface_linux64")
 
     if not args.reuse_existing_run:
-        _copy_and_modify_case(paths, args.velocity, args.time_max, args.time_out, args.force)
+        _copy_and_modify_case(
+            paths,
+            args.velocity,
+            args.time_max,
+            args.time_out,
+            args.force,
+            args.profile,
+            args.dp,
+        )
     if args.no_run:
         print(f"Prepared modified case: {paths.case_xml_def}")
         return 0
@@ -863,26 +1144,50 @@ def main() -> int:
     if not particle_frames:
         raise RuntimeError("PartVTK completed but no PartFluid_*.vtk frames were found")
 
+    selected_for_render = _selected_frame_numbers(particle_frames, args.max_render_frames)
     surface_frames: list[Path] = []
-    selected_for_surface = _selected_frame_numbers(particle_frames, args.max_surface_frames)
+    selected_for_surface = (
+        selected_for_render
+        if args.upgrade_render_package
+        else _selected_frame_numbers(particle_frames, args.max_surface_frames)
+    )
     if not args.no_surface:
         surface_frames = _run_isosurface(paths, selected_for_surface, args.iso_timeout)
 
     csv_path, json_path, metrics_summary = _extract_metrics(
         paths, args.stations, args.min_particles_per_slice
     )
-    selected_for_render = _selected_frame_numbers(particle_frames, args.max_render_frames)
     rendered: list[Path] = []
     showcase_mp4 = None
     contact_sheet = None
+    render_package: dict[str, str | int] = {}
     if not args.no_render:
-        rendered = _render_frames(paths, selected_for_render, args.render_timeout)
-        showcase_mp4, contact_sheet = _assemble_video(paths, rendered, args.fps)
+        if args.upgrade_render_package:
+            render_package = _render_upgrade_package(
+                paths,
+                selected_for_render,
+                args.render_timeout,
+                args.fps,
+                args.velocity_color_max,
+            )
+            showcase_mp4 = Path(str(render_package["final_showcase_mp4"]))
+            contact_sheet = Path(str(render_package["contact_sheet"]))
+            rendered = sorted(paths.render_dir.glob("upgrade_*.png"))
+        else:
+            rendered = _render_frames(
+                paths,
+                selected_for_render,
+                args.render_timeout,
+                color_max=args.velocity_color_max,
+            )
+            showcase_mp4, contact_sheet = _assemble_video(paths, rendered, args.fps)
 
     summary = {
         "status": "success",
         "case_name": CASE_NAME,
         "base_case": "examples/inletoutlet/06_Box4Inlet3D",
+        "profile": args.profile,
+        "dp": args.dp if args.dp is not None else (UPGRADE_DEFAULTS["dp"] if args.profile == "upgraded" else None),
         "velocity_m_per_s": args.velocity,
         "time_max_seconds": args.time_max,
         "time_out_seconds": args.time_out,
@@ -893,6 +1198,7 @@ def main() -> int:
         "metrics_summary_json": str(json_path),
         "showcase_mp4": str(showcase_mp4) if showcase_mp4 else "",
         "contact_sheet": str(contact_sheet) if contact_sheet else "",
+        "render_package": render_package,
         "physical_validation": False,
         "caveat": (
             "This is a modified DualSPHysics inlet-jet geometry proxy. It is not "
