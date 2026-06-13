@@ -1,0 +1,912 @@
+#!/usr/bin/env python3
+"""Run a bounded rectangular high-speed inlet-jet proxy from Box4Inlet3D.
+
+This script copies the official DualSPHysics `06_Box4Inlet3D` example into a
+stable work directory, derives a single rectangular inlet variant, runs the
+official Linux tools, and exports small visualization/metrics artifacts outside
+Git.
+
+The generated case is a geometry/visualization proxy. It is not a fully
+atomized spray simulation, not validation, not production CFD, and not
+experimental agreement.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import math
+import os
+import shutil
+import struct
+import subprocess
+import time
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from pathlib import Path
+
+
+DEFAULT_OFFICIAL_ROOT = Path(
+    "/home/franco/opt/dualsphysics-full-package-20260611/DualSPHysics_v5.4"
+)
+DEFAULT_OUTPUT_ROOT = Path(
+    "/home/franco/stack-validation/20260612-dualsphysics-rectangular-highspeed-jet"
+)
+DEFAULT_BLENDER = Path("/home/franco/bin/blender-portable")
+CASE_NAME = "CaseRectangularHighspeedJetProxy"
+BASE_CASE_NAME = "CaseBox4Inlet3D"
+NOZZLE_AREA = 0.6 * 0.4
+
+
+@dataclass(frozen=True)
+class Paths:
+    repo_root: Path
+    official_root: Path
+    output_root: Path
+    blender: Path
+
+    @property
+    def bin_dir(self) -> Path:
+        return self.official_root / "bin/linux"
+
+    @property
+    def base_case_dir(self) -> Path:
+        return self.official_root / "examples/inletoutlet/06_Box4Inlet3D"
+
+    @property
+    def case_work(self) -> Path:
+        return self.output_root / "case_work"
+
+    @property
+    def case_xml_def(self) -> Path:
+        return self.case_work / f"{CASE_NAME}_Def.xml"
+
+    @property
+    def case_out(self) -> Path:
+        return self.case_work / f"{CASE_NAME}_out"
+
+    @property
+    def case_xml_run(self) -> Path:
+        return self.case_out / f"{CASE_NAME}.xml"
+
+    @property
+    def data_dir(self) -> Path:
+        return self.case_out / "data"
+
+    @property
+    def particles_dir(self) -> Path:
+        return self.case_out / "particles"
+
+    @property
+    def surface_dir(self) -> Path:
+        return self.output_root / "surface_vtk"
+
+    @property
+    def render_dir(self) -> Path:
+        return self.output_root / "render_frames"
+
+    @property
+    def metrics_dir(self) -> Path:
+        return self.output_root / "metrics"
+
+    @property
+    def logs_dir(self) -> Path:
+        return self.output_root / "logs"
+
+
+@dataclass
+class VtkParticles:
+    points: list[tuple[float, float, float]]
+    arrays: dict[str, list[float | int | tuple[float, ...]]]
+
+
+def _run(
+    command: list[str],
+    log_path: Path,
+    timeout_seconds: int,
+    env: dict[str, str] | None = None,
+    cwd: Path | None = None,
+) -> None:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    started = time.monotonic()
+    with log_path.open("w", encoding="utf-8") as log:
+        if cwd:
+            log.write(f"$ cd {cwd}\n")
+        log.write("$ " + " ".join(command) + "\n\n")
+        log.flush()
+        completed = subprocess.run(
+            command,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=timeout_seconds,
+            check=False,
+            env=env,
+            cwd=str(cwd) if cwd else None,
+        )
+        elapsed = time.monotonic() - started
+        log.write(f"\nEXIT_CODE={completed.returncode}\n")
+        log.write(f"ELAPSED_SECONDS={elapsed:.3f}\n")
+    if completed.returncode != 0:
+        raise RuntimeError(f"command failed, see {log_path}")
+
+
+def _require(path: Path, label: str) -> None:
+    if not path.exists():
+        raise SystemExit(f"ERROR: missing {label}: {path}")
+
+
+def _tool(paths: Paths, name: str) -> Path:
+    path = paths.bin_dir / name
+    _require(path, name)
+    if not os.access(path, os.X_OK):
+        raise SystemExit(f"ERROR: tool is not executable: {path}")
+    return path
+
+
+def _runtime_env(paths: Paths) -> dict[str, str]:
+    env = os.environ.copy()
+    current = env.get("LD_LIBRARY_PATH", "")
+    extra = [str(paths.bin_dir), "/usr/local/cuda-12.8/lib64"]
+    env["LD_LIBRARY_PATH"] = ":".join([part for part in [current, *extra] if part])
+    return env
+
+
+def _indent_xml(tree: ET.ElementTree) -> None:
+    try:
+        ET.indent(tree, space="    ")
+    except AttributeError:
+        pass
+
+
+def _copy_and_modify_case(paths: Paths, velocity: float, time_max: float, time_out: float, force: bool) -> None:
+    _require(paths.base_case_dir, "official Box4Inlet3D case")
+    paths.output_root.mkdir(parents=True, exist_ok=True)
+    paths.logs_dir.mkdir(parents=True, exist_ok=True)
+    if paths.case_work.exists():
+        if not force:
+            raise SystemExit(
+                f"ERROR: case work already exists: {paths.case_work}; "
+                "rerun with --force to replace generated case work"
+            )
+        shutil.rmtree(paths.case_work)
+    shutil.copytree(paths.base_case_dir, paths.case_work)
+
+    base_xml = paths.case_work / f"{BASE_CASE_NAME}_Def.xml"
+    _require(base_xml, "copied Box4Inlet3D XML")
+    tree = ET.parse(base_xml)
+    root = tree.getroot()
+
+    # Keep the official tank and the first rectangular inlet seed. Remove the
+    # other three seed blocks plus their in/out zones to avoid a four-jet demo.
+    mainlist = root.find("./casedef/geometry/commands/mainlist")
+    if mainlist is None:
+        raise SystemExit("ERROR: missing geometry/mainlist in Box4Inlet3D XML")
+    children = list(mainlist)
+    keep: list[ET.Element] = []
+    skip_next_drawbox = False
+    for child in children:
+        if skip_next_drawbox:
+            skip_next_drawbox = False
+            if child.tag == "drawbox":
+                continue
+        if child.tag == "setmkfluid" and child.attrib.get("mk") in {"1", "2", "3"}:
+            skip_next_drawbox = True
+            continue
+        keep.append(child)
+    mainlist[:] = keep
+
+    inout = root.find("./execution/special/inout")
+    if inout is None:
+        raise SystemExit("ERROR: missing execution/special/inout in Box4Inlet3D XML")
+    zones = [child for child in list(inout) if child.tag == "inoutzone"]
+    if not zones:
+        raise SystemExit("ERROR: Box4Inlet3D XML has no inoutzone")
+    for zone in zones[1:]:
+        inout.remove(zone)
+
+    velocity_elem = zones[0].find("./imposevelocity/velocity")
+    if velocity_elem is None:
+        raise SystemExit("ERROR: first inoutzone has no fixed velocity")
+    velocity_elem.set("v", f"{velocity:g}")
+    velocity_elem.set("comment", "Uniform velocity for rectangular high-speed jet proxy")
+
+    for parameter in root.findall("./execution/parameters/parameter"):
+        key = parameter.attrib.get("key")
+        if key == "TimeMax":
+            parameter.set("value", f"{time_max:g}")
+        elif key == "TimeOut":
+            parameter.set("value", f"{time_out:g}")
+
+    _indent_xml(tree)
+    tree.write(paths.case_xml_def, encoding="UTF-8", xml_declaration=True)
+    (paths.case_work / "README_rectangular_highspeed_jet_proxy.txt").write_text(
+        "\n".join(
+            [
+                "Generated modified case: rectangular_highspeed_jet_proxy",
+                f"Base case: {paths.base_case_dir}",
+                "Modification: kept only mkfluid=0 rectangular inlet and first inoutzone.",
+                f"Velocity: {velocity:g} m/s",
+                f"TimeMax: {time_max:g} s",
+                f"TimeOut: {time_out:g} s",
+                "Caveat: modified DualSPHysics inlet-jet geometry proxy; not validation.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def _run_dualsphysics(paths: Paths, solver_timeout: int, post_timeout: int) -> None:
+    gencase = _tool(paths, "GenCase_linux64")
+    solver = _tool(paths, "DualSPHysics5.4_linux64")
+    partvtk = _tool(paths, "PartVTK_linux64")
+    partvtkout = _tool(paths, "PartVTKOut_linux64")
+    env = _runtime_env(paths)
+
+    if paths.case_out.exists():
+        shutil.rmtree(paths.case_out)
+    _run(
+        [
+            str(gencase),
+            f"{CASE_NAME}_Def",
+            str(paths.case_out / CASE_NAME),
+            "-save:all",
+        ],
+        paths.logs_dir / "01_gencase.log",
+        180,
+        env=env,
+        cwd=paths.case_work,
+    )
+    _run(
+        [
+            str(solver),
+            "-gpu",
+            str(paths.case_out / CASE_NAME),
+            str(paths.case_out),
+        ],
+        paths.logs_dir / "02_dualsphysics_gpu.log",
+        solver_timeout,
+        env=env,
+    )
+    paths.particles_dir.mkdir(parents=True, exist_ok=True)
+    _run(
+        [
+            str(partvtk),
+            "-dirdata",
+            str(paths.data_dir),
+            "-savevtk",
+            str(paths.particles_dir / "PartFluid"),
+            "-onlytype:-all,fluid",
+            "-vars:+idp,+vel,+rhop,+press,+vor",
+        ],
+        paths.logs_dir / "03_partvtk.log",
+        post_timeout,
+        env=env,
+    )
+    _run(
+        [
+            str(partvtkout),
+            "-dirdata",
+            str(paths.data_dir),
+            "-savevtk",
+            str(paths.particles_dir / "PartFluidOut"),
+            "-SaveResume",
+            str(paths.particles_dir / "_ResumeFluidOut"),
+        ],
+        paths.logs_dir / "04_partvtkout.log",
+        post_timeout,
+        env=env,
+    )
+
+
+def _frame_number(path: Path) -> int:
+    stem = path.stem
+    try:
+        return int(stem.rsplit("_", 1)[1])
+    except (IndexError, ValueError) as exc:
+        raise ValueError(f"cannot parse frame number from {path.name}") from exc
+
+
+def _existing_particle_frames(paths: Paths) -> list[Path]:
+    return sorted(paths.particles_dir.glob("PartFluid_*.vtk"), key=_frame_number)
+
+
+def _selected_frame_numbers(frames: list[Path], max_frames: int) -> list[int]:
+    numbers = [_frame_number(path) for path in frames]
+    if len(numbers) <= max_frames:
+        return numbers
+    step = max(1, math.floor((len(numbers) - 1) / (max_frames - 1)))
+    selected = numbers[::step]
+    if selected[-1] != numbers[-1]:
+        selected.append(numbers[-1])
+    return selected[:max_frames]
+
+
+def _run_isosurface(paths: Paths, frames: list[int], timeout_seconds: int) -> list[Path]:
+    isosurface = _tool(paths, "IsoSurface_linux64")
+    env = _runtime_env(paths)
+    paths.surface_dir.mkdir(parents=True, exist_ok=True)
+    surfaces: list[Path] = []
+    for frame in frames:
+        surface = paths.surface_dir / f"Surface_{frame:04d}.vtk"
+        if surface.exists() and surface.stat().st_size > 0:
+            surfaces.append(surface)
+            continue
+        _run(
+            [
+                str(isosurface),
+                "-dirdata",
+                str(paths.data_dir),
+                "-filexml",
+                str(paths.case_xml_run),
+                f"-first:{frame}",
+                f"-last:{frame}",
+                "-saveiso",
+                str(paths.surface_dir / "Surface"),
+                "-vars:-all,+vel,+rhop,+press,+type",
+            ],
+            paths.logs_dir / f"05_isosurface_{frame:04d}.log",
+            timeout_seconds,
+            env=env,
+        )
+        if surface.exists() and surface.stat().st_size > 0:
+            surfaces.append(surface)
+    return surfaces
+
+
+def _read_line(data: bytes, offset: int) -> tuple[str, int]:
+    end = data.find(b"\n", offset)
+    if end < 0:
+        return data[offset:].decode("ascii", errors="replace"), len(data)
+    return data[offset:end].decode("ascii", errors="replace"), end + 1
+
+
+def _skip_ws(data: bytes, offset: int) -> int:
+    while offset < len(data) and chr(data[offset]).isspace():
+        offset += 1
+    return offset
+
+
+def _vtk_type(type_name: str) -> tuple[str, int, type]:
+    name = type_name.lower()
+    if name in {"float", "float32"}:
+        return "f", 4, float
+    if name in {"double", "float64"}:
+        return "d", 8, float
+    if name in {"int", "unsigned_int"}:
+        return ("i" if name == "int" else "I"), 4, int
+    if name in {"short", "unsigned_short"}:
+        return ("h" if name == "short" else "H"), 2, int
+    if name in {"char", "unsigned_char"}:
+        return ("b" if name == "char" else "B"), 1, int
+    raise ValueError(f"unsupported VTK data type: {type_name}")
+
+
+def _read_ascii_values(data: bytes, offset: int, count: int, cast=float) -> tuple[list, int]:
+    values = []
+    while len(values) < count and offset < len(data):
+        offset = _skip_ws(data, offset)
+        start = offset
+        while offset < len(data) and not chr(data[offset]).isspace():
+            offset += 1
+        if start < offset:
+            values.append(cast(data[start:offset].decode("ascii")))
+    return values, offset
+
+
+def _read_numeric_block(
+    data: bytes,
+    offset: int,
+    count: int,
+    type_name: str,
+    binary: bool,
+) -> tuple[list, int]:
+    fmt_char, size, cast = _vtk_type(type_name)
+    offset = _skip_ws(data, offset)
+    if not binary:
+        return _read_ascii_values(data, offset, count, cast=cast)
+    byte_count = count * size
+    raw = data[offset : offset + byte_count]
+    if len(raw) != byte_count:
+        raise ValueError("truncated VTK numeric block")
+    return list(struct.unpack(f">{count}{fmt_char}", raw)), offset + byte_count
+
+
+def _parse_vtk_particles(path: Path) -> VtkParticles:
+    data = path.read_bytes()
+    offset = 0
+    binary = False
+    point_count = 0
+    points: list[tuple[float, float, float]] = []
+    arrays: dict[str, list[float | int | tuple[float, ...]]] = {}
+    while offset < len(data):
+        offset = _skip_ws(data, offset)
+        line, offset = _read_line(data, offset)
+        parts = line.split()
+        if not parts:
+            continue
+        key = parts[0].upper()
+        if key == "BINARY":
+            binary = True
+        elif key == "ASCII":
+            binary = False
+        elif key == "POINTS":
+            point_count = int(parts[1])
+            values, offset = _read_numeric_block(data, offset, point_count * 3, parts[2], binary)
+            points = [
+                (float(values[i]), float(values[i + 1]), float(values[i + 2]))
+                for i in range(0, len(values), 3)
+            ]
+        elif key == "POINT_DATA":
+            point_count = int(parts[1])
+        elif key == "SCALARS" and point_count > 0:
+            name = parts[1]
+            dtype = parts[2]
+            components = int(parts[3]) if len(parts) > 3 else 1
+            lookup, offset = _read_line(data, offset)
+            if not lookup.upper().startswith("LOOKUP_TABLE"):
+                continue
+            values, offset = _read_numeric_block(data, offset, point_count * components, dtype, binary)
+            if components == 1:
+                arrays[name] = values
+            else:
+                arrays[name] = [
+                    tuple(values[i : i + components])
+                    for i in range(0, len(values), components)
+                ]
+        elif key == "VECTORS" and point_count > 0:
+            name = parts[1]
+            values, offset = _read_numeric_block(data, offset, point_count * 3, parts[2], binary)
+            arrays[name] = [
+                tuple(values[i : i + 3])
+                for i in range(0, len(values), 3)
+            ]
+        elif key == "FIELD":
+            arrays_count = int(parts[2]) if len(parts) > 2 else 0
+            for _ in range(arrays_count):
+                field_line, offset = _read_line(data, offset)
+                field_parts = field_line.split()
+                if len(field_parts) < 4:
+                    continue
+                name = field_parts[0]
+                components = int(field_parts[1])
+                tuples = int(field_parts[2])
+                dtype = field_parts[3]
+                values, offset = _read_numeric_block(data, offset, components * tuples, dtype, binary)
+                if components == 1:
+                    arrays[name] = values
+                else:
+                    arrays[name] = [
+                        tuple(values[i : i + components])
+                        for i in range(0, len(values), components)
+                    ]
+    return VtkParticles(points=points, arrays=arrays)
+
+
+def _mean(values: list[float]) -> float:
+    return sum(values) / len(values) if values else math.nan
+
+
+def _std(values: list[float], mean: float) -> float:
+    if len(values) < 2 or not math.isfinite(mean):
+        return 0.0
+    return math.sqrt(sum((value - mean) ** 2 for value in values) / (len(values) - 1))
+
+
+def _principal_metrics(y_values: list[float], z_values: list[float]) -> tuple[float, float]:
+    if len(y_values) < 3:
+        return math.nan, math.nan
+    y_mean = _mean(y_values)
+    z_mean = _mean(z_values)
+    cov_yy = _mean([(y - y_mean) ** 2 for y in y_values])
+    cov_zz = _mean([(z - z_mean) ** 2 for z in z_values])
+    cov_yz = _mean([(y - y_mean) * (z - z_mean) for y, z in zip(y_values, z_values)])
+    trace = cov_yy + cov_zz
+    disc = max(0.0, (cov_yy - cov_zz) ** 2 + 4.0 * cov_yz * cov_yz)
+    eig1 = 0.5 * (trace + math.sqrt(disc))
+    eig2 = 0.5 * (trace - math.sqrt(disc))
+    angle_deg = math.degrees(0.5 * math.atan2(2.0 * cov_yz, cov_yy - cov_zz))
+    if eig2 <= 1.0e-14:
+        aspect = math.inf if eig1 > 0 else math.nan
+    else:
+        aspect = math.sqrt(max(eig1, eig2) / min(eig1, eig2))
+    return aspect, angle_deg
+
+
+def _velocity_arrays(vtk: VtkParticles) -> list[tuple[float, float, float]] | None:
+    for name in ("Vel", "vel", "Velocity", "velocity"):
+        values = vtk.arrays.get(name)
+        if values and isinstance(values[0], tuple):
+            return values  # type: ignore[return-value]
+    return None
+
+
+def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[Path, Path, dict]:
+    frames = _existing_particle_frames(paths)
+    if not frames:
+        raise RuntimeError("no PartFluid VTK frames available for metrics")
+    parsed: list[tuple[Path, VtkParticles]] = [(path, _parse_vtk_particles(path)) for path in frames]
+    all_x = [point[0] for _, vtk in parsed for point in vtk.points]
+    x_min = min(all_x)
+    x_max = max(all_x)
+    if not math.isfinite(x_min) or not math.isfinite(x_max) or x_max <= x_min:
+        raise RuntimeError("invalid axial coordinate range for metrics")
+    dx = (x_max - x_min) / stations
+
+    csv_path = paths.metrics_dir / "rectangular_highspeed_jet_slice_metrics.csv"
+    json_path = paths.metrics_dir / "rectangular_highspeed_jet_metrics_summary.json"
+    paths.metrics_dir.mkdir(parents=True, exist_ok=True)
+    rows: list[dict[str, object]] = []
+    frame_particle_counts: list[int] = []
+    for path, vtk in parsed:
+        frame = _frame_number(path)
+        velocities = _velocity_arrays(vtk)
+        frame_particle_counts.append(len(vtk.points))
+        for station_index in range(stations):
+            lo = x_min + station_index * dx
+            hi = x_min + (station_index + 1) * dx if station_index < stations - 1 else x_max + 1.0e-9
+            ids = [idx for idx, point in enumerate(vtk.points) if lo <= point[0] < hi]
+            if not ids:
+                continue
+            xs = [vtk.points[idx][0] for idx in ids]
+            ys = [vtk.points[idx][1] for idx in ids]
+            zs = [vtk.points[idx][2] for idx in ids]
+            width_y = max(ys) - min(ys)
+            width_z = max(zs) - min(zs)
+            area_proxy = width_y * width_z
+            aspect, orientation = _principal_metrics(ys, zs)
+            quality_flags: list[str] = []
+            if len(ids) < min_particles:
+                quality_flags.append("sparse")
+            if area_proxy <= 0:
+                quality_flags.append("zero_area_proxy")
+            if not math.isfinite(aspect):
+                quality_flags.append("aspect_unstable")
+            u_axial_mean = math.nan
+            u_axial_std = math.nan
+            speed_mean = math.nan
+            speed_std = math.nan
+            if velocities:
+                vx = [float(velocities[idx][0]) for idx in ids]
+                speeds = [
+                    math.sqrt(
+                        float(velocities[idx][0]) ** 2
+                        + float(velocities[idx][1]) ** 2
+                        + float(velocities[idx][2]) ** 2
+                    )
+                    for idx in ids
+                ]
+                u_axial_mean = _mean(vx)
+                u_axial_std = _std(vx, u_axial_mean)
+                speed_mean = _mean(speeds)
+                speed_std = _std(speeds, speed_mean)
+            rows.append(
+                {
+                    "source_type": "dualsphysics_particle_vtk",
+                    "simulation_source": "modified_box4inlet3d_rectangular_highspeed_proxy",
+                    "physical_validation": "false",
+                    "frame": frame,
+                    "z": _mean(xs),
+                    "axial_coordinate": "x",
+                    "station_index": station_index,
+                    "slice_thickness_x": hi - lo,
+                    "particle_count": len(ids),
+                    "centroid_y": _mean(ys),
+                    "centroid_z": _mean(zs),
+                    "width_y": width_y,
+                    "width_z": width_z,
+                    "area_proxy": area_proxy,
+                    "Ahat": area_proxy / NOZZLE_AREA if area_proxy > 0 else math.nan,
+                    "aspect_ratio": aspect,
+                    "orientation_deg_yz": orientation,
+                    "u_axial_mean": u_axial_mean,
+                    "u_axial_std": u_axial_std,
+                    "speed_mean": speed_mean,
+                    "speed_std": speed_std,
+                    "quality_flags": ";".join(quality_flags) if quality_flags else "ok",
+                }
+            )
+    fieldnames = list(rows[0].keys()) if rows else []
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    summary = {
+        "status": "success",
+        "frames": len(parsed),
+        "metric_rows": len(rows),
+        "particle_count_min": min(frame_particle_counts),
+        "particle_count_max": max(frame_particle_counts),
+        "x_range": [x_min, x_max],
+        "stations": stations,
+        "nozzle_area_proxy_reference": NOZZLE_AREA,
+        "csv_path": str(csv_path),
+        "physical_validation": False,
+        "caveat": (
+            "Modified DualSPHysics inlet-jet geometry proxy; not a fully "
+            "atomized spray simulation, not validation, not production CFD, "
+            "and not experimental agreement."
+        ),
+    }
+    json_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    return csv_path, json_path, summary
+
+
+def _render_frames(paths: Paths, frames: list[int], timeout_seconds: int) -> list[Path]:
+    _require(paths.blender, "Blender executable")
+    paths.render_dir.mkdir(parents=True, exist_ok=True)
+    reference = paths.particles_dir / f"PartFluid_{frames[-1]:04d}.vtk"
+    rendered: list[Path] = []
+    for frame in frames:
+        fluid = paths.particles_dir / f"PartFluid_{frame:04d}.vtk"
+        surface = paths.surface_dir / f"Surface_{frame:04d}.vtk"
+        output = paths.render_dir / f"rectangular_highspeed_jet_{frame:04d}.png"
+        if output.exists() and output.stat().st_size > 0:
+            rendered.append(output)
+            continue
+        command = [
+            str(paths.blender),
+            "--background",
+            "--python",
+            str(paths.repo_root / "scripts/blender_import_legacy_vtk.py"),
+            "--",
+            "--fluid",
+            str(fluid),
+            "--camera-reference",
+            str(reference),
+            "--output",
+            str(output),
+            "--resolution",
+            "1280",
+            "--camera-preset",
+            "isometric",
+            "--camera-lens",
+            "70",
+            "--style-preset",
+            "polished",
+            "--samples",
+            "48",
+            "--marker-scale",
+            "1.15",
+            "--fluid-stride",
+            "1",
+            "--color-by",
+            "Vel",
+            "--color-bins",
+            "7",
+            "--color-min",
+            "0",
+            "--color-max",
+            "6",
+            "--background-color",
+            "#071018FF",
+            "--light-energy",
+            "1200",
+            "--light-size",
+            "2.0",
+            "--no-caption",
+        ]
+        if surface.exists() and surface.stat().st_size > 0:
+            command.extend(["--iso", str(surface), "--iso-color", "#5DD9FF66"])
+        _run(command, paths.logs_dir / f"06_blender_{frame:04d}.log", timeout_seconds)
+        rendered.append(output)
+    return rendered
+
+
+def _assemble_video(paths: Paths, rendered: list[Path], fps: int) -> tuple[Path, Path]:
+    sequence_dir = paths.output_root / "render_frames_canonical"
+    sequence_dir.mkdir(parents=True, exist_ok=True)
+    for stale in sequence_dir.glob("frame_*.png"):
+        stale.unlink()
+    for index, frame in enumerate(rendered):
+        shutil.copy2(frame, sequence_dir / f"frame_{index:04d}.png")
+    clean_mp4 = paths.output_root / "rectangular_highspeed_jet_proxy_clean.mp4"
+    _run(
+        [
+            "ffmpeg",
+            "-y",
+            "-framerate",
+            str(fps),
+            "-i",
+            str(sequence_dir / "frame_%04d.png"),
+            "-vf",
+            "format=yuv420p",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "slow",
+            "-crf",
+            "20",
+            "-movflags",
+            "+faststart",
+            str(clean_mp4),
+        ],
+        paths.logs_dir / "07_ffmpeg_clean.log",
+        300,
+    )
+    contact_sheet = paths.output_root / "rectangular_highspeed_jet_proxy_contact_sheet.png"
+    _run(
+        [
+            "ffmpeg",
+            "-y",
+            "-pattern_type",
+            "glob",
+            "-i",
+            str(paths.render_dir / "rectangular_highspeed_jet_*.png"),
+            "-vf",
+            "scale=320:-1,tile=4x3",
+            "-frames:v",
+            "1",
+            str(contact_sheet),
+        ],
+        paths.logs_dir / "08_ffmpeg_contact_sheet.log",
+        300,
+    )
+    showcase_mp4 = paths.output_root / "rectangular_highspeed_jet_proxy_showcase.mp4"
+    _run(
+        [
+            "python3",
+            str(paths.repo_root / "scripts/assemble_dambreak_video.py"),
+            "--input-dir",
+            str(paths.render_dir),
+            "--input-pattern",
+            "rectangular_highspeed_jet_*.png",
+            "--min-input-frames",
+            str(len(rendered)),
+            "--frames-dir",
+            str(paths.output_root / "render_frames_titled"),
+            "--output",
+            str(showcase_mp4),
+            "--fps",
+            str(fps),
+            "--width",
+            "1280",
+            "--height",
+            "720",
+            "--title",
+            "Rectangular High-Speed Inlet Jet Proxy",
+            "--subtitle",
+            "Modified DualSPHysics Box4Inlet3D | geometry proxy, not validation",
+            "--closing-title",
+            "Particle/velocity visualization and preliminary slice metrics",
+            "--particle-text",
+            "Single rectangular inlet retained from Box4Inlet3D",
+            "--platform-text",
+            "DualSPHysics v5.4 GPU | headless Blender | ffmpeg",
+            "--render-text",
+            "Velocity-colored particles; optional IsoSurface overlay",
+            "--title-duration",
+            "4",
+            "--closing-duration",
+            "4",
+            "--sim-frame-duration",
+            str(1.0 / fps),
+        ],
+        paths.logs_dir / "09_assemble_showcase.log",
+        300,
+    )
+    return showcase_mp4, contact_sheet
+
+
+def _inventory(paths: Paths, summary: dict) -> None:
+    lines = [
+        "Rectangular high-speed jet proxy artifact manifest",
+        f"Output root: {paths.output_root}",
+        f"Case work: {paths.case_work}",
+        f"Case output: {paths.case_out}",
+        "",
+    ]
+    for directory in [paths.case_out, paths.particles_dir, paths.surface_dir, paths.render_dir, paths.metrics_dir, paths.logs_dir]:
+        if directory.exists():
+            lines.append(f"[{directory}]")
+            for item in sorted(directory.glob("*")):
+                if item.is_file():
+                    lines.append(f"{item.stat().st_size:12d}  {item}")
+            lines.append("")
+    lines.append("Summary JSON:")
+    lines.append(json.dumps(summary, indent=2))
+    (paths.output_root / "artifact_manifest.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--official-root", type=Path, default=DEFAULT_OFFICIAL_ROOT)
+    parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
+    parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    parser.add_argument("--blender", type=Path, default=DEFAULT_BLENDER)
+    parser.add_argument("--velocity", type=float, default=4.0)
+    parser.add_argument("--time-max", type=float, default=0.8)
+    parser.add_argument("--time-out", type=float, default=0.02)
+    parser.add_argument("--solver-timeout", type=int, default=900)
+    parser.add_argument("--post-timeout", type=int, default=300)
+    parser.add_argument("--iso-timeout", type=int, default=180)
+    parser.add_argument("--render-timeout", type=int, default=300)
+    parser.add_argument("--max-render-frames", type=int, default=12)
+    parser.add_argument("--max-surface-frames", type=int, default=8)
+    parser.add_argument("--stations", type=int, default=12)
+    parser.add_argument("--min-particles-per-slice", type=int, default=8)
+    parser.add_argument("--fps", type=int, default=6)
+    parser.add_argument("--force", action="store_true", help="replace generated case_work if it exists")
+    parser.add_argument(
+        "--reuse-existing-run",
+        action="store_true",
+        help="reuse an existing case_work/case_out instead of regenerating or rerunning DualSPHysics",
+    )
+    parser.add_argument("--no-run", action="store_true", help="prepare the modified case but do not run tools")
+    parser.add_argument("--no-surface", action="store_true")
+    parser.add_argument("--no-render", action="store_true")
+    args = parser.parse_args()
+
+    paths = Paths(
+        repo_root=args.repo_root.resolve(),
+        official_root=args.official_root,
+        output_root=args.output_root,
+        blender=args.blender,
+    )
+    _require(paths.official_root, "official DualSPHysics root")
+    for tool in ["GenCase_linux64", "DualSPHysics5.4_linux64", "PartVTK_linux64", "PartVTKOut_linux64"]:
+        _tool(paths, tool)
+    if not args.no_surface:
+        _tool(paths, "IsoSurface_linux64")
+
+    if not args.reuse_existing_run:
+        _copy_and_modify_case(paths, args.velocity, args.time_max, args.time_out, args.force)
+    if args.no_run:
+        print(f"Prepared modified case: {paths.case_xml_def}")
+        return 0
+
+    if not args.reuse_existing_run:
+        _run_dualsphysics(paths, args.solver_timeout, args.post_timeout)
+    particle_frames = _existing_particle_frames(paths)
+    if not particle_frames:
+        raise RuntimeError("PartVTK completed but no PartFluid_*.vtk frames were found")
+
+    surface_frames: list[Path] = []
+    selected_for_surface = _selected_frame_numbers(particle_frames, args.max_surface_frames)
+    if not args.no_surface:
+        surface_frames = _run_isosurface(paths, selected_for_surface, args.iso_timeout)
+
+    csv_path, json_path, metrics_summary = _extract_metrics(
+        paths, args.stations, args.min_particles_per_slice
+    )
+    selected_for_render = _selected_frame_numbers(particle_frames, args.max_render_frames)
+    rendered: list[Path] = []
+    showcase_mp4 = None
+    contact_sheet = None
+    if not args.no_render:
+        rendered = _render_frames(paths, selected_for_render, args.render_timeout)
+        showcase_mp4, contact_sheet = _assemble_video(paths, rendered, args.fps)
+
+    summary = {
+        "status": "success",
+        "case_name": CASE_NAME,
+        "base_case": "examples/inletoutlet/06_Box4Inlet3D",
+        "velocity_m_per_s": args.velocity,
+        "time_max_seconds": args.time_max,
+        "time_out_seconds": args.time_out,
+        "particle_vtk_frames": len(particle_frames),
+        "surface_vtk_frames": len(surface_frames),
+        "rendered_png_frames": len(rendered),
+        "metrics_csv": str(csv_path),
+        "metrics_summary_json": str(json_path),
+        "showcase_mp4": str(showcase_mp4) if showcase_mp4 else "",
+        "contact_sheet": str(contact_sheet) if contact_sheet else "",
+        "physical_validation": False,
+        "caveat": (
+            "This is a modified DualSPHysics inlet-jet geometry proxy. It is not "
+            "a fully atomized spray simulation, not validation, not production "
+            "CFD, and not experimental agreement."
+        ),
+        "metrics_summary": metrics_summary,
+    }
+    summary_path = paths.output_root / "rectangular_highspeed_jet_proxy_summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    _inventory(paths, summary)
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

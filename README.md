@@ -44,6 +44,7 @@ See:
 - `docs/cloud_extension_plan.md`
 - `docs/video_metadata.md`
 - `docs/video_publish_notes.md`
+- `docs/dualsphysics_rectangular_highspeed_jet_proxy.md`
 - `docs/jet_workflow_feasibility_20260608.md`
 - `docs/basilisk_jet_showcase.md`
 
@@ -129,6 +130,18 @@ Watch: [3D Inlet-Flow Scientific Demonstration](https://youtu.be/eMUbVgLRkHY)
 
 Caption: Visualization and post-processing demonstration; not physical
 validation.
+
+## Rectangular High-Speed Jet Proxy
+
+A modified `06_Box4Inlet3D` run keeps one rectangular inlet, raises the inlet
+speed from `2 m/s` to `4 m/s`, and exports particle VTK, IsoSurface, fixed-camera
+Blender previews, and preliminary slice geometry metrics under
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-highspeed-jet`.
+
+This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
+atomized spray simulation, not validation, not production CFD, and not
+experimental agreement. See
+`docs/dualsphysics_rectangular_highspeed_jet_proxy.md`.
 
 ## Preview
 
