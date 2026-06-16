@@ -664,6 +664,35 @@ ffprobe output, SHA256 checksums, artifact manifest, acceptance note, and
 YouTube/web metadata draft. Heavy media are not tracked in Git; upload or host
 the MP4 externally before embedding it in a public website.
 
+## SprayGeo / Ideal Explorer Metrics Handoff
+
+The v4.1 particle-slab geometry metrics were converted into an analysis-ready
+handoff package:
+
+```text
+$HOME/stack-validation/20260612-rectangular-jet-metrics-handoff
+```
+
+The handoff contains:
+
+- `rectangular_jet_proxy_spraygeo_metrics.csv`: full 414-row
+  SprayGeo-compatible solver-proxy metric table.
+- `rectangular_jet_proxy_spraygeo_metadata.json`: source metadata, caveats, and
+  fit-readiness state.
+- `rectangular_jet_proxy_ideal_overlay_area.csv`: 24-station late-frame
+  `Ahat(zeta)` overlay for Ideal Momentum Jet Explorer import testing.
+- `rectangular_jet_proxy_ideal_overlay_metadata.json`: overlay metadata with
+  `fit_readiness = blocked_pending_stationary_window`.
+- `metrics_audit.md`: row counts, source columns, axial/time ranges, and
+  overlay decision.
+
+The committed SprayGeo repo keeps only a tiny overlay sample under
+`results/dualsphysics_rectangular_proxy_handoff/`; the full solver-proxy metric
+handoff remains outside Git. The overlay is not stationary, not fit-ready, and
+does not perform a model fit. It exists to exercise the cross-repo data
+contract from solver-generated metrics into the existing Ideal Momentum Jet
+Explorer import surface.
+
 ## Limitations
 
 - The case is modified from an educational inlet/outlet example.

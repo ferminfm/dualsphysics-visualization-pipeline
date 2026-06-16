@@ -179,6 +179,13 @@ checksums, ffprobe output, and web/YouTube metadata. It is classified as an
 `accepted_public_preview_candidate`; heavy media remain outside Git and should
 be hosted externally before embedding on a public page.
 
+Rectangular-jet metrics handoff:
+`$HOME/stack-validation/20260612-rectangular-jet-metrics-handoff`. This package
+converts the v4.1 particle-slab metrics into SprayGeo-compatible CSV/JSON and a
+small Ideal Momentum Jet Explorer area-overlay preview. The overlay is marked
+`blocked_pending_stationary_window`; it is for data-contract and import testing,
+not fitting or validation.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See
