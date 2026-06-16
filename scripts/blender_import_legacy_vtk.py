@@ -488,6 +488,53 @@ def _add_floor(
     return obj
 
 
+def _add_studio_walls(
+    center: Vector,
+    span: float,
+    mins: Vector,
+    maxs: Vector,
+    floor_material: bpy.types.Material,
+    back_material: bpy.types.Material,
+    side_material: bpy.types.Material,
+) -> None:
+    floor = _add_floor(center, span, mins.z - span * 0.045, floor_material)
+    floor.name = "studio_floor"
+
+    width = span * 1.25
+    height = span * 0.55
+    y_back = maxs.y + span * 0.18
+    z0 = mins.z - span * 0.045
+    z1 = z0 + height
+    verts = [
+        (center.x - width * 0.55, y_back, z0),
+        (center.x + width * 0.55, y_back, z0),
+        (center.x + width * 0.55, y_back, z1),
+        (center.x - width * 0.55, y_back, z1),
+    ]
+    mesh = bpy.data.meshes.new("studio_back_wall_mesh")
+    mesh.from_pydata(verts, [], [(0, 1, 2, 3)])
+    mesh.update()
+    back = bpy.data.objects.new("studio_back_wall", mesh)
+    bpy.context.collection.objects.link(back)
+    back.data.materials.append(back_material)
+
+    x_side = mins.x - span * 0.08
+    y0 = center.y - span * 0.32
+    y1 = maxs.y + span * 0.18
+    verts = [
+        (x_side, y0, z0),
+        (x_side, y1, z0),
+        (x_side, y1, z1),
+        (x_side, y0, z1),
+    ]
+    mesh = bpy.data.meshes.new("studio_side_wall_mesh")
+    mesh.from_pydata(verts, [], [(0, 1, 2, 3)])
+    mesh.update()
+    side = bpy.data.objects.new("studio_side_wall", mesh)
+    bpy.context.collection.objects.link(side)
+    side.data.materials.append(side_material)
+
+
 def _add_label(text: str, location: tuple[float, float, float], size: float) -> None:
     font_curve = bpy.data.curves.new("label", "FONT")
     font_curve.body = text
@@ -550,9 +597,20 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Add a neutral studio floor below the visible geometry for scale/refraction cues.",
     )
-    parser.add_argument("--floor-color", type=_parse_color, default=(0.70, 0.72, 0.72, 1.0))
+    parser.add_argument(
+        "--add-studio-walls",
+        action="store_true",
+        help="Add distinct neutral floor/back/side walls for transparent-water readability.",
+    )
+    parser.add_argument("--floor-color", type=_parse_color, default=(0.84, 0.86, 0.85, 1.0))
+    parser.add_argument("--back-wall-color", type=_parse_color, default=(0.91, 0.92, 0.90, 1.0))
+    parser.add_argument("--side-wall-color", type=_parse_color, default=(0.73, 0.77, 0.78, 1.0))
     parser.add_argument("--camera-lens", type=float, default=55.0)
     parser.add_argument("--ortho-scale", type=float)
+    parser.add_argument("--camera-target-x-fraction", type=float)
+    parser.add_argument("--camera-target-y-fraction", type=float)
+    parser.add_argument("--camera-target-z-fraction", type=float)
+    parser.add_argument("--camera-span-scale", type=float, default=1.0)
     parser.add_argument("--light-energy", type=float, default=700.0)
     parser.add_argument("--light-size", type=float, default=1.6)
     parser.add_argument("--light-offset", type=_parse_vector3, default=(0.15, -1.25, 1.35))
@@ -647,10 +705,10 @@ def main() -> None:
         elif args.surface_material == "tinted-water":
             iso_mat = _make_material(
                 "transparent_water_material_light_tint",
-                (0.70, 0.92, 0.96, max(0.34, min(args.iso_color[3], 0.52))),
-                roughness=0.025,
-                specular=0.95,
-                transmission=0.62,
+                (0.76, 0.96, 0.98, max(0.46, min(args.iso_color[3], 0.68))),
+                roughness=0.018,
+                specular=1.0,
+                transmission=0.48,
                 ior=1.333,
             )
         else:
@@ -672,6 +730,18 @@ def main() -> None:
         roughness=0.72,
         specular=0.18,
     )
+    back_wall_mat = _make_material(
+        "studio_back_wall_warm_matte",
+        args.back_wall_color,
+        roughness=0.74,
+        specular=0.16,
+    )
+    side_wall_mat = _make_material(
+        "studio_side_wall_cool_matte",
+        args.side_wall_color,
+        roughness=0.78,
+        specular=0.14,
+    )
 
     bounds_points = list(reference.points) if reference else list(fluid.points)
     if boundary and not reference:
@@ -681,13 +751,29 @@ def main() -> None:
     mins, maxs = _bounds(bounds_points)
     span = max(maxs.x - mins.x, maxs.y - mins.y, maxs.z - mins.z, 1e-6)
     center = (mins + maxs) * 0.5
+    center = Vector(
+        (
+            mins.x + (maxs.x - mins.x) * args.camera_target_x_fraction
+            if args.camera_target_x_fraction is not None
+            else center.x,
+            mins.y + (maxs.y - mins.y) * args.camera_target_y_fraction
+            if args.camera_target_y_fraction is not None
+            else center.y,
+            mins.z + (maxs.z - mins.z) * args.camera_target_z_fraction
+            if args.camera_target_z_fraction is not None
+            else center.z,
+        )
+    )
+    camera_span = span * max(0.05, args.camera_span_scale)
     radius = span * 0.006 * args.marker_scale
 
     if iso and iso.polygons and not args.hide_iso:
         surface = _add_surface("dambreak_isosurface", iso.points, iso.polygons, iso_mat)
         surface.show_transparent = True
 
-    if args.add_floor:
+    if args.add_studio_walls:
+        _add_studio_walls(center, span, mins, maxs, floor_mat, back_wall_mat, side_wall_mat)
+    elif args.add_floor:
         _add_floor(center, span, mins.z - span * 0.045, floor_mat)
 
     if not args.hide_fluid and args.color_by:
@@ -744,11 +830,11 @@ def main() -> None:
     if args.contact_shadows and hasattr(light.data, "use_contact_shadow"):
         light.data.use_contact_shadow = True
 
-    bpy.ops.object.camera_add(location=_camera_location(center, span, args.camera_preset))
+    bpy.ops.object.camera_add(location=_camera_location(center, camera_span, args.camera_preset))
     camera = bpy.context.object
     direction = center - camera.location
     camera.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
-    auto_ortho_scale = span * 1.15 if args.camera_preset == "front-ortho" else None
+    auto_ortho_scale = camera_span * 1.15 if args.camera_preset == "front-ortho" else None
     ortho_scale = args.ortho_scale or auto_ortho_scale
     if ortho_scale:
         camera.data.type = "ORTHO"
@@ -781,6 +867,8 @@ def main() -> None:
     print(f"SURFACE_MATERIAL={args.surface_material}")
     print(f"RENDER_ENGINE={args.render_engine}")
     print(f"CAMERA_LENS={args.camera_lens}")
+    print(f"CAMERA_TARGET={tuple(center)}")
+    print(f"CAMERA_SPAN_SCALE={args.camera_span_scale}")
     print(f"ORTHO_SCALE={ortho_scale}")
     print(f"LIGHT_ENERGY={args.light_energy}")
     print(f"LIGHT_SIZE={args.light_size}")
@@ -794,6 +882,7 @@ def main() -> None:
     print(f"FLUID_VISIBLE={not args.hide_fluid}")
     print(f"ISO_VISIBLE={bool(iso and iso.polygons and not args.hide_iso)}")
     print(f"STUDIO_FLOOR={args.add_floor}")
+    print(f"STUDIO_WALLS={args.add_studio_walls}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.blend:

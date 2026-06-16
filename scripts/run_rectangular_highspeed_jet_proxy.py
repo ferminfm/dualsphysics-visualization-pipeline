@@ -86,6 +86,23 @@ V3_DEFAULTS = {
 }
 
 
+V4_DEFAULTS = {
+    "dp": 0.025,
+    "tank_point": (-1.5, -6.0, -6.2),
+    "tank_size": (86.0, 12.0, 12.4),
+    "tank_boxfill": "bottom | left | front | back",
+    "inlet_point": (-1.5, -0.3, 0.0),
+    "inlet_size": (0.0, 0.6, 0.4),
+    "pointmin": (-2.5, -6.6, -6.8),
+    "pointmax": (86.5, 6.6, 6.8),
+    "sim_posmin": (-2.2, -6.6, -6.7),
+    "sim_posmax": (86.0, 6.6, 6.7),
+    "freecentre": (36.0, 0.0, 0.0),
+    "gravity": (9.81, 0.0, 0.0),
+    "axis_convention": "jet axis is +x; gravity is streamwise +x",
+}
+
+
 @dataclass(frozen=True)
 class Paths:
     repo_root: Path
@@ -145,6 +162,13 @@ class Paths:
 @dataclass
 class VtkParticles:
     points: list[tuple[float, float, float]]
+    arrays: dict[str, list[float | int | tuple[float, ...]]]
+
+
+@dataclass
+class VtkSurface:
+    points: list[tuple[float, float, float]]
+    polygons: list[tuple[int, int, int]]
     arrays: dict[str, list[float | int | tuple[float, ...]]]
 
 
@@ -219,6 +243,8 @@ def _profile_defaults(profile: str) -> dict[str, object] | None:
         return V2_DEFAULTS
     if profile == "v3":
         return V3_DEFAULTS
+    if profile == "v4":
+        return V4_DEFAULTS
     return None
 
 
@@ -630,6 +656,74 @@ def _parse_vtk_particles(path: Path) -> VtkParticles:
     return VtkParticles(points=points, arrays=arrays)
 
 
+def _parse_vtk_surface(path: Path) -> VtkSurface:
+    data = path.read_bytes()
+    offset = 0
+    binary = False
+    point_count = 0
+    points: list[tuple[float, float, float]] = []
+    polygons: list[tuple[int, int, int]] = []
+    arrays: dict[str, list[float | int | tuple[float, ...]]] = {}
+    while offset < len(data):
+        offset = _skip_ws(data, offset)
+        line, offset = _read_line(data, offset)
+        parts = line.split()
+        if not parts:
+            continue
+        key = parts[0].upper()
+        if key == "BINARY":
+            binary = True
+        elif key == "ASCII":
+            binary = False
+        elif key == "POINTS":
+            point_count = int(parts[1])
+            values, offset = _read_numeric_block(data, offset, point_count * 3, parts[2], binary)
+            points = [
+                (float(values[i]), float(values[i + 1]), float(values[i + 2]))
+                for i in range(0, len(values), 3)
+            ]
+        elif key == "POLYGONS":
+            poly_count = int(parts[1])
+            total_ints = int(parts[2])
+            values, offset = _read_numeric_block(data, offset, total_ints, "int", binary)
+            cursor = 0
+            for _ in range(poly_count):
+                width = int(values[cursor])
+                ids = values[cursor + 1 : cursor + 1 + width]
+                if width == 3:
+                    polygons.append((int(ids[0]), int(ids[1]), int(ids[2])))
+                elif width > 3:
+                    base = int(ids[0])
+                    for local in range(1, width - 1):
+                        polygons.append((base, int(ids[local]), int(ids[local + 1])))
+                cursor += width + 1
+        elif key == "POINT_DATA":
+            point_count = int(parts[1])
+        elif key == "SCALARS" and point_count > 0:
+            name = parts[1]
+            dtype = parts[2]
+            components = int(parts[3]) if len(parts) > 3 else 1
+            lookup, offset = _read_line(data, offset)
+            if not lookup.upper().startswith("LOOKUP_TABLE"):
+                continue
+            values, offset = _read_numeric_block(data, offset, point_count * components, dtype, binary)
+            if components == 1:
+                arrays[name] = values
+            else:
+                arrays[name] = [
+                    tuple(values[i : i + components])
+                    for i in range(0, len(values), components)
+                ]
+        elif key == "VECTORS" and point_count > 0:
+            name = parts[1]
+            values, offset = _read_numeric_block(data, offset, point_count * 3, parts[2], binary)
+            arrays[name] = [
+                tuple(values[i : i + 3])
+                for i in range(0, len(values), 3)
+            ]
+    return VtkSurface(points=points, polygons=polygons, arrays=arrays)
+
+
 def _mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else math.nan
 
@@ -839,6 +933,10 @@ def _render_frames(
     samples: int = 48,
     camera_lens: float = 70.0,
     ortho_scale: float | None = None,
+    camera_target_x_fraction: float | None = None,
+    camera_target_y_fraction: float | None = None,
+    camera_target_z_fraction: float | None = None,
+    camera_span_scale: float | None = None,
     marker_scale: float = 1.15,
     marker_style: str = "octahedron",
     fluid_stride: int = 1,
@@ -847,6 +945,7 @@ def _render_frames(
     surface_material: str = "cyan-glassy",
     render_engine: str = "eevee",
     add_floor: bool = False,
+    add_studio_walls: bool = False,
     background_color: str = "#071018FF",
     light_energy: float = 1200.0,
     light_size: float = 2.0,
@@ -902,6 +1001,14 @@ def _render_frames(
         ]
         if ortho_scale is not None:
             command.extend(["--ortho-scale", f"{ortho_scale:g}"])
+        if camera_target_x_fraction is not None:
+            command.extend(["--camera-target-x-fraction", f"{camera_target_x_fraction:g}"])
+        if camera_target_y_fraction is not None:
+            command.extend(["--camera-target-y-fraction", f"{camera_target_y_fraction:g}"])
+        if camera_target_z_fraction is not None:
+            command.extend(["--camera-target-z-fraction", f"{camera_target_z_fraction:g}"])
+        if camera_span_scale is not None:
+            command.extend(["--camera-span-scale", f"{camera_span_scale:g}"])
         if mode in {"velocity", "analysis"}:
             command.extend(
                 [
@@ -933,6 +1040,8 @@ def _render_frames(
             )
             if add_floor:
                 command.append("--add-floor")
+            if add_studio_walls:
+                command.append("--add-studio-walls")
         elif surface.exists() and surface.stat().st_size > 0:
             command.extend(["--iso", str(surface), "--iso-color", iso_color])
         _run(command, paths.logs_dir / f"06_blender_{output_prefix}_{frame:04d}.log", timeout_seconds)
@@ -1037,6 +1146,7 @@ def _write_moving_slice_diagnostics(
     metrics_csv: Path,
     fps: int,
     max_frames: int = 40,
+    stem: str = "rectangular_jet_v3",
 ) -> dict[str, str | int]:
     from PIL import Image, ImageDraw, ImageFont
 
@@ -1080,7 +1190,7 @@ def _write_moving_slice_diagnostics(
         ] or grouped[frame]
         selected.append(min(candidates, key=lambda row: abs(_float_value(row, "z") - target_x)))
 
-    moving_csv = paths.metrics_dir / "rectangular_jet_v3_moving_slice_diagnostics.csv"
+    moving_csv = paths.metrics_dir / f"{stem}_moving_slice_diagnostics.csv"
     with moving_csv.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(selected[0].keys()) + ["slice_path_note"])
         writer.writeheader()
@@ -1130,6 +1240,8 @@ def _write_moving_slice_diagnostics(
         particle_count = int(_float_value(row, "particle_count", 0.0))
         width_y = _float_value(row, "width_y", 0.0)
         width_z = _float_value(row, "width_z", 0.0)
+        width_y = width_y if math.isfinite(width_y) and width_y > 0 else 0.0
+        width_z = width_z if math.isfinite(width_z) and width_z > 0 else 0.0
         aspect = _float_value(row, "aspect_ratio")
         orientation = _float_value(row, "orientation_deg_yz")
         speed_mean = _float_value(row, "speed_mean")
@@ -1152,13 +1264,24 @@ def _write_moving_slice_diagnostics(
         half_w = max(8, width_y * scale * 0.5)
         half_h = max(8, width_z * scale * 0.5)
         color = _velocity_proxy_color(proxy, vmax)
-        draw.rounded_rectangle(
-            (cx - half_w, cy - half_h, cx + half_w, cy + half_h),
-            radius=10,
-            fill=(*color, 125),
-            outline=(232, 248, 252, 235),
-            width=3,
-        )
+        rect_x0, rect_x1 = sorted((cx - half_w, cx + half_w))
+        rect_y0, rect_y1 = sorted((cy - half_h, cy + half_h))
+        rect_radius = min(10, max(0, int(min(rect_x1 - rect_x0, rect_y1 - rect_y0) * 0.25)))
+        if rect_radius >= 2:
+            draw.rounded_rectangle(
+                (rect_x0, rect_y0, rect_x1, rect_y1),
+                radius=rect_radius,
+                fill=(*color, 125),
+                outline=(232, 248, 252, 235),
+                width=3,
+            )
+        else:
+            draw.rectangle(
+                (rect_x0, rect_y0, rect_x1, rect_y1),
+                fill=(*color, 125),
+                outline=(232, 248, 252, 235),
+                width=3,
+            )
         if math.isfinite(orientation):
             length = max(half_w, half_h) * 0.9
             theta = math.radians(orientation)
@@ -1191,7 +1314,7 @@ def _write_moving_slice_diagnostics(
 
         image.save(frames_dir / f"frame_{index:04d}.png")
 
-    moving_mp4 = paths.output_root / "rectangular_jet_v3_moving_slice_cross_section.mp4"
+    moving_mp4 = paths.output_root / f"{stem}_moving_slice_cross_section.mp4"
     _run(
         [
             "ffmpeg",
@@ -1221,6 +1344,311 @@ def _write_moving_slice_diagnostics(
         "moving_slice_png_frames": len(selected),
         "moving_slice_frame_dir": str(frames_dir),
     }
+
+
+def _idp_array(vtk: VtkParticles) -> list[int] | None:
+    for name in ("Idp", "idp", "IDP", "id"):
+        values = vtk.arrays.get(name)
+        if values and not isinstance(values[0], tuple):
+            return [int(value) for value in values]  # type: ignore[arg-type]
+    return None
+
+
+def _surface_segments_at_x(surface: VtkSurface, x_plane: float) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    eps = 1.0e-8
+    segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
+    for tri in surface.polygons:
+        pts = [surface.points[index] for index in tri]
+        hits: list[tuple[float, float]] = []
+        for first, second in ((pts[0], pts[1]), (pts[1], pts[2]), (pts[2], pts[0])):
+            d0 = first[0] - x_plane
+            d1 = second[0] - x_plane
+            if abs(d0) <= eps and abs(d1) <= eps:
+                hits.extend([(first[1], first[2]), (second[1], second[2])])
+            elif abs(d0) <= eps:
+                hits.append((first[1], first[2]))
+            elif abs(d1) <= eps:
+                hits.append((second[1], second[2]))
+            elif d0 * d1 < 0.0:
+                t = (x_plane - first[0]) / (second[0] - first[0])
+                y = first[1] + t * (second[1] - first[1])
+                z = first[2] + t * (second[2] - first[2])
+                hits.append((y, z))
+        unique: list[tuple[float, float]] = []
+        seen: set[tuple[int, int]] = set()
+        for hit in hits:
+            key = (round(hit[0] * 1.0e7), round(hit[1] * 1.0e7))
+            if key not in seen:
+                seen.add(key)
+                unique.append(hit)
+        if len(unique) >= 2:
+            segments.append((unique[0], unique[1]))
+    return segments
+
+
+def _convex_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    unique = sorted(set(points))
+    if len(unique) <= 1:
+        return unique
+
+    def cross(origin: tuple[float, float], a: tuple[float, float], b: tuple[float, float]) -> float:
+        return (a[0] - origin[0]) * (b[1] - origin[1]) - (a[1] - origin[1]) * (b[0] - origin[0])
+
+    lower: list[tuple[float, float]] = []
+    for point in unique:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], point) <= 0:
+            lower.pop()
+        lower.append(point)
+    upper: list[tuple[float, float]] = []
+    for point in reversed(unique):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], point) <= 0:
+            upper.pop()
+        upper.append(point)
+    return lower[:-1] + upper[:-1]
+
+
+def _polygon_area(points: list[tuple[float, float]]) -> float:
+    hull = _convex_hull(points)
+    if len(hull) < 3:
+        return math.nan
+    area = 0.0
+    for index, point in enumerate(hull):
+        next_point = hull[(index + 1) % len(hull)]
+        area += point[0] * next_point[1] - next_point[0] * point[1]
+    return abs(area) * 0.5
+
+
+def _select_tracked_particle(
+    paths: Paths,
+    frame_numbers: list[int],
+) -> tuple[int | None, dict[int, tuple[float, float, float]], dict[int, int], str]:
+    maps: dict[int, dict[int, tuple[float, float, float]]] = {}
+    counts: dict[int, int] = {}
+    latest = frame_numbers[-1]
+    latest_vtk = _parse_vtk_particles(paths.particles_dir / f"PartFluid_{latest:04d}.vtk")
+    latest_ids = _idp_array(latest_vtk)
+    if latest_ids is None:
+        return None, {}, {}, "Idp not exported"
+
+    for frame in frame_numbers:
+        vtk = _parse_vtk_particles(paths.particles_dir / f"PartFluid_{frame:04d}.vtk")
+        ids = _idp_array(vtk)
+        if ids is None:
+            continue
+        frame_map = {pid: point for pid, point in zip(ids, vtk.points, strict=False)}
+        maps[frame] = frame_map
+        for pid in frame_map:
+            counts[pid] = counts.get(pid, 0) + 1
+
+    if not maps:
+        return None, {}, {}, "no Idp maps could be built"
+
+    xs = [point[0] for point in latest_vtk.points]
+    x_min, x_max = min(xs), max(xs)
+    y_mean = _mean([point[1] for point in latest_vtk.points])
+    z_mean = _mean([point[2] for point in latest_vtk.points])
+    candidates: list[tuple[tuple[float, float, float], int]] = []
+    for pid, point in zip(latest_ids, latest_vtk.points, strict=False):
+        if point[0] < x_min + 0.18 * (x_max - x_min):
+            continue
+        count = counts.get(pid, 0)
+        if count < 2:
+            continue
+        trajectory = [maps[frame][pid] for frame in frame_numbers if pid in maps.get(frame, {})]
+        span = max(p[0] for p in trajectory) - min(p[0] for p in trajectory)
+        center_distance = math.hypot(point[1] - y_mean, point[2] - z_mean)
+        candidates.append(((-count, -span, center_distance), pid))
+    if not candidates:
+        return None, {}, counts, "no centerline-like final-frame Idp survived multiple selected frames"
+    _, chosen = min(candidates)
+    trace = {
+        frame: frame_map[chosen]
+        for frame, frame_map in maps.items()
+        if chosen in frame_map
+    }
+    return chosen, trace, counts, "tracked Idp selected from late-frame centerline candidates"
+
+
+def _write_surface_cut_diagnostics(
+    paths: Paths,
+    frame_numbers: list[int],
+    fps: int,
+) -> dict[str, str | int | bool]:
+    from PIL import Image, ImageDraw, ImageFont
+
+    available_frames = [
+        frame for frame in frame_numbers
+        if (paths.surface_dir / f"Surface_{frame:04d}.vtk").exists()
+        and (paths.particles_dir / f"PartFluid_{frame:04d}.vtk").exists()
+    ]
+    if not available_frames:
+        raise RuntimeError("no matched particle/surface frames for surface cuts")
+
+    tracked_id, trace, counts, particle_note = _select_tracked_particle(paths, available_frames)
+    rows: list[dict[str, object]] = []
+    render_items: list[tuple[int, list[tuple[tuple[float, float], tuple[float, float]]], dict[str, object]]] = []
+    for frame in available_frames:
+        quality: list[str] = []
+        if tracked_id is None or frame not in trace:
+            quality.append("tracked_particle_missing")
+            continue
+        particle = trace[frame]
+        surface = _parse_vtk_surface(paths.surface_dir / f"Surface_{frame:04d}.vtk")
+        segments = _surface_segments_at_x(surface, particle[0])
+        cut_points = [point for segment in segments for point in segment]
+        if len(cut_points) < 3:
+            quality.append("sparse_or_open_surface_cut")
+        ys = [point[0] for point in cut_points]
+        zs = [point[1] for point in cut_points]
+        width_y = max(ys) - min(ys) if ys else math.nan
+        width_z = max(zs) - min(zs) if zs else math.nan
+        area = _polygon_area(cut_points) if cut_points else math.nan
+        aspect, orientation = _principal_metrics(ys, zs) if len(cut_points) >= 3 else (math.nan, math.nan)
+        row = {
+            "frame": frame,
+            "particle_id": tracked_id,
+            "particle_x": particle[0],
+            "particle_y": particle[1],
+            "particle_z": particle[2],
+            "cut_station_x": particle[0],
+            "surface_segments": len(segments),
+            "cut_points": len(cut_points),
+            "area_proxy": area,
+            "Ahat": area / NOZZLE_AREA if math.isfinite(area) and area > 0 else math.nan,
+            "width_y": width_y,
+            "width_z": width_z,
+            "aspect_ratio": aspect,
+            "orientation_deg_yz": orientation,
+            "quality_flags": ";".join(quality) if quality else "ok",
+        }
+        rows.append(row)
+        render_items.append((frame, segments, row))
+
+    csv_path = paths.metrics_dir / "rectangular_jet_v4_surface_cut_diagnostics.csv"
+    json_path = paths.metrics_dir / "rectangular_jet_v4_surface_cut_diagnostics.json"
+    paths.metrics_dir.mkdir(parents=True, exist_ok=True)
+    fieldnames = list(rows[0].keys()) if rows else [
+        "frame",
+        "particle_id",
+        "quality_flags",
+    ]
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    frame_dir = paths.output_root / "surface_cut_frames"
+    frame_dir.mkdir(parents=True, exist_ok=True)
+    for stale in frame_dir.glob("frame_*.png"):
+        stale.unlink()
+    try:
+        regular = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 23)
+        small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
+        bold = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
+    except OSError:
+        regular = small = bold = ImageFont.load_default()
+
+    all_cut_points = [
+        point
+        for _, segments, _ in render_items
+        for segment in segments
+        for point in segment
+    ]
+    y_values = [point[0] for point in all_cut_points] or [-1.0, 1.0]
+    z_values = [point[1] for point in all_cut_points] or [-1.0, 1.0]
+    y_min, y_max = min(y_values), max(y_values)
+    z_min, z_max = min(z_values), max(z_values)
+    span = max(y_max - y_min, z_max - z_min, 1.0e-6)
+    pad = span * 0.18
+    y_min -= pad
+    y_max += pad
+    z_min -= pad
+    z_max += pad
+
+    def project(point: tuple[float, float]) -> tuple[int, int]:
+        y, z = point
+        px = 720 + int((y - y_min) / max(1.0e-9, y_max - y_min) * 470)
+        py = 575 - int((z - z_min) / max(1.0e-9, z_max - z_min) * 420)
+        return px, py
+
+    for index, (frame, segments, row) in enumerate(render_items):
+        image = Image.new("RGB", (1280, 720), (8, 14, 20))
+        draw = ImageDraw.Draw(image, "RGBA")
+        draw.rectangle((0, 0, 1280, 92), fill=(12, 24, 34, 255))
+        draw.text((52, 24), "Tracked-particle surface cut", font=bold, fill=(238, 248, 250))
+        draw.text(
+            (52, 62),
+            "Plane normal to +x intersects the reconstructed IsoSurface at the tracked Idp station",
+            font=small,
+            fill=(190, 212, 220),
+        )
+        panel = (680, 130, 1225, 610)
+        draw.rounded_rectangle(panel, radius=14, fill=(18, 31, 42, 238), outline=(85, 135, 155, 220), width=2)
+        draw.text((706, 150), "actual y-z surface intersection", font=regular, fill=(230, 242, 246))
+        draw.line((720, 575, 1190, 575), fill=(110, 150, 165, 180), width=2)
+        draw.line((720, 575, 720, 155), fill=(110, 150, 165, 180), width=2)
+        for first, second in segments:
+            draw.line((*project(first), *project(second)), fill=(96, 220, 245, 235), width=3)
+
+        text = [
+            f"frame: {frame}",
+            f"tracked particle id: {row['particle_id']}",
+            f"particle x/y/z: {row['particle_x']:.3f}, {row['particle_y']:.3f}, {row['particle_z']:.3f}",
+            f"surface segments: {row['surface_segments']}",
+            f"cut points: {row['cut_points']}",
+            f"area proxy: {row['area_proxy']:.5f}" if isinstance(row["area_proxy"], float) and math.isfinite(row["area_proxy"]) else "area proxy: n/a",
+            f"Ahat: {row['Ahat']:.4f}" if isinstance(row["Ahat"], float) and math.isfinite(row["Ahat"]) else "Ahat: n/a",
+            f"width_y x width_z: {row['width_y']:.4f} x {row['width_z']:.4f}",
+            f"aspect ratio: {row['aspect_ratio']:.3f}" if isinstance(row["aspect_ratio"], float) and math.isfinite(row["aspect_ratio"]) else "aspect ratio: n/a",
+            f"orientation: {row['orientation_deg_yz']:.1f} deg" if isinstance(row["orientation_deg_yz"], float) and math.isfinite(row["orientation_deg_yz"]) else "orientation: n/a",
+            f"quality: {row['quality_flags']}",
+        ]
+        for line_index, line in enumerate(text):
+            draw.text((70, 135 + line_index * 40), line, font=regular, fill=(228, 238, 242))
+        image.save(frame_dir / f"frame_{index:04d}.png")
+
+    mp4_path = paths.output_root / "rectangular_jet_v4_surface_cut_cross_sections.mp4"
+    if render_items:
+        _run(
+            [
+                "ffmpeg",
+                "-y",
+                "-framerate",
+                str(fps),
+                "-i",
+                str(frame_dir / "frame_%04d.png"),
+                "-vf",
+                "format=yuv420p",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "slow",
+                "-crf",
+                "20",
+                "-movflags",
+                "+faststart",
+                str(mp4_path),
+            ],
+            paths.logs_dir / "11_ffmpeg_surface_cut_diagnostics.log",
+            300,
+        )
+    summary = {
+        "status": "success" if rows else "blocked",
+        "tracked_particle_id": tracked_id,
+        "particle_note": particle_note,
+        "trace_frames": sorted(trace),
+        "selected_surface_frames": available_frames,
+        "cut_rows": len(rows),
+        "true_surface_intersection": bool(rows),
+        "csv_path": str(csv_path),
+        "json_path": str(json_path),
+        "mp4_path": str(mp4_path) if rows else "",
+        "frame_dir": str(frame_dir),
+        "idp_presence_counts_considered": len(counts),
+        "caveat": "Surface cuts are plane/IsoSurface intersections driven by a traced Idp when available.",
+    }
+    json_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    return summary
 
 
 def _assemble_titled_video(
@@ -1797,6 +2225,347 @@ def _render_v3_package(
     }
 
 
+def _render_final_surface_inspection(
+    paths: Paths,
+    final_frame: int,
+    timeout_seconds: int,
+    fps: int,
+    cycles_surface: bool,
+) -> dict[str, str | int]:
+    engine = "cycles" if cycles_surface else "eevee"
+    steps = [
+        ("v4_polished_inspection_00_full_surface", "front-ortho", 0.52, 0.52, 0.52, 0.82, 64),
+        ("v4_polished_inspection_01_oblique_surface", "isometric", 0.55, 0.52, 0.52, 0.56, 52),
+        ("v4_polished_inspection_02_probe_close", "close", 0.62, 0.50, 0.50, 0.34, 36),
+        ("v4_polished_inspection_03_return_to_nozzle", "close", 0.12, 0.50, 0.50, 0.24, 32),
+    ]
+    inspection_frames: list[Path] = []
+    for prefix, preset, tx, ty, tz, span_scale, lens in steps:
+        frames = _render_frames(
+            paths,
+            [final_frame],
+            timeout_seconds,
+            mode="surface",
+            camera_preset=preset,
+            output_prefix=prefix,
+            samples=64 if cycles_surface else 128,
+            camera_lens=lens,
+            camera_target_x_fraction=tx,
+            camera_target_y_fraction=ty,
+            camera_target_z_fraction=tz,
+            camera_span_scale=span_scale,
+            iso_color="#D6FFF0B0",
+            fluid_color="#D6FFF0B0",
+            surface_material="tinted-water",
+            render_engine=engine,
+            add_studio_walls=True,
+            background_color="#F1F5F4FF",
+            light_energy=11000,
+            light_size=4.2,
+        )
+        inspection_frames.extend(frames)
+    mp4 = _assemble_clean_video(
+        paths,
+        inspection_frames,
+        max(1, min(fps, 4)),
+        "rectangular_jet_v4_final_surface_inspection_clean",
+    )
+    return {
+        "inspection_mp4": str(mp4),
+        "inspection_frames": len(inspection_frames),
+        "inspection_frame_dir": str(paths.output_root / "rectangular_jet_v4_final_surface_inspection_clean_frames_canonical"),
+    }
+
+
+def _render_v4_package(
+    paths: Paths,
+    frames: list[int],
+    timeout_seconds: int,
+    fps: int,
+    color_max: float,
+    pressure_color_max: float,
+    metrics_csv: Path,
+    cycles_surface: bool,
+) -> dict[str, str | int | bool]:
+    last_vtk = _parse_vtk_particles(paths.particles_dir / f"PartFluid_{frames[-1]:04d}.vtk")
+    pressure_available = "Press" in last_vtk.arrays
+    engine = "cycles" if cycles_surface else "eevee"
+
+    material_test_frames = [frames[0], frames[-1]] if len(frames) > 1 else [frames[0]]
+    clear_tests = _render_frames(
+        paths,
+        material_test_frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="v4_material_test_clear_water",
+        samples=48 if cycles_surface else 128,
+        camera_lens=34,
+        camera_target_x_fraction=0.58,
+        camera_span_scale=0.42,
+        iso_color="#F2FCFF55",
+        fluid_color="#F2FCFF55",
+        surface_material="clear-water",
+        render_engine=engine,
+        add_studio_walls=True,
+        background_color="#DDE4E6FF",
+        light_energy=7600,
+        light_size=3.8,
+    )
+    tinted_tests = _render_frames(
+        paths,
+        material_test_frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="v4_polished_material_test_tinted_water",
+        samples=48 if cycles_surface else 128,
+        camera_lens=34,
+        camera_target_x_fraction=0.58,
+        camera_span_scale=0.42,
+        iso_color="#D6FFF0B0",
+        fluid_color="#D6FFF0B0",
+        surface_material="tinted-water",
+        render_engine=engine,
+        add_studio_walls=True,
+        background_color="#F1F5F4FF",
+        light_energy=11000,
+        light_size=4.2,
+    )
+
+    particle_wide = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="particle",
+        camera_preset="front-ortho",
+        output_prefix="v4_particle_provenance_wide",
+        color_max=color_max,
+        samples=72,
+        camera_lens=48,
+        marker_scale=0.72,
+        marker_style="icosahedron",
+        fluid_stride=3,
+        iso_color="#2AA8CC35",
+        background_color="#EEF3F5FF",
+        light_energy=3800,
+        light_size=2.6,
+    )
+    surface_wide = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="front-ortho",
+        output_prefix="v4_polished_tinted_water_surface_wide",
+        color_max=color_max,
+        samples=64 if cycles_surface else 144,
+        camera_lens=44,
+        iso_color="#D6FFF0B0",
+        fluid_color="#D6FFF0B0",
+        surface_material="tinted-water",
+        render_engine=engine,
+        add_studio_walls=True,
+        background_color="#F1F5F4FF",
+        light_energy=11000,
+        light_size=4.2,
+    )
+    surface_hero = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="v4_polished_tinted_water_surface_hero",
+        color_max=color_max,
+        samples=72 if cycles_surface else 160,
+        camera_lens=34,
+        camera_target_x_fraction=0.58,
+        camera_span_scale=0.42,
+        iso_color="#D6FFF0B0",
+        fluid_color="#D6FFF0B0",
+        surface_material="tinted-water",
+        render_engine=engine,
+        add_studio_walls=True,
+        background_color="#F1F5F4FF",
+        light_energy=11800,
+        light_size=4.4,
+    )
+    velocity_view = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="velocity",
+        camera_preset="front-ortho",
+        output_prefix="v4_velocity_magnitude_front",
+        color_max=color_max,
+        samples=72,
+        camera_lens=48,
+        marker_scale=0.86,
+        marker_style="octahedron",
+        fluid_stride=3,
+        iso_color="#AEEAF040",
+        background_color="#EEF3F5FF",
+        light_energy=3600,
+        light_size=2.5,
+    )
+    pressure_view: list[Path] = []
+    if pressure_available:
+        pressure_view = _render_frames(
+            paths,
+            frames,
+            timeout_seconds,
+            mode="analysis",
+            camera_preset="front-ortho",
+            output_prefix="v4_pressure_front",
+            color_by="Press",
+            color_min=0.0,
+            color_max=pressure_color_max,
+            samples=72,
+            camera_lens=48,
+            marker_scale=0.86,
+            marker_style="octahedron",
+            fluid_stride=3,
+            iso_color="#AEEAF040",
+            background_color="#EEF3F5FF",
+            light_energy=3600,
+            light_size=2.5,
+        )
+
+    moving_slice = _write_moving_slice_diagnostics(
+        paths,
+        metrics_csv,
+        fps,
+        stem="rectangular_jet_v4",
+    )
+    proxy_frames = sorted(Path(str(moving_slice["moving_slice_frame_dir"])).glob("frame_*.png"))
+    surface_cuts = _write_surface_cut_diagnostics(paths, frames, fps)
+    cut_frames = sorted(Path(str(surface_cuts["frame_dir"])).glob("frame_*.png"))
+    inspection = _render_final_surface_inspection(paths, frames[-1], timeout_seconds, fps, cycles_surface)
+    inspection_frames = sorted(
+        Path(str(inspection["inspection_frame_dir"])).glob("frame_*.png")
+    )
+
+    if not surface_wide or not surface_hero:
+        raise RuntimeError("v4 render package requires successful transparent-water IsoSurface frames")
+
+    particle_mp4 = _assemble_clean_video(
+        paths,
+        particle_wide,
+        fps,
+        "rectangular_jet_v4_particle_provenance_clean",
+    )
+    surface_wide_mp4 = _assemble_clean_video(
+        paths,
+        surface_wide,
+        fps,
+        "rectangular_jet_v4_transparent_water_surface_wide_clean",
+    )
+    surface_hero_mp4 = _assemble_clean_video(
+        paths,
+        surface_hero,
+        fps,
+        "rectangular_jet_v4_transparent_water_surface_hero_clean",
+    )
+    velocity_mp4 = _assemble_clean_video(
+        paths,
+        velocity_view,
+        fps,
+        "rectangular_jet_v4_velocity_magnitude_clean",
+    )
+    pressure_mp4 = ""
+    if pressure_view:
+        pressure_mp4 = str(
+            _assemble_clean_video(
+                paths,
+                pressure_view,
+                fps,
+                "rectangular_jet_v4_pressure_clean",
+            )
+        )
+
+    combined = [
+        *particle_wide,
+        *surface_wide,
+        *surface_hero,
+        *velocity_view,
+        *pressure_view,
+        *proxy_frames,
+        *cut_frames,
+        *inspection_frames,
+    ]
+    contact_sheet = _make_contact_sheet(
+        paths,
+        _contact_sheet_samples(
+            particle_wide,
+            surface_wide,
+            surface_hero,
+            velocity_view,
+            pressure_view,
+            proxy_frames,
+            cut_frames,
+            inspection_frames,
+        ),
+        "rectangular_jet_v4_multiview_contact_sheet",
+    )
+    final_mp4 = _assemble_titled_video(
+        paths,
+        combined,
+        fps,
+        "rectangular_jet_v4_extended_surface_scientific_demonstration",
+        "Rectangular Jet Proxy v4: Extended Surface Inspection",
+        (
+            "Fermín Franco-Medrano, Ph.D. | UABC Ensenada Campus · IMI, Kyushu University | "
+            "DualSPHysics v5.4 -> PartVTK/IsoSurface -> Blender -> ffmpeg"
+        ),
+        "U=20 m/s | g=(+9.81,0,0) streamwise | extended run, transparent surface, surface cuts",
+        "Particle provenance | transparent IsoSurface | velocity/pressure/proxy diagnostics | tracked-Idp surface cuts",
+        closing_title="Extended single-phase rectangular jet geometry proxy",
+        closing_subtitle=(
+            "Surface inspection and cross-section diagnostics; not atomized spray, validation, "
+            "production CFD, or experimental agreement"
+        ),
+        platform_text="DualSPHysics v5.4 GPU | Blender 4.5.10 LTS | ffmpeg | RTX 5070 Laptop GPU",
+    )
+    return {
+        "particle_clean_mp4": str(particle_mp4),
+        "surface_wide_mp4": str(surface_wide_mp4),
+        "surface_hero_mp4": str(surface_hero_mp4),
+        "velocity_postprocess_mp4": str(velocity_mp4),
+        "pressure_postprocess_mp4": pressure_mp4,
+        "proxy_energy_mp4": str(moving_slice["moving_slice_mp4"]),
+        "proxy_energy_csv": str(moving_slice["moving_slice_csv"]),
+        "surface_cut_mp4": str(surface_cuts["mp4_path"]),
+        "surface_cut_csv": str(surface_cuts["csv_path"]),
+        "surface_cut_json": str(surface_cuts["json_path"]),
+        "inspection_mp4": str(inspection["inspection_mp4"]),
+        "final_showcase_mp4": str(final_mp4),
+        "contact_sheet": str(contact_sheet),
+        "particle_frames": len(particle_wide),
+        "surface_wide_frames": len(surface_wide),
+        "surface_hero_frames": len(surface_hero),
+        "velocity_frames": len(velocity_view),
+        "pressure_frames": len(pressure_view),
+        "proxy_energy_png_frames": int(moving_slice["moving_slice_png_frames"]),
+        "surface_cut_rows": int(surface_cuts["cut_rows"]),
+        "surface_cut_true_intersection": bool(surface_cuts["true_surface_intersection"]),
+        "tracked_particle_id": surface_cuts["tracked_particle_id"],
+        "inspection_frames": int(inspection["inspection_frames"]),
+        "total_source_frames": len(combined),
+        "pressure_available": pressure_available,
+        "surface_material_variants_tested": "clear-water,tinted-water",
+        "selected_surface_material": "tinted-water",
+        "transparent_water_material": True,
+        "opaque_blue_surface_avoided": True,
+        "cycles_attempted": cycles_surface,
+        "cycles_limitation": "" if cycles_surface else "Eevee used unless --cycles-surface is enabled for bounded runtime.",
+        "surface_render_engine": engine,
+        "studio_walls_enabled": True,
+        "clear_material_test_frames": len(clear_tests),
+        "tinted_material_test_frames": len(tinted_tests),
+    }
+
+
 def _inventory(paths: Paths, summary: dict) -> None:
     lines = [
         "Rectangular high-speed jet proxy artifact manifest",
@@ -1825,12 +2594,13 @@ def main() -> int:
     parser.add_argument("--blender", type=Path, default=DEFAULT_BLENDER)
     parser.add_argument(
         "--profile",
-        choices=("coarse", "upgraded", "v2", "v3"),
+        choices=("coarse", "upgraded", "v2", "v3", "v4"),
         default="coarse",
         help=(
             "coarse reproduces the first proxy; upgraded stretches the domain; "
             "v2 uses a longer open-downstream box for accepted-quality renders; "
-            "v3 aligns gravity with the +x jet axis and extends the domain"
+            "v3 aligns gravity with the +x jet axis and extends the domain; "
+            "v4 extends duration/domain and adds surface-cut diagnostics"
         ),
     )
     parser.add_argument("--dp", type=float, help="particle spacing for upgraded profile")
@@ -1867,6 +2637,11 @@ def main() -> int:
         "--v3-render-package",
         action="store_true",
         help="render v3 streamwise-gravity particle, clear-water surface, pressure, velocity, and moving-slice outputs",
+    )
+    parser.add_argument(
+        "--v4-render-package",
+        action="store_true",
+        help="render v4 extended transparent-surface, pressure, proxy-energy, surface-cut, and inspection outputs",
     )
     parser.add_argument("--force", action="store_true", help="replace generated case_work if it exists")
     parser.add_argument(
@@ -1915,7 +2690,7 @@ def main() -> int:
     surface_frames: list[Path] = []
     selected_for_surface = (
         selected_for_render
-        if args.upgrade_render_package or args.v2_render_package or args.v3_render_package
+        if args.upgrade_render_package or args.v2_render_package or args.v3_render_package or args.v4_render_package
         else _selected_frame_numbers(particle_frames, args.max_surface_frames)
     )
     if not args.no_surface:
@@ -1929,7 +2704,21 @@ def main() -> int:
     contact_sheet = None
     render_package: dict[str, str | int | bool] = {}
     if not args.no_render:
-        if args.v3_render_package:
+        if args.v4_render_package:
+            render_package = _render_v4_package(
+                paths,
+                selected_for_render,
+                args.render_timeout,
+                args.fps,
+                args.velocity_color_max,
+                args.pressure_color_max,
+                csv_path,
+                args.cycles_surface,
+            )
+            showcase_mp4 = Path(str(render_package["final_showcase_mp4"]))
+            contact_sheet = Path(str(render_package["contact_sheet"]))
+            rendered = sorted(paths.render_dir.glob("v4_*.png"))
+        elif args.v3_render_package:
             render_package = _render_v3_package(
                 paths,
                 selected_for_render,

@@ -408,6 +408,106 @@ near-clear water while avoiding an opaque blue/cyan surface. Cycles was used for
 the transparent-water surface render. The result should be described as a more
 realistic transparent-water render, not as photorealistic fluid.
 
+## v4 Extended-Surface Rebuild
+
+The v4 rebuild is the current extended-duration rectangular-jet proxy package.
+It keeps the v3 streamwise-gravity convention but doubles physical duration,
+extends the downstream domain, improves the transparent-water render context,
+and adds true surface-cut diagnostics driven by a traced particle ID.
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v4-extended-surface
+```
+
+Final showcase root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v4-extended-surface/showcase
+```
+
+Key setup:
+
+- profile: `v4`
+- particle spacing: `dp = 0.025`
+- inlet speed: `20 m/s`
+- gravity vector: `(9.81, 0, 0)`, aligned with the `+x` jet axis
+- physical time: `1.70 s`
+- output interval: `0.05 s`
+- generated domain: approximately `x = -1.5` to `x = 84.5`
+- simulation bound: about `x = 86.0`
+- retained geometry: one rectangular inlet/nozzle only
+- rendering: transparent-water IsoSurface with studio floor/back/side walls
+- diagnostics: pressure, velocity magnitude, velocity-fluctuation energy proxy,
+  tracked-particle surface cuts, and final-frame surface inspection
+
+Run command pattern for the final package:
+
+```bash
+python3 scripts/run_rectangular_highspeed_jet_proxy.py \
+  --output-root /home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v4-extended-surface/showcase \
+  --profile v4 \
+  --velocity 20 \
+  --time-max 1.7 \
+  --time-out 0.05 \
+  --stations 24 \
+  --max-render-frames 8 \
+  --fps 6 \
+  --velocity-color-max 55 \
+  --pressure-color-max 55000 \
+  --reuse-existing-run \
+  --v4-render-package \
+  --cycles-surface
+```
+
+Final solver/post-processing summary:
+
+- particle VTK frames: `35`
+- IsoSurface frames used for package: `8`
+- metric rows: `414`
+- exported fluid particles: up to `580,550`
+- exported fields: `Idp`, `Press`, `Rhop`, `Vel`
+- axial coordinate range: about `-1.625` to `74.748`
+- axial coverage: about `138` equivalent nozzle diameters, using
+  `sqrt(4A/pi)` with rectangular inlet area proxy `A = 0.24`
+- true surface cuts: `8` plane/IsoSurface intersections
+- tracked particle ID used for cuts: `5307451`
+
+Final v4 artifacts:
+
+- final stitched MP4:
+  `showcase/rectangular_jet_v4_extended_surface_scientific_demonstration.mp4`
+- particle provenance MP4:
+  `showcase/rectangular_jet_v4_particle_provenance_clean.mp4`
+- transparent-water surface-wide MP4:
+  `showcase/rectangular_jet_v4_transparent_water_surface_wide_clean.mp4`
+- transparent-water surface-hero MP4:
+  `showcase/rectangular_jet_v4_transparent_water_surface_hero_clean.mp4`
+- velocity-magnitude MP4:
+  `showcase/rectangular_jet_v4_velocity_magnitude_clean.mp4`
+- pressure MP4:
+  `showcase/rectangular_jet_v4_pressure_clean.mp4`
+- velocity-fluctuation proxy diagnostic MP4:
+  `showcase/rectangular_jet_v4_moving_slice_cross_section.mp4`
+- true surface-cut MP4:
+  `showcase/rectangular_jet_v4_surface_cut_cross_sections.mp4`
+- final-frame inspection MP4:
+  `showcase/rectangular_jet_v4_final_surface_inspection_clean.mp4`
+- contact sheet:
+  `showcase/rectangular_jet_v4_multiview_contact_sheet.png`
+- surface-cut CSV:
+  `showcase/metrics/rectangular_jet_v4_surface_cut_diagnostics.csv`
+- acceptance checklist:
+  `/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v4-extended-surface/acceptance_checklist.md`
+
+The v4 surface-cut method parses the reconstructed IsoSurface triangle mesh and
+intersects it with planes normal to the `+x` jet axis. Plane stations are driven
+by the traced `Idp` trajectory when available. The result is a literal
+surface-intersection diagnostic, not only a fitted rectangle. The
+velocity-fluctuation energy view remains a proxy and is not a true turbulence
+quantity.
+
 ## Metrics
 
 The script extracts preliminary particle-slice metrics from `PartFluid_*.vtk`.
@@ -468,6 +568,17 @@ v3 metric result:
 - pressure, velocity magnitude, and velocity-fluctuation proxy diagnostics are
   available from exported particle fields
 
+v4 metric result:
+
+- frames parsed: `35`
+- metric rows: `414`
+- particle count range per frame: `2,550` to `580,550`
+- axial coordinate range: about `-1.625` to `74.748`
+- axial coverage: about `138` equivalent nozzle diameters
+- tracked-particle surface-cut rows: `8`
+- pressure, velocity magnitude, velocity-fluctuation proxy, and surface-cut
+  diagnostics are available
+
 ## Visualization
 
 The runner renders a bounded subset of frames with the existing headless Blender
@@ -505,6 +616,11 @@ views, velocity magnitude, pressure, and a moving downstream cross-section
 diagnostic. The moving-slice segment follows a diagnostic sampling station in
 the metrics, not tagged material particles.
 
+For the v4 package, use the `rectangular_jet_v4_*` artifacts. The final stitched
+video adds the longer run, studio-environment transparent-water views, velocity
+and pressure views, proxy-energy diagnostics, true plane/IsoSurface
+cross-section cuts, and a final-frame surface inspection sequence.
+
 ## Limitations
 
 - The case is modified from an educational inlet/outlet example.
@@ -525,6 +641,10 @@ the metrics, not tagged material particles.
 - The v3 pressure and velocity-fluctuation diagnostics are post-processing
   quantities from exported particle fields. The fluctuation-energy value is a
   proxy, not a validated turbulence or atomization metric.
+- The v4 run extends duration and domain and adds true surface intersections,
+  but it remains a single-phase SPH geometry proxy. The tracked-particle cuts
+  depend on reconstructed IsoSurface quality and should be interpreted as
+  visualization/geometry diagnostics, not experimental cross-sections.
 
 ## Next Step Toward True Atomization
 

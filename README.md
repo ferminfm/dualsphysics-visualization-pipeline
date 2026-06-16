@@ -158,6 +158,14 @@ measured axial range to about `63.2` equivalent nozzle diameters, and adds
 transparent-water IsoSurface rendering, pressure and velocity-magnitude views,
 and moving-slice geometry diagnostics outside Git.
 
+Extended-surface v4 rebuild:
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-v4-extended-surface`.
+This version doubles the v3 duration to `1.7 s`, keeps streamwise gravity and
+`20 m/s`, extends measured axial coverage to about `138` equivalent nozzle
+diameters, and adds studio-environment transparent-water rendering, final-frame
+surface inspection, pressure/velocity/proxy-energy views, and true
+plane/IsoSurface cross-section cuts driven by a traced particle ID.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See
