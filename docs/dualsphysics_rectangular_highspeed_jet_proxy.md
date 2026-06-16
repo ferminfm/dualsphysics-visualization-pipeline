@@ -652,6 +652,18 @@ mean luminance is higher than v4 (`66.18` versus `52.19` in the local check),
 and the full-resolution surface/cross-section panels are more legible. The
 scientific caveat is unchanged.
 
+The accepted v4.1 freeze is:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v41-accepted-v1
+```
+
+Final acceptance classification: `accepted_public_preview_candidate`. The
+accepted root freezes the final MP4, clean companion MP4, contact sheet,
+ffprobe output, SHA256 checksums, artifact manifest, acceptance note, and
+YouTube/web metadata draft. Heavy media are not tracked in Git; upload or host
+the MP4 externally before embedding it in a public website.
+
 ## Limitations
 
 - The case is modified from an educational inlet/outlet example.

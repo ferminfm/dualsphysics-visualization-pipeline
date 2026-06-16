@@ -172,6 +172,13 @@ This render-only pass reuses accepted v4 data, does not rerun the solver, and
 improves lighting, contrast, transparent-water material, analysis-panel
 readability, and final video composition for public review.
 
+Accepted v4.1 artifact freeze:
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-v41-accepted-v1`.
+This local freeze includes the final MP4, clean companion MP4, contact sheet,
+checksums, ffprobe output, and web/YouTube metadata. It is classified as an
+`accepted_public_preview_candidate`; heavy media remain outside Git and should
+be hosted externally before embedding on a public page.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See

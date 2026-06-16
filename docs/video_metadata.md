@@ -58,6 +58,40 @@ MP4. Frame 0200 was excluded after visual QA; the prepared sequence uses frames
 This is a workflow demonstration, not production CFD validation.
 ```
 
+## Rectangular Jet Geometry Proxy
+
+- YouTube URL: not uploaded yet; use manual hosting or upload before embedding.
+- Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction`
+- Local accepted root:
+  `/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v41-accepted-v1`
+- Accepted classification: `accepted_public_preview_candidate`
+- Short description: Render-polished DualSPHysics rectangular inlet jet geometry
+  proxy using GPU SPH data, PartVTK/IsoSurface post-processing,
+  transparent-water Blender rendering, and ffmpeg assembly.
+- Caption: Single-phase geometry-proxy demonstration; not atomization
+  validation.
+- Recommended use: public-preview demonstration of a reproducible scientific
+  visualization and post-processing workflow. Host the MP4 externally before
+  embedding it on a website; do not commit video media to Git.
+
+Long description:
+
+```text
+This video presents a modified single-phase DualSPHysics rectangular inlet jet
+geometry proxy. The workflow starts from accepted v4 simulation data and applies
+a v4.1 render-only polish pass: particle provenance, reconstructed IsoSurface
+views with clearer transparent-water material, velocity and pressure
+post-processing views, proxy-energy/cross-section diagnostics, and true
+surface-cut panels.
+
+Pipeline: DualSPHysics v5.4 GPU data -> PartVTK/IsoSurface outputs ->
+headless Blender render pass -> ffmpeg assembly.
+
+This is a scientific-computing workflow demonstration. It is not fully atomized
+spray, not physical validation, not production CFD, and not experimental
+agreement.
+```
+
 ## Shared Caveat
 
 Use one of these caveats near any public embed:
@@ -68,6 +102,10 @@ Visualization and post-processing demonstration; not physical validation.
 
 ```text
 GPU SPH to Blender workflow demonstration; not production CFD validation.
+```
+
+```text
+Single-phase geometry-proxy demonstration; not atomization validation.
 ```
 
 Avoid wording that implies:
