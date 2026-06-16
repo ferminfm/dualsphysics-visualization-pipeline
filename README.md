@@ -43,6 +43,7 @@ See:
 - `docs/troubleshooting.md`
 - `docs/cloud_extension_plan.md`
 - `docs/video_metadata.md`
+- `docs/dualsphysics_demo_family.md`
 - `docs/video_publish_notes.md`
 - `docs/dualsphysics_rectangular_highspeed_jet_proxy.md`
 - `docs/jet_workflow_feasibility_20260608.md`
@@ -66,6 +67,22 @@ See:
   static/incorrect MP4 assembly.
 - How to describe future cloud extensions as roadmap work rather than deployed
   Google Cloud, Gemini, or Vertex AI implementation.
+
+## Demo Family
+
+For public review, treat this repo as one scientific-visualization family rather
+than a set of unrelated clips:
+
+| Demo | Role | Public status |
+| --- | --- | --- |
+| Dam-break workflow | Small proof of GPU SPH -> VTK -> Blender -> MP4 assembly. | Hosted on YouTube; supporting workflow demo. |
+| ShapesInlet3D | Official 3D inlet/open-boundary demonstration with particle, surface, and velocity views. | Hosted on YouTube; primary scientific-demonstration video. |
+| ImpingingJet | Official 2D impinging-jet visualization with reconstructed-surface scalar analysis. | Hosted on YouTube; 2D visualization demo with caveat. |
+| Rectangular jet proxy v4.1 | Modified single-phase rectangular inlet geometry proxy with surface cuts and SprayGeo/Ideal overlay handoff. | Public-preview candidate; video not hosted yet; not fit-ready validation data. |
+
+See [docs/dualsphysics_demo_family.md](docs/dualsphysics_demo_family.md) for
+the recommended public structure, redundancy decision, audience mapping, and
+caveats.
 
 ## 3D Jet/Spray Showcase Fallback
 

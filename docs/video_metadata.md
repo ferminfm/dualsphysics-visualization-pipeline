@@ -58,6 +58,30 @@ MP4. Frame 0200 was excluded after visual QA; the prepared sequence uses frames
 This is a workflow demonstration, not production CFD validation.
 ```
 
+## Official DualSPHysics 2D Impinging-Jet Visualization Demo
+
+- YouTube URL: <https://youtu.be/5JkdLRPYWUI>
+- Suggested embed URL: `https://www.youtube-nocookie.com/embed/5JkdLRPYWUI`
+- Title: `Official DualSPHysics 2D Impinging-Jet Visualization Demo`
+- Short description: Official DualSPHysics v5.4 `08_ImpingingJet` example
+  rendered as a front-on reconstructed-surface, particle, impact-zoom, and
+  scalar-analysis showcase.
+- Caption: Visualization demo only: 2D single-phase, not validation.
+- Recommended use: supporting scalar-analysis demonstration for the
+  SPH-to-Blender post-processing family.
+
+Long description:
+
+```text
+Official DualSPHysics v5.4 08_ImpingingJet / CaseJet2D example processed
+through IsoSurface, particle VTK, headless Blender, and ffmpeg. The video shows
+front-on reconstructed-surface and scalar-analysis views.
+
+This is a 2D single-phase visualization demo. It is not a 3D atomized jet, not
+liquid-gas spray breakup, not statistically stationary spray validation, not
+production CFD, and not experimental agreement.
+```
+
 ## Rectangular Jet Geometry Proxy
 
 - YouTube URL: not uploaded yet; use manual hosting or upload before embedding.
@@ -116,3 +140,6 @@ Avoid wording that implies:
 - statistically stationary spray validation,
 - experimental agreement,
 - deployed cloud implementation.
+
+For the recommended page structure and demo hierarchy, see
+[dualsphysics_demo_family.md](dualsphysics_demo_family.md).
