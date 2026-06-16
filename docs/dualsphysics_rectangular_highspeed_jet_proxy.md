@@ -621,6 +621,37 @@ video adds the longer run, studio-environment transparent-water views, velocity
 and pressure views, proxy-energy diagnostics, true plane/IsoSurface
 cross-section cuts, and a final-frame surface inspection sequence.
 
+For the v4.1 render-polish package, use:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v41-render-polish
+```
+
+This is a render/post-production pass only. It reuses accepted v4 particle VTK,
+IsoSurface VTK, metrics, and diagnostic frames; it does not rerun DualSPHysics,
+GenCase, PartVTK, or IsoSurface. The pass adds a clearer `review-water`
+transparent material, brighter color management, stronger studio lighting,
+light neutral floor/back/side materials, cleaner segment labels, and brighter
+diagnostic panels.
+
+Main v4.1 artifacts:
+
+- final scientific-demonstration MP4:
+  `rectangular_jet_v41_scientific_demonstration.mp4`
+- clean surface/analysis animation:
+  `rectangular_jet_v41_clean.mp4`
+- contact sheet:
+  `rectangular_jet_v41_contact_sheet.png`
+- report:
+  `CODEX_RECTANGULAR_JET_V41_REPORT.md`
+- summary:
+  `CODEX_RECTANGULAR_JET_V41_SUMMARY.json`
+
+Visual-quality classification: public-preview candidate. The v4.1 contact-sheet
+mean luminance is higher than v4 (`66.18` versus `52.19` in the local check),
+and the full-resolution surface/cross-section panels are more legible. The
+scientific caveat is unchanged.
+
 ## Limitations
 
 - The case is modified from an educational inlet/outlet example.

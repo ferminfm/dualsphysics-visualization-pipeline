@@ -166,6 +166,12 @@ diameters, and adds studio-environment transparent-water rendering, final-frame
 surface inspection, pressure/velocity/proxy-energy views, and true
 plane/IsoSurface cross-section cuts driven by a traced particle ID.
 
+Render-polished v4.1 package:
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-v41-render-polish`.
+This render-only pass reuses accepted v4 data, does not rerun the solver, and
+improves lighting, contrast, transparent-water material, analysis-panel
+readability, and final video composition for public review.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See

@@ -582,7 +582,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--surface-material",
-        choices=("cyan-glassy", "clear-water", "tinted-water"),
+        choices=("cyan-glassy", "clear-water", "tinted-water", "review-water"),
         default="cyan-glassy",
         help="Material preset used for the reconstructed IsoSurface.",
     )
@@ -615,6 +615,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--light-size", type=float, default=1.6)
     parser.add_argument("--light-offset", type=_parse_vector3, default=(0.15, -1.25, 1.35))
     parser.add_argument("--samples", type=int, default=64)
+    parser.add_argument("--view-transform", default="Filmic")
+    parser.add_argument("--view-look", default="Medium High Contrast")
+    parser.add_argument("--exposure", type=float, default=0.0)
+    parser.add_argument("--gamma", type=float, default=1.0)
     parser.add_argument("--ambient-occlusion", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--contact-shadows", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--caption", default=DEFAULT_CAPTION)
@@ -709,6 +713,15 @@ def main() -> None:
                 roughness=0.018,
                 specular=1.0,
                 transmission=0.48,
+                ior=1.333,
+            )
+        elif args.surface_material == "review-water":
+            iso_mat = _make_material(
+                "public_review_clear_water_material",
+                (0.90, 0.985, 1.0, max(0.54, min(args.iso_color[3], 0.72))),
+                roughness=0.006,
+                specular=1.0,
+                transmission=0.42,
                 ior=1.333,
             )
         else:
@@ -858,8 +871,16 @@ def main() -> None:
                 bpy.context.scene.eevee.gtao_factor = 0.9
     bpy.context.scene.render.resolution_x = args.resolution
     bpy.context.scene.render.resolution_y = int(args.resolution * 0.5625)  # 16:9 for video (1280x720)
-    bpy.context.scene.view_settings.view_transform = "Filmic"
-    bpy.context.scene.view_settings.look = "Medium High Contrast"
+    try:
+        bpy.context.scene.view_settings.view_transform = args.view_transform
+    except TypeError:
+        print(f"WARNING: unsupported view transform {args.view_transform!r}; keeping default")
+    try:
+        bpy.context.scene.view_settings.look = args.view_look
+    except TypeError:
+        print(f"WARNING: unsupported view look {args.view_look!r}; keeping default")
+    bpy.context.scene.view_settings.exposure = args.exposure
+    bpy.context.scene.view_settings.gamma = args.gamma
     bpy.context.scene.world.color = args.background_color[:3]
 
     print(f"CAMERA_PRESET={args.camera_preset}")
@@ -873,6 +894,10 @@ def main() -> None:
     print(f"LIGHT_ENERGY={args.light_energy}")
     print(f"LIGHT_SIZE={args.light_size}")
     print(f"LIGHT_OFFSET={args.light_offset}")
+    print(f"VIEW_TRANSFORM={bpy.context.scene.view_settings.view_transform}")
+    print(f"VIEW_LOOK={bpy.context.scene.view_settings.look}")
+    print(f"EXPOSURE={bpy.context.scene.view_settings.exposure}")
+    print(f"GAMMA={bpy.context.scene.view_settings.gamma}")
     print(f"AMBIENT_OCCLUSION={args.ambient_occlusion}")
     print(f"CONTACT_SHADOWS={args.contact_shadows}")
     print(f"FLUID_STRIDE={args.fluid_stride}")

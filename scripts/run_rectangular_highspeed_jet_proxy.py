@@ -949,6 +949,14 @@ def _render_frames(
     background_color: str = "#071018FF",
     light_energy: float = 1200.0,
     light_size: float = 2.0,
+    light_offset: str | None = None,
+    floor_color: str | None = None,
+    back_wall_color: str | None = None,
+    side_wall_color: str | None = None,
+    view_transform: str | None = None,
+    view_look: str | None = None,
+    exposure: float | None = None,
+    gamma: float | None = None,
 ) -> list[Path]:
     _require(paths.blender, "Blender executable")
     paths.render_dir.mkdir(parents=True, exist_ok=True)
@@ -999,6 +1007,22 @@ def _render_frames(
             f"{light_size:g}",
             "--no-caption",
         ]
+        if light_offset is not None:
+            command.append(f"--light-offset={light_offset}")
+        if floor_color is not None:
+            command.extend(["--floor-color", floor_color])
+        if back_wall_color is not None:
+            command.extend(["--back-wall-color", back_wall_color])
+        if side_wall_color is not None:
+            command.extend(["--side-wall-color", side_wall_color])
+        if view_transform is not None:
+            command.extend(["--view-transform", view_transform])
+        if view_look is not None:
+            command.extend(["--view-look", view_look])
+        if exposure is not None:
+            command.extend(["--exposure", f"{exposure:g}"])
+        if gamma is not None:
+            command.extend(["--gamma", f"{gamma:g}"])
         if ortho_scale is not None:
             command.extend(["--ortho-scale", f"{ortho_scale:g}"])
         if camera_target_x_fraction is not None:
