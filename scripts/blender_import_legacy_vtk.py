@@ -465,6 +465,29 @@ def _add_surface(
     return obj
 
 
+def _add_floor(
+    center: Vector,
+    span: float,
+    z_value: float,
+    material: bpy.types.Material,
+) -> bpy.types.Object:
+    size = span * 1.35
+    y_size = span * 0.45
+    verts = [
+        (center.x - size * 0.55, center.y - y_size, z_value),
+        (center.x + size * 0.55, center.y - y_size, z_value),
+        (center.x + size * 0.55, center.y + y_size, z_value),
+        (center.x - size * 0.55, center.y + y_size, z_value),
+    ]
+    mesh = bpy.data.meshes.new("studio_floor_mesh")
+    mesh.from_pydata(verts, [], [(0, 1, 2, 3)])
+    mesh.update()
+    obj = bpy.data.objects.new("studio_floor", mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.data.materials.append(material)
+    return obj
+
+
 def _add_label(text: str, location: tuple[float, float, float], size: float) -> None:
     font_curve = bpy.data.curves.new("label", "FONT")
     font_curve.body = text
@@ -510,6 +533,24 @@ def _parse_args() -> argparse.Namespace:
         default="polished",
         help="standard keeps a plain technical preview; polished adds glassier materials.",
     )
+    parser.add_argument(
+        "--surface-material",
+        choices=("cyan-glassy", "clear-water", "tinted-water"),
+        default="cyan-glassy",
+        help="Material preset used for the reconstructed IsoSurface.",
+    )
+    parser.add_argument(
+        "--render-engine",
+        choices=("eevee", "cycles"),
+        default="eevee",
+        help="Use Eevee Next for speed or Cycles for transparent-water hero checks.",
+    )
+    parser.add_argument(
+        "--add-floor",
+        action="store_true",
+        help="Add a neutral studio floor below the visible geometry for scale/refraction cues.",
+    )
+    parser.add_argument("--floor-color", type=_parse_color, default=(0.70, 0.72, 0.72, 1.0))
     parser.add_argument("--camera-lens", type=float, default=55.0)
     parser.add_argument("--ortho-scale", type=float)
     parser.add_argument("--light-energy", type=float, default=700.0)
@@ -594,18 +635,43 @@ def main() -> None:
             roughness=0.68,
             specular=0.25,
         )
-        iso_mat = _make_material(
-            "surface_glassy_cyan",
-            args.iso_color,
-            roughness=0.08,
-            specular=0.9,
-            transmission=0.35,
-            ior=1.333,
-        )
+        if args.surface_material == "clear-water":
+            iso_mat = _make_material(
+                "clear_water_material",
+                (0.92, 0.98, 1.0, max(0.18, min(args.iso_color[3], 0.32))),
+                roughness=0.015,
+                specular=1.0,
+                transmission=0.88,
+                ior=1.333,
+            )
+        elif args.surface_material == "tinted-water":
+            iso_mat = _make_material(
+                "transparent_water_material_light_tint",
+                (0.70, 0.92, 0.96, max(0.34, min(args.iso_color[3], 0.52))),
+                roughness=0.025,
+                specular=0.95,
+                transmission=0.62,
+                ior=1.333,
+            )
+        else:
+            iso_mat = _make_material(
+                "surface_glassy_cyan",
+                args.iso_color,
+                roughness=0.08,
+                specular=0.9,
+                transmission=0.35,
+                ior=1.333,
+            )
     else:
         fluid_mat = _make_material("fluid_water_blue", args.fluid_color)
         boundary_mat = _make_material("boundary_neutral", args.boundary_color)
         iso_mat = _make_material("surface_translucent", args.iso_color)
+    floor_mat = _make_material(
+        "studio_floor_matte",
+        args.floor_color,
+        roughness=0.72,
+        specular=0.18,
+    )
 
     bounds_points = list(reference.points) if reference else list(fluid.points)
     if boundary and not reference:
@@ -620,6 +686,9 @@ def main() -> None:
     if iso and iso.polygons and not args.hide_iso:
         surface = _add_surface("dambreak_isosurface", iso.points, iso.polygons, iso_mat)
         surface.show_transparent = True
+
+    if args.add_floor:
+        _add_floor(center, span, mins.z - span * 0.045, floor_mat)
 
     if not args.hide_fluid and args.color_by:
         if args.color_by not in fluid.point_scalars:
@@ -688,14 +757,19 @@ def main() -> None:
         camera.data.lens = args.camera_lens
     bpy.context.scene.camera = camera
 
-    bpy.context.scene.render.engine = "BLENDER_EEVEE_NEXT"
-    bpy.context.scene.eevee.taa_render_samples = args.samples
-    if args.ambient_occlusion and hasattr(bpy.context.scene.eevee, "use_gtao"):
-        bpy.context.scene.eevee.use_gtao = True
-        if hasattr(bpy.context.scene.eevee, "gtao_distance"):
-            bpy.context.scene.eevee.gtao_distance = span * 0.35
-        if hasattr(bpy.context.scene.eevee, "gtao_factor"):
-            bpy.context.scene.eevee.gtao_factor = 0.9
+    if args.render_engine == "cycles":
+        bpy.context.scene.render.engine = "CYCLES"
+        bpy.context.scene.cycles.samples = args.samples
+        bpy.context.scene.cycles.use_denoising = True
+    else:
+        bpy.context.scene.render.engine = "BLENDER_EEVEE_NEXT"
+        bpy.context.scene.eevee.taa_render_samples = args.samples
+        if args.ambient_occlusion and hasattr(bpy.context.scene.eevee, "use_gtao"):
+            bpy.context.scene.eevee.use_gtao = True
+            if hasattr(bpy.context.scene.eevee, "gtao_distance"):
+                bpy.context.scene.eevee.gtao_distance = span * 0.35
+            if hasattr(bpy.context.scene.eevee, "gtao_factor"):
+                bpy.context.scene.eevee.gtao_factor = 0.9
     bpy.context.scene.render.resolution_x = args.resolution
     bpy.context.scene.render.resolution_y = int(args.resolution * 0.5625)  # 16:9 for video (1280x720)
     bpy.context.scene.view_settings.view_transform = "Filmic"
@@ -704,6 +778,8 @@ def main() -> None:
 
     print(f"CAMERA_PRESET={args.camera_preset}")
     print(f"STYLE_PRESET={args.style_preset}")
+    print(f"SURFACE_MATERIAL={args.surface_material}")
+    print(f"RENDER_ENGINE={args.render_engine}")
     print(f"CAMERA_LENS={args.camera_lens}")
     print(f"ORTHO_SCALE={ortho_scale}")
     print(f"LIGHT_ENERGY={args.light_energy}")
@@ -717,6 +793,7 @@ def main() -> None:
     print(f"MARKER_STYLE={args.marker_style}")
     print(f"FLUID_VISIBLE={not args.hide_fluid}")
     print(f"ISO_VISIBLE={bool(iso and iso.polygons and not args.hide_iso)}")
+    print(f"STUDIO_FLOOR={args.add_floor}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.blend:

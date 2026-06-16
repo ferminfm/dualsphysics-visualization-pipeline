@@ -312,6 +312,102 @@ The accepted v2 output root is about `2.7G` on disk and is intentionally not
 tracked by Git. The final stitched accepted MP4 is H.264/yuv420p, `1280 x 720`,
 `8 fps`, `144` frames, and `18.0 s`.
 
+## v3 Streamwise-Gravity Rebuild
+
+The v3 rebuild supersedes v2 for the rectangular-jet geometry-proxy workflow.
+It keeps the same one-rectangular-inlet framing, but changes the case so gravity
+is aligned with the streamwise jet direction instead of pulling the jet across
+the render frame.
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v3-streamwise-gravity
+```
+
+Final showcase root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v3-streamwise-gravity/showcase
+```
+
+Key setup changes relative to v2:
+
+- profile: `v3`
+- particle spacing: `dp = 0.025`
+- inlet speed: `20 m/s`
+- gravity vector: `(9.81, 0, 0)`, aligned with the `+x` jet axis
+- physical time: `0.85 s`
+- output interval: `0.025 s`
+- generated domain: approximately `x = -1.5` to `x = 40.5`
+- simulation bounds extended to about `x = 42.0`
+- retained geometry: one rectangular inlet/nozzle only
+- post-processing: PartVTK, IsoSurface, pressure, velocity magnitude, and
+  moving-slice diagnostics
+
+Run command pattern for the final render package:
+
+```bash
+python3 scripts/run_rectangular_highspeed_jet_proxy.py \
+  --output-root /home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v3-streamwise-gravity/showcase \
+  --profile v3 \
+  --velocity 20 \
+  --time-max 0.85 \
+  --time-out 0.025 \
+  --stations 20 \
+  --max-render-frames 6 \
+  --fps 6 \
+  --velocity-color-max 45 \
+  --pressure-color-max 50000 \
+  --reuse-existing-run \
+  --v3-render-package \
+  --cycles-surface
+```
+
+Final solver/post-processing summary:
+
+- particle VTK frames: `35`
+- IsoSurface frames used for the package: `6`
+- metric rows: `359`
+- exported fluid particles: up to `291,550`
+- exported fields: `Idp`, `Press`, `Rhop`, `Vel`
+- axial coordinate range: about `-1.625` to `33.239`
+- axial coverage: about `63.2` equivalent nozzle diameters, using the
+  rectangular inlet area proxy `0.6 * 0.4`
+- pressure view: available from exported `Press`
+- velocity-fluctuation energy proxy: computed from per-slice velocity component
+  standard deviations; this is not a true turbulence quantity
+
+Final v3 artifacts:
+
+- final stitched MP4:
+  `showcase/rectangular_jet_v3_streamwise_gravity_scientific_demonstration.mp4`
+- particle provenance MP4:
+  `showcase/rectangular_jet_v3_particle_provenance_clean.mp4`
+- transparent-water surface-wide MP4:
+  `showcase/rectangular_jet_v3_tinted_water_surface_wide_clean.mp4`
+- transparent-water surface-hero MP4:
+  `showcase/rectangular_jet_v3_tinted_water_surface_hero_clean.mp4`
+- velocity-magnitude MP4:
+  `showcase/rectangular_jet_v3_velocity_magnitude_clean.mp4`
+- pressure MP4:
+  `showcase/rectangular_jet_v3_pressure_clean.mp4`
+- moving-slice diagnostics MP4:
+  `showcase/rectangular_jet_v3_moving_slice_cross_section.mp4`
+- moving-slice diagnostics CSV:
+  `showcase/metrics/rectangular_jet_v3_moving_slice_diagnostics.csv`
+- multiview contact sheet:
+  `showcase/rectangular_jet_v3_multiview_contact_sheet.png`
+- acceptance checklist:
+  `/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v3-streamwise-gravity/acceptance_checklist.md`
+
+The v3 surface pass tested both clear/glass-like and lightly tinted
+transparent-water material variants in Blender. The final hero segment uses the
+lightly tinted transparent-water material because it reads more clearly than
+near-clear water while avoiding an opaque blue/cyan surface. Cycles was used for
+the transparent-water surface render. The result should be described as a more
+realistic transparent-water render, not as photorealistic fluid.
+
 ## Metrics
 
 The script extracts preliminary particle-slice metrics from `PartFluid_*.vtk`.
@@ -330,7 +426,11 @@ Metric fields include:
 - `aspect_ratio`
 - `orientation_deg_yz`
 - `u_axial_mean`, `u_axial_std`
+- `u_y_mean`, `u_y_std`, `u_z_mean`, `u_z_std`
 - `speed_mean`, `speed_std`
+- `pressure_mean`, `pressure_std` when `Press` is exported
+- `velocity_fluctuation_energy_proxy`, computed from exported velocity
+  component spreads and not a true turbulence quantity
 - `quality_flags`
 
 Run result:
@@ -357,6 +457,16 @@ Accepted v2 metric result:
 - axial coordinate range: about `-1.625` to `17.554`
 - axial coverage: about `34.7` equivalent nozzle diameters, using the
   rectangular inlet area proxy `0.6 * 0.4`
+
+v3 metric result:
+
+- frames parsed: `35`
+- metric rows: `359`
+- particle count range per frame: `2,550` to `291,550`
+- axial coordinate range: about `-1.625` to `33.239`
+- axial coverage: about `63.2` equivalent nozzle diameters
+- pressure, velocity magnitude, and velocity-fluctuation proxy diagnostics are
+  available from exported particle fields
 
 ## Visualization
 
@@ -389,6 +499,12 @@ hero is the main visual reference. The velocity segment is useful as a
 post-processing view, but scalar contrast is limited because the coherent inlet
 stream remains near high speed.
 
+For the v3 package, use the `rectangular_jet_v3_*` artifacts. The final stitched
+video combines particle provenance, transparent-water IsoSurface wide and hero
+views, velocity magnitude, pressure, and a moving downstream cross-section
+diagnostic. The moving-slice segment follows a diagnostic sampling station in
+the metrics, not tagged material particles.
+
 ## Limitations
 
 - The case is modified from an educational inlet/outlet example.
@@ -404,6 +520,11 @@ stream remains near high speed.
 - The upgraded run's late frames approach the downstream boundary. Downstream
   metrics near that limit should be treated as visualization/proxy evidence,
   not unconstrained free-jet data.
+- The v3 run aligns gravity with the streamwise direction and extends the
+  downstream development window, but it remains a single-phase geometry proxy.
+- The v3 pressure and velocity-fluctuation diagnostics are post-processing
+  quantities from exported particle fields. The fluctuation-energy value is a
+  proxy, not a validated turbulence or atomization metric.
 
 ## Next Step Toward True Atomization
 

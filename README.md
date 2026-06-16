@@ -151,6 +151,13 @@ velocity, `dp=0.025`, an open downstream boundary in the generated box, about
 `34.7` equivalent nozzle diameters of measured axial coverage, and accepted
 particle/surface/velocity render artifacts outside Git.
 
+Streamwise-gravity v3 rebuild:
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-v3-streamwise-gravity`.
+This version aligns gravity with the `+x` jet axis, uses `20 m/s`, extends the
+measured axial range to about `63.2` equivalent nozzle diameters, and adds
+transparent-water IsoSurface rendering, pressure and velocity-magnitude views,
+and moving-slice geometry diagnostics outside Git.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See

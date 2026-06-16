@@ -64,6 +64,25 @@ V2_DEFAULTS = {
     "sim_posmin": (-2.2, -4.5, -4.9),
     "sim_posmax": (26.5, 4.5, 5.9),
     "freecentre": (10.0, 0.0, 0.4),
+    "gravity": (0.0, 0.0, -9.81),
+    "axis_convention": "jet axis is +x; gravity is vertical -z",
+}
+
+
+V3_DEFAULTS = {
+    "dp": 0.025,
+    "tank_point": (-1.5, -5.0, -5.2),
+    "tank_size": (42.0, 10.0, 10.4),
+    "tank_boxfill": "bottom | left | front | back",
+    "inlet_point": (-1.5, -0.3, 0.0),
+    "inlet_size": (0.0, 0.6, 0.4),
+    "pointmin": (-2.5, -5.6, -5.8),
+    "pointmax": (42.5, 5.6, 5.8),
+    "sim_posmin": (-2.2, -5.6, -5.7),
+    "sim_posmax": (42.0, 5.6, 5.7),
+    "freecentre": (18.0, 0.0, 0.0),
+    "gravity": (9.81, 0.0, 0.0),
+    "axis_convention": "jet axis is +x; gravity is streamwise +x",
 }
 
 
@@ -198,6 +217,8 @@ def _profile_defaults(profile: str) -> dict[str, object] | None:
         return UPGRADE_DEFAULTS
     if profile == "v2":
         return V2_DEFAULTS
+    if profile == "v3":
+        return V3_DEFAULTS
     return None
 
 
@@ -241,11 +262,11 @@ def _copy_and_modify_case(
         _set_vector_attrs(pointmax, profile_defaults["pointmax"])  # type: ignore[arg-type]
 
         for tag, attrs in [
-            ("gravity", (0.0, 0.0, -9.81)),
+            ("gravity", profile_defaults.get("gravity", (0.0, 0.0, -9.81))),
         ]:
             element = root.find(f"./casedef/constantsdef/{tag}")
             if element is not None:
-                _set_vector_attrs(element, attrs)
+                _set_vector_attrs(element, attrs)  # type: ignore[arg-type]
         speedsystem = root.find("./casedef/constantsdef/speedsystem")
         if speedsystem is not None:
             speedsystem.set("value", f"{velocity:g}")
@@ -343,6 +364,8 @@ def _copy_and_modify_case(
                 f"TimeMax: {time_max:g} s",
                 f"TimeOut: {time_out:g} s",
                 f"dp: {(dp or profile_defaults['dp']) if profile_defaults else 'base'}",
+                f"Gravity: {profile_defaults.get('gravity') if profile_defaults else 'base'}",
+                f"Axis convention: {profile_defaults.get('axis_convention', 'base') if profile_defaults else 'base'}",
                 "Caveat: modified DualSPHysics inlet-jet geometry proxy; not validation.",
                 "",
             ]
@@ -645,6 +668,14 @@ def _velocity_arrays(vtk: VtkParticles) -> list[tuple[float, float, float]] | No
     return None
 
 
+def _scalar_array(vtk: VtkParticles, names: tuple[str, ...]) -> list[float] | None:
+    for name in names:
+        values = vtk.arrays.get(name)
+        if values and not isinstance(values[0], tuple):
+            return [float(value) for value in values]  # type: ignore[arg-type]
+    return None
+
+
 def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[Path, Path, dict]:
     frames = _existing_particle_frames(paths)
     if not frames:
@@ -665,6 +696,7 @@ def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[P
     for path, vtk in parsed:
         frame = _frame_number(path)
         velocities = _velocity_arrays(vtk)
+        pressure = _scalar_array(vtk, ("Press", "press", "Pressure", "pressure", "P", "p"))
         frame_particle_counts.append(len(vtk.points))
         for station_index in range(stations):
             lo = x_min + station_index * dx
@@ -688,10 +720,17 @@ def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[P
                 quality_flags.append("aspect_unstable")
             u_axial_mean = math.nan
             u_axial_std = math.nan
+            u_y_mean = math.nan
+            u_y_std = math.nan
+            u_z_mean = math.nan
+            u_z_std = math.nan
             speed_mean = math.nan
             speed_std = math.nan
+            velocity_fluctuation_energy_proxy = math.nan
             if velocities:
                 vx = [float(velocities[idx][0]) for idx in ids]
+                vy = [float(velocities[idx][1]) for idx in ids]
+                vz = [float(velocities[idx][2]) for idx in ids]
                 speeds = [
                     math.sqrt(
                         float(velocities[idx][0]) ** 2
@@ -702,8 +741,21 @@ def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[P
                 ]
                 u_axial_mean = _mean(vx)
                 u_axial_std = _std(vx, u_axial_mean)
+                u_y_mean = _mean(vy)
+                u_y_std = _std(vy, u_y_mean)
+                u_z_mean = _mean(vz)
+                u_z_std = _std(vz, u_z_mean)
                 speed_mean = _mean(speeds)
                 speed_std = _std(speeds, speed_mean)
+                velocity_fluctuation_energy_proxy = 0.5 * (
+                    u_axial_std * u_axial_std + u_y_std * u_y_std + u_z_std * u_z_std
+                )
+            pressure_mean = math.nan
+            pressure_std = math.nan
+            if pressure:
+                pressures = [pressure[idx] for idx in ids]
+                pressure_mean = _mean(pressures)
+                pressure_std = _std(pressures, pressure_mean)
             rows.append(
                 {
                     "source_type": "dualsphysics_particle_vtk",
@@ -725,8 +777,15 @@ def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[P
                     "orientation_deg_yz": orientation,
                     "u_axial_mean": u_axial_mean,
                     "u_axial_std": u_axial_std,
+                    "u_y_mean": u_y_mean,
+                    "u_y_std": u_y_std,
+                    "u_z_mean": u_z_mean,
+                    "u_z_std": u_z_std,
                     "speed_mean": speed_mean,
                     "speed_std": speed_std,
+                    "velocity_fluctuation_energy_proxy": velocity_fluctuation_energy_proxy,
+                    "pressure_mean": pressure_mean,
+                    "pressure_std": pressure_std,
                     "quality_flags": ";".join(quality_flags) if quality_flags else "ok",
                 }
             )
@@ -743,6 +802,15 @@ def _extract_metrics(paths: Paths, stations: int, min_particles: int) -> tuple[P
         "particle_count_max": max(frame_particle_counts),
         "x_range": [x_min, x_max],
         "stations": stations,
+        "available_particle_arrays": sorted(parsed[-1][1].arrays.keys()),
+        "pressure_available": any(
+            name in parsed[-1][1].arrays for name in ("Press", "press", "Pressure", "pressure", "P", "p")
+        ),
+        "velocity_available": _velocity_arrays(parsed[-1][1]) is not None,
+        "velocity_fluctuation_energy_proxy": (
+            "Computed from exported particle velocity component standard deviations per slice; "
+            "this is not a true turbulence quantity."
+        ),
         "nozzle_area_proxy_reference": NOZZLE_AREA,
         "csv_path": str(csv_path),
         "physical_validation": False,
@@ -765,14 +833,20 @@ def _render_frames(
     camera_preset: str = "isometric",
     output_prefix: str = "rectangular_highspeed_jet",
     color_max: float = 6.0,
+    color_min: float = 0.0,
+    color_by: str | None = None,
     resolution: int = 1280,
     samples: int = 48,
     camera_lens: float = 70.0,
+    ortho_scale: float | None = None,
     marker_scale: float = 1.15,
     marker_style: str = "octahedron",
     fluid_stride: int = 1,
     iso_color: str = "#5DD9FF66",
     fluid_color: str = "#5DD9FF66",
+    surface_material: str = "cyan-glassy",
+    render_engine: str = "eevee",
+    add_floor: bool = False,
     background_color: str = "#071018FF",
     light_energy: float = 1200.0,
     light_size: float = 2.0,
@@ -826,15 +900,17 @@ def _render_frames(
             f"{light_size:g}",
             "--no-caption",
         ]
-        if mode == "velocity":
+        if ortho_scale is not None:
+            command.extend(["--ortho-scale", f"{ortho_scale:g}"])
+        if mode in {"velocity", "analysis"}:
             command.extend(
                 [
                     "--color-by",
-                    "Vel",
+                    color_by or "Vel",
                     "--color-bins",
                     "7",
                     "--color-min",
-                    "0",
+                    f"{color_min:g}",
                     "--color-max",
                     f"{color_max:g}",
                 ]
@@ -849,8 +925,14 @@ def _render_frames(
                     iso_color,
                     "--fluid-color",
                     fluid_color,
+                    "--surface-material",
+                    surface_material,
+                    "--render-engine",
+                    render_engine,
                 ]
             )
+            if add_floor:
+                command.append("--add-floor")
         elif surface.exists() and surface.stat().st_size > 0:
             command.extend(["--iso", str(surface), "--iso-color", iso_color])
         _run(command, paths.logs_dir / f"06_blender_{output_prefix}_{frame:04d}.log", timeout_seconds)
@@ -898,28 +980,24 @@ def _assemble_clean_video(
 
 
 def _make_contact_sheet(paths: Paths, rendered: list[Path], output_name: str) -> Path:
-    sequence_dir = paths.output_root / f"{output_name}_contact_inputs"
-    sequence_dir.mkdir(parents=True, exist_ok=True)
-    for stale in sequence_dir.glob("frame_*.png"):
-        stale.unlink()
-    for index, frame in enumerate(rendered):
-        shutil.copy2(frame, sequence_dir / f"frame_{index:04d}.png")
+    from PIL import Image
+
     contact_sheet = paths.output_root / f"{output_name}.png"
-    _run(
-        [
-            "ffmpeg",
-            "-y",
-            "-i",
-            str(sequence_dir / "frame_%04d.png"),
-            "-vf",
-            "scale=320:-1,tile=4x3",
-            "-frames:v",
-            "1",
-            str(contact_sheet),
-        ],
-        paths.logs_dir / f"08_ffmpeg_{output_name}.log",
-        300,
-    )
+    tile_columns = 5
+    tile_rows = max(1, math.ceil(len(rendered) / tile_columns))
+    thumb_w, thumb_h = 320, 180
+    sheet = Image.new("RGB", (tile_columns * thumb_w, tile_rows * thumb_h), (0, 0, 0))
+    for index, frame in enumerate(rendered):
+        image = Image.open(frame).convert("RGB")
+        image.thumbnail((thumb_w, thumb_h), Image.Resampling.LANCZOS)
+        tile = Image.new("RGB", (thumb_w, thumb_h), (0, 0, 0))
+        left = (thumb_w - image.width) // 2
+        top = (thumb_h - image.height) // 2
+        tile.paste(image, (left, top))
+        row, column = divmod(index, tile_columns)
+        sheet.paste(tile, (column * thumb_w, row * thumb_h))
+    contact_sheet.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(contact_sheet)
     return contact_sheet
 
 
@@ -936,6 +1014,215 @@ def _contact_sheet_samples(*segments: list[Path]) -> list[Path]:
     return sampled
 
 
+def _float_value(row: dict[str, str], key: str, default: float = math.nan) -> float:
+    try:
+        return float(row.get(key, ""))
+    except (TypeError, ValueError):
+        return default
+
+
+def _velocity_proxy_color(value: float, vmax: float) -> tuple[int, int, int]:
+    if not math.isfinite(value) or vmax <= 0:
+        return (60, 120, 180)
+    t = min(1.0, max(0.0, value / vmax))
+    if t < 0.5:
+        s = t / 0.5
+        return (round(35 * (1 - s) + 35 * s), round(118 * (1 - s) + 190 * s), round(210 * (1 - s) + 120 * s))
+    s = (t - 0.5) / 0.5
+    return (round(35 * (1 - s) + 235 * s), round(190 * (1 - s) + 125 * s), round(120 * (1 - s) + 55 * s))
+
+
+def _write_moving_slice_diagnostics(
+    paths: Paths,
+    metrics_csv: Path,
+    fps: int,
+    max_frames: int = 40,
+) -> dict[str, str | int]:
+    from PIL import Image, ImageDraw, ImageFont
+
+    rows: list[dict[str, str]] = []
+    with metrics_csv.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        rows.extend(reader)
+    if not rows:
+        raise RuntimeError("no metrics rows available for moving-slice diagnostics")
+
+    grouped: dict[int, list[dict[str, str]]] = {}
+    x_values = [_float_value(row, "z") for row in rows]
+    x_values = [value for value in x_values if math.isfinite(value)]
+    if not x_values:
+        raise RuntimeError("metrics rows have no finite z/axial coordinates")
+    x_min, x_max = min(x_values), max(x_values)
+    for row in rows:
+        try:
+            frame = int(float(row["frame"]))
+        except (KeyError, ValueError):
+            continue
+        grouped.setdefault(frame, []).append(row)
+
+    frame_numbers = sorted(grouped)
+    if len(frame_numbers) > max_frames:
+        keep_indices = [
+            round(index * (len(frame_numbers) - 1) / (max_frames - 1))
+            for index in range(max_frames)
+        ]
+        frame_numbers = [frame_numbers[index] for index in keep_indices]
+
+    selected: list[dict[str, str]] = []
+    for index, frame in enumerate(frame_numbers):
+        progress = index / max(1, len(frame_numbers) - 1)
+        target_x = x_min + (0.08 + 0.84 * progress) * (x_max - x_min)
+        candidates = grouped[frame]
+        candidates = [
+            row for row in candidates
+            if _float_value(row, "particle_count", 0.0) > 0
+            and "zero_area_proxy" not in row.get("quality_flags", "")
+        ] or grouped[frame]
+        selected.append(min(candidates, key=lambda row: abs(_float_value(row, "z") - target_x)))
+
+    moving_csv = paths.metrics_dir / "rectangular_jet_v3_moving_slice_diagnostics.csv"
+    with moving_csv.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(selected[0].keys()) + ["slice_path_note"])
+        writer.writeheader()
+        for row in selected:
+            out = dict(row)
+            out["slice_path_note"] = (
+                "Moving diagnostic station selected from per-frame cross-section metrics; "
+                "this is not material particle tagging."
+            )
+            writer.writerow(out)
+
+    frames_dir = paths.output_root / "moving_slice_frames"
+    frames_dir.mkdir(parents=True, exist_ok=True)
+    for stale in frames_dir.glob("frame_*.png"):
+        stale.unlink()
+
+    try:
+        regular = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+        small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+        bold = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
+    except OSError:
+        regular = small = bold = ImageFont.load_default()
+
+    proxy_values = [
+        _float_value(row, "velocity_fluctuation_energy_proxy", 0.0) for row in selected
+    ]
+    vmax = max([value for value in proxy_values if math.isfinite(value)] or [1.0])
+    width_max = max(
+        [
+            max(_float_value(row, "width_y", 0.0), _float_value(row, "width_z", 0.0))
+            for row in selected
+        ]
+        or [1.0]
+    )
+    x_range = max(1.0e-9, x_max - x_min)
+
+    for index, row in enumerate(selected):
+        image = Image.new("RGB", (1280, 720), (8, 14, 20))
+        draw = ImageDraw.Draw(image, "RGBA")
+        accent = (90, 205, 235, 255)
+        draw.rectangle((0, 0, 1280, 86), fill=(12, 24, 34, 255))
+        draw.text((52, 26), "Moving downstream cross-section diagnostic", font=bold, fill=(238, 248, 250))
+        draw.text((52, 62), "Metric slice follows the streamwise development; not material particle tagging", font=small, fill=(190, 212, 220))
+
+        x_value = _float_value(row, "z")
+        frame = row.get("frame", "")
+        particle_count = int(_float_value(row, "particle_count", 0.0))
+        width_y = _float_value(row, "width_y", 0.0)
+        width_z = _float_value(row, "width_z", 0.0)
+        aspect = _float_value(row, "aspect_ratio")
+        orientation = _float_value(row, "orientation_deg_yz")
+        speed_mean = _float_value(row, "speed_mean")
+        pressure_mean = _float_value(row, "pressure_mean")
+        proxy = _float_value(row, "velocity_fluctuation_energy_proxy", 0.0)
+        quality = row.get("quality_flags", "")
+
+        axis_left, axis_right, axis_y = 90, 760, 610
+        draw.line((axis_left, axis_y, axis_right, axis_y), fill=(110, 150, 165, 255), width=4)
+        progress_x = axis_left + int((x_value - x_min) / x_range * (axis_right - axis_left))
+        draw.ellipse((progress_x - 10, axis_y - 10, progress_x + 10, axis_y + 10), fill=accent)
+        draw.text((axis_left, axis_y + 18), f"x={x_min:.2f} m", font=small, fill=(170, 190, 200))
+        draw.text((axis_right - 90, axis_y + 18), f"x={x_max:.2f} m", font=small, fill=(170, 190, 200))
+
+        panel = (815, 125, 1225, 575)
+        draw.rounded_rectangle(panel, radius=14, fill=(18, 31, 42, 238), outline=(85, 135, 155, 200), width=2)
+        draw.text((845, 150), "y-z section proxy", font=regular, fill=(230, 242, 246))
+        cx, cy = 1020, 355
+        scale = 245.0 / max(width_max, 1.0e-6)
+        half_w = max(8, width_y * scale * 0.5)
+        half_h = max(8, width_z * scale * 0.5)
+        color = _velocity_proxy_color(proxy, vmax)
+        draw.rounded_rectangle(
+            (cx - half_w, cy - half_h, cx + half_w, cy + half_h),
+            radius=10,
+            fill=(*color, 125),
+            outline=(232, 248, 252, 235),
+            width=3,
+        )
+        if math.isfinite(orientation):
+            length = max(half_w, half_h) * 0.9
+            theta = math.radians(orientation)
+            draw.line(
+                (
+                    cx - length * math.cos(theta),
+                    cy - length * math.sin(theta),
+                    cx + length * math.cos(theta),
+                    cy + length * math.sin(theta),
+                ),
+                fill=(255, 238, 150, 230),
+                width=3,
+            )
+        draw.text((845, 520), "color: velocity-fluctuation energy proxy", font=small, fill=(190, 212, 220))
+
+        text = [
+            f"frame: {frame}",
+            f"slice x: {x_value:.3f} m",
+            f"particles in slice: {particle_count:,}",
+            f"width_y x width_z: {width_y:.3f} x {width_z:.3f} m",
+            f"aspect ratio: {aspect:.3f}" if math.isfinite(aspect) else "aspect ratio: n/a",
+            f"orientation: {orientation:.1f} deg" if math.isfinite(orientation) else "orientation: n/a",
+            f"speed mean: {speed_mean:.2f} m/s" if math.isfinite(speed_mean) else "speed mean: n/a",
+            f"pressure mean: {pressure_mean:.1f}" if math.isfinite(pressure_mean) else "pressure mean: n/a",
+            f"fluctuation proxy: {proxy:.3f}",
+            f"quality: {quality}",
+        ]
+        for line_index, line in enumerate(text):
+            draw.text((90, 130 + 42 * line_index), line, font=regular, fill=(228, 238, 242))
+
+        image.save(frames_dir / f"frame_{index:04d}.png")
+
+    moving_mp4 = paths.output_root / "rectangular_jet_v3_moving_slice_cross_section.mp4"
+    _run(
+        [
+            "ffmpeg",
+            "-y",
+            "-framerate",
+            str(fps),
+            "-i",
+            str(frames_dir / "frame_%04d.png"),
+            "-vf",
+            "format=yuv420p",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "slow",
+            "-crf",
+            "20",
+            "-movflags",
+            "+faststart",
+            str(moving_mp4),
+        ],
+        paths.logs_dir / "10_ffmpeg_moving_slice_diagnostics.log",
+        300,
+    )
+    return {
+        "moving_slice_csv": str(moving_csv),
+        "moving_slice_mp4": str(moving_mp4),
+        "moving_slice_png_frames": len(selected),
+        "moving_slice_frame_dir": str(frames_dir),
+    }
+
+
 def _assemble_titled_video(
     paths: Paths,
     rendered: list[Path],
@@ -945,6 +1232,10 @@ def _assemble_titled_video(
     subtitle: str,
     particle_text: str,
     render_text: str,
+    *,
+    closing_title: str = "Particle/velocity visualization and preliminary slice metrics",
+    closing_subtitle: str = "Geometry proxy and visualization workflow; not validation",
+    platform_text: str = "DualSPHysics v5.4 GPU | headless Blender | ffmpeg",
 ) -> Path:
     source_dir = paths.output_root / f"{stem}_source_frames"
     source_dir.mkdir(parents=True, exist_ok=True)
@@ -978,11 +1269,13 @@ def _assemble_titled_video(
             "--subtitle",
             subtitle,
             "--closing-title",
-            "Particle/velocity visualization and preliminary slice metrics",
+            closing_title,
+            "--closing-subtitle",
+            closing_subtitle,
             "--particle-text",
             particle_text,
             "--platform-text",
-            "DualSPHysics v5.4 GPU | headless Blender | ffmpeg",
+            platform_text,
             "--render-text",
             render_text,
             "--title-duration",
@@ -1241,6 +1534,269 @@ def _render_v2_package(
     }
 
 
+def _render_v3_package(
+    paths: Paths,
+    frames: list[int],
+    timeout_seconds: int,
+    fps: int,
+    color_max: float,
+    pressure_color_max: float,
+    metrics_csv: Path,
+    cycles_surface: bool,
+) -> dict[str, str | int | bool]:
+    last_vtk = _parse_vtk_particles(paths.particles_dir / f"PartFluid_{frames[-1]:04d}.vtk")
+    pressure_available = "Press" in last_vtk.arrays
+    surface_engine = "cycles" if cycles_surface else "eevee"
+
+    material_test_frames = [frames[0], frames[-1]] if len(frames) > 1 else [frames[0]]
+    clear_tests = _render_frames(
+        paths,
+        material_test_frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="v3_material_test_clear_water_v2",
+        samples=32 if cycles_surface else 96,
+        camera_lens=34,
+        iso_color="#F1FCFF40",
+        fluid_color="#F1FCFF40",
+        surface_material="clear-water",
+        render_engine=surface_engine,
+        add_floor=True,
+        background_color="#F5F7F7FF",
+        light_energy=5200,
+        light_size=3.1,
+    )
+    tinted_tests = _render_frames(
+        paths,
+        material_test_frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="close",
+        output_prefix="v3_material_test_light_tint_v2",
+        samples=32 if cycles_surface else 96,
+        camera_lens=34,
+        iso_color="#B7EEF866",
+        fluid_color="#B7EEF866",
+        surface_material="tinted-water",
+        render_engine=surface_engine,
+        add_floor=True,
+        background_color="#F5F7F7FF",
+        light_energy=5200,
+        light_size=3.1,
+    )
+
+    particle_wide = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="particle",
+        camera_preset="front-ortho",
+        output_prefix="v3_particle_provenance_wide",
+        color_max=color_max,
+        samples=72,
+        camera_lens=48,
+        marker_scale=0.78,
+        marker_style="icosahedron",
+        fluid_stride=2,
+        iso_color="#2AA8CC40",
+        background_color="#EEF3F5FF",
+        light_energy=3600,
+        light_size=2.5,
+    )
+    surface_wide = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="front-ortho",
+        output_prefix="v3_tinted_water_surface_wide",
+        color_max=color_max,
+        samples=48 if cycles_surface else 112,
+        camera_lens=44,
+        marker_scale=0.7,
+        iso_color="#B7EEF878",
+        fluid_color="#B7EEF878",
+        surface_material="tinted-water",
+        render_engine=surface_engine,
+        add_floor=True,
+        background_color="#F5F7F7FF",
+        light_energy=5600,
+        light_size=3.4,
+    )
+    surface_hero = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="surface",
+        camera_preset="front-ortho",
+        output_prefix="v3_tinted_water_surface_hero_zoom",
+        color_max=color_max,
+        samples=56 if cycles_surface else 128,
+        camera_lens=42,
+        ortho_scale=2.1,
+        marker_scale=0.7,
+        iso_color="#B7EEF878",
+        fluid_color="#B7EEF878",
+        surface_material="tinted-water",
+        render_engine=surface_engine,
+        add_floor=True,
+        background_color="#F5F7F7FF",
+        light_energy=6200,
+        light_size=3.6,
+    )
+    velocity_view = _render_frames(
+        paths,
+        frames,
+        timeout_seconds,
+        mode="velocity",
+        camera_preset="front-ortho",
+        output_prefix="v3_velocity_magnitude_front",
+        color_max=color_max,
+        samples=72,
+        camera_lens=48,
+        marker_scale=0.9,
+        marker_style="octahedron",
+        fluid_stride=2,
+        iso_color="#AEEAF040",
+        background_color="#EEF3F5FF",
+        light_energy=3400,
+        light_size=2.4,
+    )
+    pressure_view: list[Path] = []
+    if pressure_available:
+        pressure_view = _render_frames(
+            paths,
+            frames,
+            timeout_seconds,
+            mode="analysis",
+            camera_preset="front-ortho",
+            output_prefix="v3_pressure_front",
+            color_by="Press",
+            color_min=0.0,
+            color_max=pressure_color_max,
+            samples=72,
+            camera_lens=48,
+            marker_scale=0.9,
+            marker_style="octahedron",
+            fluid_stride=2,
+            iso_color="#AEEAF040",
+            background_color="#EEF3F5FF",
+            light_energy=3400,
+            light_size=2.4,
+        )
+    moving_slice = _write_moving_slice_diagnostics(paths, metrics_csv, fps)
+    moving_slice_frames = sorted(
+        Path(str(moving_slice["moving_slice_frame_dir"])).glob("frame_*.png")
+    )
+
+    if not surface_wide or not surface_hero:
+        raise RuntimeError("v3 render package requires successful clear-water IsoSurface frames")
+
+    particle_mp4 = _assemble_clean_video(
+        paths,
+        particle_wide,
+        fps,
+        "rectangular_jet_v3_particle_provenance_clean",
+    )
+    surface_wide_mp4 = _assemble_clean_video(
+        paths,
+        surface_wide,
+        fps,
+        "rectangular_jet_v3_tinted_water_surface_wide_clean",
+    )
+    surface_hero_mp4 = _assemble_clean_video(
+        paths,
+        surface_hero,
+        fps,
+        "rectangular_jet_v3_tinted_water_surface_hero_clean",
+    )
+    velocity_mp4 = _assemble_clean_video(
+        paths,
+        velocity_view,
+        fps,
+        "rectangular_jet_v3_velocity_magnitude_clean",
+    )
+    pressure_mp4 = ""
+    if pressure_view:
+        pressure_mp4 = str(
+            _assemble_clean_video(
+                paths,
+                pressure_view,
+                fps,
+                "rectangular_jet_v3_pressure_clean",
+            )
+        )
+
+    combined = [
+        *particle_wide,
+        *surface_wide,
+        *surface_hero,
+        *velocity_view,
+        *pressure_view,
+        *moving_slice_frames,
+    ]
+    contact_sheet = _make_contact_sheet(
+        paths,
+        _contact_sheet_samples(
+            particle_wide,
+            surface_wide,
+            surface_hero,
+            velocity_view,
+            pressure_view,
+            moving_slice_frames,
+        ),
+        "rectangular_jet_v3_multiview_contact_sheet",
+    )
+    final_mp4 = _assemble_titled_video(
+        paths,
+        combined,
+        fps,
+        "rectangular_jet_v3_streamwise_gravity_scientific_demonstration",
+        "Rectangular Jet Proxy v3: Streamwise Gravity",
+        (
+            "Fermín Franco-Medrano, Ph.D. | UABC Ensenada Campus · IMI, Kyushu University | "
+            "DualSPHysics v5.4 -> PartVTK/IsoSurface -> Blender -> ffmpeg"
+        ),
+        "U=20 m/s target | g=(+9.81,0,0) streamwise | particle, surface, analysis views",
+        "Transparent-water IsoSurface hero | velocity, pressure, and moving-slice proxy diagnostics",
+        closing_title="Case stats: streamwise gravity, pressure export, moving cross-section diagnostics",
+        closing_subtitle=(
+            "Single-phase rectangular jet geometry proxy and visualization workflow; not atomized spray, "
+            "validation, production CFD, or experimental agreement"
+        ),
+        platform_text="DualSPHysics v5.4 GPU | Blender 4.5.10 LTS | ffmpeg | RTX 5070 Laptop GPU",
+    )
+    return {
+        "particle_clean_mp4": str(particle_mp4),
+        "surface_wide_mp4": str(surface_wide_mp4),
+        "surface_hero_mp4": str(surface_hero_mp4),
+        "velocity_postprocess_mp4": str(velocity_mp4),
+        "pressure_postprocess_mp4": pressure_mp4,
+        "moving_slice_mp4": str(moving_slice["moving_slice_mp4"]),
+        "moving_slice_csv": str(moving_slice["moving_slice_csv"]),
+        "final_showcase_mp4": str(final_mp4),
+        "contact_sheet": str(contact_sheet),
+        "particle_frames": len(particle_wide),
+        "surface_wide_frames": len(surface_wide),
+        "surface_hero_frames": len(surface_hero),
+        "velocity_frames": len(velocity_view),
+        "pressure_frames": len(pressure_view),
+        "moving_slice_png_frames": int(moving_slice["moving_slice_png_frames"]),
+        "total_source_frames": len(combined),
+        "pressure_available": pressure_available,
+        "surface_material_variants_tested": "clear-water,tinted-water",
+        "selected_surface_material": "tinted-water",
+        "transparent_water_material": True,
+        "opaque_blue_surface_avoided": True,
+        "cycles_attempted": cycles_surface,
+        "cycles_limitation": "" if cycles_surface else "Eevee used unless --cycles-surface is enabled for bounded runtime.",
+        "surface_render_engine": surface_engine,
+        "clear_material_test_frames": len(clear_tests),
+        "tinted_material_test_frames": len(tinted_tests),
+    }
+
+
 def _inventory(paths: Paths, summary: dict) -> None:
     lines = [
         "Rectangular high-speed jet proxy artifact manifest",
@@ -1269,11 +1825,12 @@ def main() -> int:
     parser.add_argument("--blender", type=Path, default=DEFAULT_BLENDER)
     parser.add_argument(
         "--profile",
-        choices=("coarse", "upgraded", "v2"),
+        choices=("coarse", "upgraded", "v2", "v3"),
         default="coarse",
         help=(
             "coarse reproduces the first proxy; upgraded stretches the domain; "
-            "v2 uses a longer open-downstream box for accepted-quality renders"
+            "v2 uses a longer open-downstream box for accepted-quality renders; "
+            "v3 aligns gravity with the +x jet axis and extends the domain"
         ),
     )
     parser.add_argument("--dp", type=float, help="particle spacing for upgraded profile")
@@ -1290,6 +1847,12 @@ def main() -> int:
     parser.add_argument("--min-particles-per-slice", type=int, default=8)
     parser.add_argument("--fps", type=int, default=6)
     parser.add_argument("--velocity-color-max", type=float, default=6.0)
+    parser.add_argument("--pressure-color-max", type=float, default=8000.0)
+    parser.add_argument(
+        "--cycles-surface",
+        action="store_true",
+        help="attempt Cycles for the v3 transparent-water surface pass",
+    )
     parser.add_argument(
         "--upgrade-render-package",
         action="store_true",
@@ -1299,6 +1862,11 @@ def main() -> int:
         "--v2-render-package",
         action="store_true",
         help="render the stricter v2 particle, surface-wide, surface-hero, velocity, and stitched outputs",
+    )
+    parser.add_argument(
+        "--v3-render-package",
+        action="store_true",
+        help="render v3 streamwise-gravity particle, clear-water surface, pressure, velocity, and moving-slice outputs",
     )
     parser.add_argument("--force", action="store_true", help="replace generated case_work if it exists")
     parser.add_argument(
@@ -1347,7 +1915,7 @@ def main() -> int:
     surface_frames: list[Path] = []
     selected_for_surface = (
         selected_for_render
-        if args.upgrade_render_package or args.v2_render_package
+        if args.upgrade_render_package or args.v2_render_package or args.v3_render_package
         else _selected_frame_numbers(particle_frames, args.max_surface_frames)
     )
     if not args.no_surface:
@@ -1359,9 +1927,23 @@ def main() -> int:
     rendered: list[Path] = []
     showcase_mp4 = None
     contact_sheet = None
-    render_package: dict[str, str | int] = {}
+    render_package: dict[str, str | int | bool] = {}
     if not args.no_render:
-        if args.v2_render_package:
+        if args.v3_render_package:
+            render_package = _render_v3_package(
+                paths,
+                selected_for_render,
+                args.render_timeout,
+                args.fps,
+                args.velocity_color_max,
+                args.pressure_color_max,
+                csv_path,
+                args.cycles_surface,
+            )
+            showcase_mp4 = Path(str(render_package["final_showcase_mp4"]))
+            contact_sheet = Path(str(render_package["contact_sheet"]))
+            rendered = sorted(paths.render_dir.glob("v3_*.png"))
+        elif args.v2_render_package:
             render_package = _render_v2_package(
                 paths,
                 selected_for_render,
@@ -1399,6 +1981,8 @@ def main() -> int:
         "profile": args.profile,
         "dp": args.dp if args.dp is not None else (_profile_defaults(args.profile) or {}).get("dp"),
         "velocity_m_per_s": args.velocity,
+        "gravity_vector": (_profile_defaults(args.profile) or {}).get("gravity", "base"),
+        "axis_convention": (_profile_defaults(args.profile) or {}).get("axis_convention", "base"),
         "time_max_seconds": args.time_max,
         "time_out_seconds": args.time_out,
         "particle_vtk_frames": len(particle_frames),
