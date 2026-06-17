@@ -44,6 +44,7 @@ See:
 - `docs/cloud_extension_plan.md`
 - `docs/video_metadata.md`
 - `docs/dualsphysics_demo_family.md`
+- `docs/blender_water_render_benchmark.md`
 - `docs/video_publish_notes.md`
 - `docs/dualsphysics_rectangular_highspeed_jet_proxy.md`
 - `docs/jet_workflow_feasibility_20260608.md`

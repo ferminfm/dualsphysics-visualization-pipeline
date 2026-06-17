@@ -453,6 +453,10 @@ def _add_surface(
     points: list[tuple[float, float, float]],
     faces: list[tuple[int, int, int]],
     material: bpy.types.Material,
+    *,
+    smoothing: str = "none",
+    smooth_factor: float = 0.25,
+    smooth_iterations: int = 1,
 ) -> bpy.types.Object:
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(points, [], faces)
@@ -462,6 +466,12 @@ def _add_surface(
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
     obj.data.materials.append(material)
+    if smoothing in {"smooth", "smooth-weighted"}:
+        modifier = obj.modifiers.new("benchmark_surface_smooth", "SMOOTH")
+        modifier.factor = smooth_factor
+        modifier.iterations = max(1, smooth_iterations)
+    if smoothing in {"weighted-normal", "smooth-weighted"}:
+        obj.modifiers.new("benchmark_weighted_normals", "WEIGHTED_NORMAL")
     return obj
 
 
@@ -582,10 +592,18 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--surface-material",
-        choices=("cyan-glassy", "clear-water", "tinted-water", "review-water"),
+        choices=("cyan-glassy", "clear-water", "tinted-water", "review-water", "hero-water"),
         default="cyan-glassy",
         help="Material preset used for the reconstructed IsoSurface.",
     )
+    parser.add_argument(
+        "--surface-smoothing",
+        choices=("none", "weighted-normal", "smooth", "smooth-weighted"),
+        default="none",
+        help="Optional render-time surface smoothing modifiers for IsoSurface meshes.",
+    )
+    parser.add_argument("--surface-smooth-factor", type=float, default=0.25)
+    parser.add_argument("--surface-smooth-iterations", type=int, default=1)
     parser.add_argument(
         "--render-engine",
         choices=("eevee", "cycles"),
@@ -724,6 +742,15 @@ def main() -> None:
                 transmission=0.42,
                 ior=1.333,
             )
+        elif args.surface_material == "hero-water":
+            iso_mat = _make_material(
+                "benchmark_hero_clear_water_material",
+                (0.965, 0.995, 1.0, max(0.36, min(args.iso_color[3], 0.52))),
+                roughness=0.002,
+                specular=1.0,
+                transmission=0.68,
+                ior=1.333,
+            )
         else:
             iso_mat = _make_material(
                 "surface_glassy_cyan",
@@ -781,7 +808,15 @@ def main() -> None:
     radius = span * 0.006 * args.marker_scale
 
     if iso and iso.polygons and not args.hide_iso:
-        surface = _add_surface("dambreak_isosurface", iso.points, iso.polygons, iso_mat)
+        surface = _add_surface(
+            "dambreak_isosurface",
+            iso.points,
+            iso.polygons,
+            iso_mat,
+            smoothing=args.surface_smoothing,
+            smooth_factor=args.surface_smooth_factor,
+            smooth_iterations=args.surface_smooth_iterations,
+        )
         surface.show_transparent = True
 
     if args.add_studio_walls:
@@ -886,6 +921,7 @@ def main() -> None:
     print(f"CAMERA_PRESET={args.camera_preset}")
     print(f"STYLE_PRESET={args.style_preset}")
     print(f"SURFACE_MATERIAL={args.surface_material}")
+    print(f"SURFACE_SMOOTHING={args.surface_smoothing}")
     print(f"RENDER_ENGINE={args.render_engine}")
     print(f"CAMERA_LENS={args.camera_lens}")
     print(f"CAMERA_TARGET={tuple(center)}")
