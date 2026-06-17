@@ -118,6 +118,12 @@ English/Japanese/Spanish caveat cards in one video.
 Pipeline: DualSPHysics v5.4 GPU data -> PartVTK/IsoSurface outputs ->
 headless Blender render pass -> ffmpeg assembly.
 
+The inlet condition is a uniform top-hat imposed velocity at the rectangular
+InOut boundary: the retained inlet spans `y = -0.3..0.3 m` and `z = 0..0.4 m`
+at `x = -1.5 m`, with fixed velocity `v = 20 m/s` in the `+x` direction. No
+mesh-defined, file-defined, Poiseuille, or developed internal-nozzle velocity
+profile is used.
+
 This is a scientific-computing workflow demonstration. It is not fully atomized
 spray, not physical validation, not production CFD, not experimental agreement,
 not a gas-phase simulation, and not a true turbulence result. The imposed inlet

@@ -701,6 +701,25 @@ Key setup and execution notes:
 - preserved solver warning: DualSPHysics reports that only Z gravity is used in
   some inlet/outlet hydrostatic calculations
 
+### Inlet Velocity Boundary Condition
+
+The v4.2/v4.3/final-polish rectangular jet uses a uniform top-hat imposed
+velocity at the retained rectangular inlet boundary. In the generated XML:
+
+- the retained inlet seed is a rectangle at `x = -1.5 m`, spanning
+  `y = -0.3..0.3 m` and `z = 0..0.4 m`;
+- the inlet area proxy is `0.6 * 0.4 = 0.24 m^2`;
+- the InOut zone uses `<particles mkfluid="0" direction="right" />`;
+- `<imposevelocity mode="0">` sets a fixed scalar `<velocity v="20" />`, so
+  the effective imposed vector is approximately `(20, 0, 0) m/s`;
+- no `<meshdata>` velocity file, mesh-defined profile, parabolic profile, or
+  Poiseuille/developed duct profile is used.
+
+The inlet uses a uniform top-hat imposed velocity; internal nozzle-flow
+development is not resolved. Downstream velocity variation in the exported VTK
+frames comes from the SPH evolution after injection, not from a prescribed
+cross-sectional inlet profile.
+
 Main v4.2 artifacts:
 
 - final scientific-demonstration MP4:
