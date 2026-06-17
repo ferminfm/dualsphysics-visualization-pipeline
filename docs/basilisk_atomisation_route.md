@@ -296,3 +296,57 @@ This scan did not produce detached liquid volumes. It is useful as a bounded
 negative result: the rectangular-slot geometry, `We_g = 50` setting, and
 transverse perturbation produced connected near-exit waviness/bulging over the
 available downstream development, not ligament breakup or atomization.
+
+## Rectangular-Slot Morphology Escalation - 2026-06-18
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation
+```
+
+Reusable case:
+
+```text
+cases/basilisk/rectangular_slot_morphology_escalation.c
+```
+
+This scan escalates the previous negative `We_g = 50` rectangular-slot result
+using a parametric case with shorter external domain, high slot resolution,
+post-exit-only `tag()` diagnostics, higher gas-Weber targets, stronger
+perturbation, and one controlled gas-crossflow proxy. It remains a bounded
+physics-route experiment, not public media polish.
+
+Run summary:
+
+| Case | Purpose | Status | `We_g` | Slot resolution | Result |
+| --- | --- | --- | ---: | --- | --- |
+| A | Longer high-resolution near-exit run | timeout at `t = 1.8` | `50` | about `38 x 26` | one connected post-exit component |
+| B | Higher gas-Weber forcing | timeout at `t = 0.643` | `100` | about `43 x 28` | one connected post-exit component |
+| C | Stronger instability-proxy forcing | completed to `t = 0.6` | `150` | about `43 x 28` | one connected post-exit component |
+| D | Controlled `+y` gas crossflow proxy | timeout before post-exit window | `100` | about `43 x 28` | runtime-limited crossflow attempt |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/metrics/morphology_escalation_summary.json
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/metrics/morphology_escalation_case_summary.csv
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/metrics/morphology_escalation_frame_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/metrics/morphology_escalation_component_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/metrics/morphology_escalation_slice_occupancy.csv
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/artifacts/case_A_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/artifacts/case_B_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation/artifacts/case_C_native_vof.mp4
+```
+
+No case passed the breakup-proxy gate. The maximum credible post-exit
+`tag()` component count remained `1`, and detached-volume proxy count remained
+`0`. The result is a useful negative and cost-limiting decision point: before
+another expensive 3D maxlevel-9/10 run, use a lower-cost 2D/axisymmetric or
+reduced-domain scout to find an instability range for gas shear and surface
+tension. Connected waviness is still not atomization.
