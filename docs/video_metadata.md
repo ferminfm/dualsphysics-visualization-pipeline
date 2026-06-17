@@ -87,33 +87,40 @@ production CFD, and not experimental agreement.
 - YouTube URL: not uploaded yet; use manual hosting or upload before embedding.
 - Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction`
 - Local accepted root:
+  `/home/franco/stack-validation/20260617-rectangular-jet-final-polish`
+- Superseded local root:
   `/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v41-accepted-v1`
-- Accepted classification: `accepted_public_preview_candidate`
-- Short description: Render-polished DualSPHysics rectangular inlet jet geometry
-  proxy using GPU SPH data, PartVTK/IsoSurface post-processing,
-  transparent-water Blender rendering, and ffmpeg assembly.
+- Recommended classification: `public_preview_candidate`
+- Short description: Final-polished DualSPHysics rectangular inlet jet geometry
+  proxy using GPU SPH data, PartVTK/IsoSurface post-processing, transparent
+  IsoSurface rendering, pressure/velocity diagnostics, multilingual cards, and
+  ffmpeg assembly.
 - Caption: Single-phase geometry-proxy demonstration; not atomization
   validation.
 - Recommended use: public-preview demonstration of a reproducible scientific
   visualization and post-processing workflow. Host the MP4 externally before
-  embedding it on a website; do not commit video media to Git.
+  embedding it on a website; do not commit video media to Git. Use the English
+  final-polish MP4 by default and keep Japanese/Spanish card variants as
+  localized alternatives if uploaded.
 
 Long description:
 
 ```text
 This video presents a modified single-phase DualSPHysics rectangular inlet jet
-geometry proxy. The workflow starts from accepted v4 simulation data and applies
-a v4.1 render-only polish pass: particle provenance, reconstructed IsoSurface
-views with clearer transparent-water material, velocity and pressure
-post-processing views, proxy-energy/cross-section diagnostics, and true
-surface-cut panels.
+geometry proxy. The workflow starts from bounded v4.2/v4.3 solver and
+post-processing outputs, then applies a final-polish card and metadata pass:
+particle provenance, reconstructed IsoSurface views, velocity and pressure
+post-processing views, velocity-fluctuation energy proxy, fixed-station
+surface-cut diagnostics, final-frame probe fly-through, and explicit
+English/Japanese/Spanish caveat cards.
 
 Pipeline: DualSPHysics v5.4 GPU data -> PartVTK/IsoSurface outputs ->
 headless Blender render pass -> ffmpeg assembly.
 
 This is a scientific-computing workflow demonstration. It is not fully atomized
-spray, not physical validation, not production CFD, and not experimental
-agreement.
+spray, not physical validation, not production CFD, not experimental agreement,
+not a gas-phase simulation, and not a true turbulence result. The imposed inlet
+does not resolve internal nozzle flow upstream of the boundary.
 ```
 
 ## Shared Caveat

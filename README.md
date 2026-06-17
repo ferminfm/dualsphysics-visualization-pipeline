@@ -81,7 +81,7 @@ than a set of unrelated clips:
 | Dam-break workflow | Small proof of GPU SPH -> VTK -> Blender -> MP4 assembly. | Hosted on YouTube; supporting workflow demo. |
 | ShapesInlet3D | Official 3D inlet/open-boundary demonstration with particle, surface, and velocity views. | Hosted on YouTube; primary scientific-demonstration video. |
 | ImpingingJet | Official 2D impinging-jet visualization with reconstructed-surface scalar analysis. | Hosted on YouTube; 2D visualization demo with caveat. |
-| Rectangular jet proxy v4.1 | Modified single-phase rectangular inlet geometry proxy with surface cuts and SprayGeo/Ideal overlay handoff. | Public-preview candidate; video not hosted yet; not fit-ready validation data. |
+| Rectangular jet proxy final-polish | Modified single-phase rectangular inlet geometry proxy with surface cuts, pressure/velocity/proxy diagnostics, multilingual publication cards, and SprayGeo/Ideal overlay handoff lineage. | Public-preview candidate; video not hosted yet; not fit-ready validation data. |
 
 See [docs/dualsphysics_demo_family.md](docs/dualsphysics_demo_family.md) for
 the recommended public structure, redundancy decision, audience mapping, and
@@ -231,6 +231,14 @@ uses presentation interpolation for smoother viewing, adds a curved probe
 fly-through, and replaces tracked-particle cross-section emphasis with fixed
 Eulerian IsoSurface station cuts plus particle-slab comparison. It remains a
 public-preview geometry-proxy package, not validation media.
+
+Rectangular-jet final-polish publication package:
+`$HOME/stack-validation/20260617-rectangular-jet-final-polish`. This
+pre-freeze polish pass reuses the v4.3 videos without rerunning the solver,
+adds English/Japanese/Spanish title and method cards, clarifies that no
+gas-phase field is present, documents the imposed-inlet/internal-nozzle
+limitation, and prepares YouTube/web metadata. It is recommended only as a
+public-preview scientific-computing workflow artifact.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not

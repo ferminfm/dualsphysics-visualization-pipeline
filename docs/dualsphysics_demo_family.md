@@ -21,15 +21,15 @@ simulation.
 | Rectangular high-speed jet proxy, first pass | Modified `06_Box4Inlet3D` | Early single-rectangular-inlet proof that custom copied cases can run and export proxy metrics. | Technically successful but visually coarse; superseded. | Internal only. | Preliminary particle-slab metrics. | Internal technical evidence. | Research workflow |
 | Rectangular jet v2 | Copied modified rectangular inlet profile | Accepted improvement over first pass: larger view, finer spacing, surface/velocity render package. | Accepted review package, superseded by v3/v4. | Internal/public-preview lineage only. | Preliminary slice metrics. | Superseded public-preview lineage. | Research workflow |
 | Rectangular jet v3 | Streamwise-gravity rectangular inlet proxy | Corrected gravity/jet-axis convention and added pressure, velocity, and moving-slice diagnostics. | Stronger transparent-water and analysis package, superseded by v4. | Internal/public-preview lineage only. | Diagnostics and moving-slice metrics. | Superseded public-preview lineage. | Research workflow |
-| Rectangular jet v4/v4.1 | Extended streamwise-gravity rectangular inlet proxy | Current rectangular geometry-proxy and data-bridge case. | v4 produced extended surface/cross-section analysis; v4.1 render-polish accepted as public-preview candidate. | Not uploaded yet; metadata prepared for manual hosting. Personal site may mention it as analysis-ready, not embed it. | 414-row SprayGeo-compatible handoff plus 24-row Ideal Momentum Jet Explorer overlay preview. | Accepted public-preview candidate, blocked for fitting until stationary window exists. | Research collaborator, Developer Advocate, technical client |
+| Rectangular jet final-polish | Extended streamwise-gravity rectangular inlet proxy | Current rectangular geometry-proxy and data-bridge case. | v4.3 corrected the cinematic/cross-section story; the final-polish pass adds EN/JA/ES publication cards, gas-phase clarification, and YouTube/web metadata. | Not uploaded yet; metadata prepared for manual hosting. Personal site may mention it as analysis-ready, not embed it until reviewed. | 414-row SprayGeo-compatible handoff plus 24-row Ideal Momentum Jet Explorer overlay preview lineage. | Public-preview candidate, blocked for fitting until stationary window exists. | Research collaborator, Developer Advocate, technical client |
 
 ## Recommended Public Structure
 
 - Lead with one umbrella project page: **SPH simulation and visualization**.
 - Embed or link the three hosted videos there: ShapesInlet3D, dam break, and
   ImpingingJet.
-- Mention the rectangular v4.1 proxy as the analysis/data-bridge step until its
-  video is hosted externally.
+- Mention the rectangular final-polish proxy as the analysis/data-bridge step
+  until its video is hosted externally.
 - Keep detailed solver provenance in this repo's per-demo docs, not on the
   public site page.
 - Do not add separate thin public pages for every intermediate rectangular
