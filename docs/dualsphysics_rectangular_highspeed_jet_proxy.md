@@ -2,7 +2,7 @@
 
 This document records a modified DualSPHysics inlet-jet geometry proxy derived
 from the official `06_Box4Inlet3D` example. The purpose is to create a
-non-circular, higher-speed inlet/nozzle visualization and geometry-metrics
+non-circular, higher-speed inlet-boundary visualization and geometry-metrics
 workflow using official DualSPHysics tools, not to claim spray validation.
 
 Required caveat: this is a modified DualSPHysics inlet-jet geometry proxy. It is
@@ -136,7 +136,7 @@ Key setup changes:
 - inlet speed: `12 m/s`
 - physical time: `0.9 s`
 - output interval: `0.02 s`
-- retained geometry: one rectangular inlet/nozzle only
+- retained geometry: one rectangular imposed inlet boundary only
 - larger computational domain, with the downstream simulation limit raised to
   include the generated boundary extents
 - inherited central educational obstacle removed from the modified XML
@@ -218,7 +218,7 @@ Key setup changes relative to the first upgraded run:
 - inlet speed: `15 m/s`
 - physical time: `0.70 s`
 - output interval: `0.025 s`
-- retained geometry: one rectangular inlet/nozzle only
+- retained geometry: one rectangular imposed inlet boundary only
 - generated tank boundary: `bottom | left | front | back`, leaving the
   downstream/right side open in the copied case
 - larger generated box: about `x = -1.5` to `x = 26.0`
@@ -341,7 +341,7 @@ Key setup changes relative to v2:
 - output interval: `0.025 s`
 - generated domain: approximately `x = -1.5` to `x = 40.5`
 - simulation bounds extended to about `x = 42.0`
-- retained geometry: one rectangular inlet/nozzle only
+- retained geometry: one rectangular imposed inlet boundary only
 - post-processing: PartVTK, IsoSurface, pressure, velocity magnitude, and
   moving-slice diagnostics
 
@@ -437,7 +437,7 @@ Key setup:
 - output interval: `0.05 s`
 - generated domain: approximately `x = -1.5` to `x = 84.5`
 - simulation bound: about `x = 86.0`
-- retained geometry: one rectangular inlet/nozzle only
+- retained geometry: one rectangular imposed inlet boundary only
 - rendering: transparent-water IsoSurface with studio floor/back/side walls
 - diagnostics: pressure, velocity magnitude, velocity-fluctuation energy proxy,
   tracked-particle surface cuts, and final-frame surface inspection
@@ -737,11 +737,11 @@ $HOME/stack-validation/20260612-rectangular-jet-hero-scene-render-lab
 ```
 
 The lab adds optional renderer controls for brighter studio/test-rig context,
-including a procedural floor grid, rectangular nozzle block, fill/rim lights,
+including a procedural floor grid, rendered inlet-reference block, fill/rim lights,
 and material presets for a lightly tinted transparent-water surface and an
 opaque control. The selected recipe is a Cycles `scientific-water` material in a
 warm test-rig environment with a fixed side camera that keeps the rectangular
-nozzle visible. It produces a still matrix, contact sheet, short mini-animation
+inlet reference visible. It produces a still matrix, contact sheet, short mini-animation
 from all 18 available v4.2 medium frames, and a final-frame probe-camera
 preview.
 
@@ -759,11 +759,11 @@ $HOME/stack-validation/20260617-rectangular-jet-v43-cinematic-correction
 
 Key corrections:
 
-- procedural rectangular nozzle/aperture pre-roll before outflow;
+- procedural rendered inlet-boundary reference pre-roll before outflow;
 - all 18 available v4.2 paired data frames rendered;
 - presentation interpolation for smoother viewing, with the real data-frame
   count documented;
-- brighter floor/wall/grid/nozzle context and stronger key/fill/rim lighting;
+- brighter floor/wall/grid/inlet-boundary context and stronger key/fill/rim lighting;
 - improved transparent-water surface presentation;
 - 84-frame curved probe fly-through over the final frozen IsoSurface frame;
 - fixed Eulerian `x`-station IsoSurface cross-sections normal to the `+x` jet
@@ -809,8 +809,22 @@ makes the single-phase SPH method boundary explicit; clarifies that no
 gas-phase field or liquid-gas identifier is present; documents that the
 rectangular inlet is an imposed boundary condition rather than a resolved
 internal nozzle flow; and labels the visible pressure/velocity rectangular
-marker as an inlet/nozzle reference region. It is recommended as a
+marker as a rendered inlet-boundary reference frame. It is recommended as a
 public-preview scientific-computing workflow artifact only.
+
+## Inlet-Marker Audit Correction
+
+The marker-audit correction package should supersede the pre-audit v2 MP4 for
+manual upload or freeze decisions:
+
+```text
+$HOME/stack-validation/20260617-rectangular-jet-inlet-marker-audit
+```
+
+The audit checks the v4.2 XML, v4.3 render logs, and Blender importer behavior.
+It classifies the visible pressure/velocity rectangular region as a rendered
+inlet-boundary reference frame. It is not a gas phase, measurement window,
+solver-resolved physical nozzle, or evidence of internal nozzle flow.
 
 ## SprayGeo / Ideal Explorer Metrics Handoff
 

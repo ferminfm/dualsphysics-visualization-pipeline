@@ -219,14 +219,15 @@ Rectangular-jet hero-scene render lab:
 `$HOME/stack-validation/20260612-rectangular-jet-hero-scene-render-lab`.
 This render-only pass reuses existing v4.2 VTK/IsoSurface outputs and improves
 local scene readability with a brighter studio/test-rig environment, procedural
-floor/grid/nozzle context, transparent-water material variants, a short
+floor/grid/inlet-boundary context, transparent-water material variants, a short
 all-available-frame mini-animation, and a final-frame probe-camera preview. It
 does not rerun the solver or change the single-phase proxy caveat.
 
 Rectangular-jet v4.3 cinematic/cross-section correction:
 `$HOME/stack-validation/20260617-rectangular-jet-v43-cinematic-correction`.
 This render/postprocessing pass reuses existing v4.2 medium VTK/IsoSurface
-frames, adds a nozzle-aperture pre-roll, renders all available data frames,
+frames, adds a rendered inlet-boundary reference pre-roll, renders all
+available data frames,
 uses presentation interpolation for smoother viewing, adds a curved probe
 fly-through, and replaces tracked-particle cross-section emphasis with fixed
 Eulerian IsoSurface station cuts plus particle-slab comparison. It remains a
@@ -237,9 +238,16 @@ Rectangular-jet final-polish publication package:
 This pre-freeze polish pass reuses the v4.3 videos without rerunning the
 solver, creates one single multilingual EN/JA/ES video with longer cards,
 clarifies that no gas-phase field is present, labels the visible pressure and
-velocity inlet/nozzle reference region, documents the imposed-inlet/internal
-nozzle limitation, and prepares YouTube/web metadata. It is recommended only
+velocity rendered inlet-boundary reference frame, documents the imposed-inlet
+and unresolved-internal-nozzle limitation, and prepares YouTube/web metadata.
+It is recommended only
 as a public-preview scientific-computing workflow artifact.
+
+Rectangular-jet inlet-marker audit correction:
+`$HOME/stack-validation/20260617-rectangular-jet-inlet-marker-audit`.
+Use this corrected package for any manual upload or freeze decision. It
+classifies the visible pressure/velocity rectangle as a rendered inlet-boundary
+reference frame, not solver-resolved nozzle geometry or internal nozzle flow.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not

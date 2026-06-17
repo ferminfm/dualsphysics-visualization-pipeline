@@ -26,11 +26,11 @@ Source data:
 The v4.3 pass addresses the remaining presentation and diagnostic issues in the
 rectangular jet sequence:
 
-- rectangular nozzle/aperture pre-roll before outflow;
+- rendered inlet-boundary reference pre-roll before outflow;
 - all available v4.2 data frames rendered;
 - presentation interpolation for smoother viewing, without implying additional
   solver frames;
-- brighter floor, wall, grid, and nozzle/test-rig context;
+- brighter floor, wall, grid, and inlet-boundary/test-rig context;
 - stronger key/fill/rim lighting;
 - readable transparent-water surface material;
 - real curved probe-camera fly-through over the final frozen IsoSurface frame;
@@ -104,8 +104,9 @@ The cards make the CFD-method boundary explicit: this is a single-phase SPH
 geometry proxy with an imposed inlet condition. No gas-phase field or
 liquid-gas identifier is present in the exported data, and internal nozzle flow
 or upstream corner-induced development is not resolved. The pressure and
-velocity clips label the visible rectangular marker as an inlet/nozzle
-reference region from the render setup, not a gas-phase or measurement window.
+velocity clips label the visible rectangular marker as a rendered
+inlet-boundary reference frame from the render setup, not a gas-phase,
+measurement window, or solver-resolved physical nozzle.
 The package is a public-preview scientific-computing workflow artifact, not
 validation media.
 

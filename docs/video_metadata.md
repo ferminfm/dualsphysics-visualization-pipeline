@@ -86,8 +86,10 @@ production CFD, and not experimental agreement.
 
 - YouTube URL: not uploaded yet; use manual hosting or upload before embedding.
 - Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction | EN/JA/ES`
-- Local accepted root:
+- Local pre-audit root:
   `/home/franco/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual`
+- Marker-corrected root:
+  `/home/franco/stack-validation/20260617-rectangular-jet-inlet-marker-audit`
 - Superseded local root:
   `/home/franco/stack-validation/20260617-rectangular-jet-final-polish`
 - Recommended classification: `public_preview_candidate`
@@ -98,9 +100,9 @@ production CFD, and not experimental agreement.
 - Caption: Single-phase geometry-proxy demonstration; not atomization
   validation.
 - Recommended use: public-preview demonstration of a reproducible scientific
-  visualization and post-processing workflow. Host the MP4 externally before
-  embedding it on a website; do not commit video media to Git. Use the v2
-  multilingual MP4 as one upload rather than separate EN/JA/ES videos.
+  visualization and post-processing workflow. Host the marker-corrected MP4
+  externally before embedding it on a website; do not commit video media to Git.
+  Use one multilingual MP4 rather than separate EN/JA/ES videos.
 
 Long description:
 
@@ -120,8 +122,9 @@ This is a scientific-computing workflow demonstration. It is not fully atomized
 spray, not physical validation, not production CFD, not experimental agreement,
 not a gas-phase simulation, and not a true turbulence result. The imposed inlet
 does not resolve internal nozzle flow upstream of the boundary. The visible
-rectangular marker in pressure/velocity views is an inlet/nozzle reference
-region from the render setup, not a gas-phase or measurement window.
+rectangular marker in pressure/velocity views is a rendered inlet-boundary
+reference frame from the render setup, not a gas-phase, measurement window, or
+solver-resolved physical nozzle.
 ```
 
 ## Shared Caveat

@@ -598,7 +598,11 @@ def _add_nozzle_aperture(
     mins: Vector,
     material: bpy.types.Material,
 ) -> None:
-    """Add a simple four-bar rectangular nozzle frame around the inlet plane."""
+    """Add a render-only four-bar inlet-boundary reference frame.
+
+    The legacy option name uses "nozzle" for compatibility with earlier render
+    scripts. The geometry added here is not solver-resolved nozzle geometry.
+    """
     x1 = mins.x + span * 0.035
     depth = span * 0.012
     x0 = x1 - depth
@@ -768,8 +772,22 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--floor-color", type=_parse_color, default=(0.84, 0.86, 0.85, 1.0))
     parser.add_argument("--back-wall-color", type=_parse_color, default=(0.91, 0.92, 0.90, 1.0))
     parser.add_argument("--side-wall-color", type=_parse_color, default=(0.73, 0.77, 0.78, 1.0))
-    parser.add_argument("--add-nozzle-block", action="store_true")
-    parser.add_argument("--add-nozzle-aperture", action="store_true")
+    parser.add_argument(
+        "--add-nozzle-block",
+        action="store_true",
+        help=(
+            "Add a render-only inlet reference block. Legacy option name; "
+            "not solver-resolved nozzle geometry."
+        ),
+    )
+    parser.add_argument(
+        "--add-nozzle-aperture",
+        action="store_true",
+        help=(
+            "Add a render-only rectangular inlet-boundary reference frame. "
+            "Legacy option name; not solver-resolved nozzle geometry."
+        ),
+    )
     parser.add_argument("--add-floor-grid", action="store_true")
     parser.add_argument("--nozzle-color", type=_parse_color, default=(0.78, 0.78, 0.74, 1.0))
     parser.add_argument("--grid-color", type=_parse_color, default=(0.58, 0.62, 0.64, 1.0))
