@@ -45,6 +45,7 @@ See:
 - `docs/video_metadata.md`
 - `docs/dualsphysics_demo_family.md`
 - `docs/blender_water_render_benchmark.md`
+- `docs/rectangular_jet_hero_scene_render_lab.md`
 - `docs/video_publish_notes.md`
 - `docs/dualsphysics_rectangular_highspeed_jet_proxy.md`
 - `docs/jet_workflow_feasibility_20260608.md`
@@ -212,6 +213,14 @@ analysis views, and a final-frame transparent-surface flyby. It is classified
 as a partial package because the intended `3.4 s` longer run was not completed;
 the produced package uses the bounded `0.85 s` stage and documents the runtime
 blocker.
+
+Rectangular-jet hero-scene render lab:
+`$HOME/stack-validation/20260612-rectangular-jet-hero-scene-render-lab`.
+This render-only pass reuses existing v4.2 VTK/IsoSurface outputs and improves
+local scene readability with a brighter studio/test-rig environment, procedural
+floor/grid/nozzle context, transparent-water material variants, a short
+all-available-frame mini-animation, and a final-frame probe-camera preview. It
+does not rerun the solver or change the single-phase proxy caveat.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not

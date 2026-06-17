@@ -498,6 +498,100 @@ def _add_floor(
     return obj
 
 
+def _add_box(
+    name: str,
+    min_corner: tuple[float, float, float],
+    max_corner: tuple[float, float, float],
+    material: bpy.types.Material,
+) -> bpy.types.Object:
+    x0, y0, z0 = min_corner
+    x1, y1, z1 = max_corner
+    verts = [
+        (x0, y0, z0),
+        (x1, y0, z0),
+        (x1, y1, z0),
+        (x0, y1, z0),
+        (x0, y0, z1),
+        (x1, y0, z1),
+        (x1, y1, z1),
+        (x0, y1, z1),
+    ]
+    faces = [
+        (0, 1, 2, 3),
+        (4, 7, 6, 5),
+        (0, 4, 5, 1),
+        (1, 5, 6, 2),
+        (2, 6, 7, 3),
+        (3, 7, 4, 0),
+    ]
+    mesh = bpy.data.meshes.new(f"{name}_mesh")
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.data.materials.append(material)
+    return obj
+
+
+def _add_floor_grid(
+    center: Vector,
+    span: float,
+    mins: Vector,
+    maxs: Vector,
+    material: bpy.types.Material,
+) -> None:
+    z = mins.z - span * 0.044
+    x0 = center.x - span * 0.62
+    x1 = center.x + span * 0.62
+    y0 = center.y - span * 0.30
+    y1 = center.y + span * 0.30
+    thickness = span * 0.0012
+    divisions = 6
+    for index in range(divisions + 1):
+        t = index / divisions
+        x = x0 + (x1 - x0) * t
+        _add_box(
+            f"floor_grid_x_{index:02d}",
+            (x - thickness, y0, z),
+            (x + thickness, y1, z + thickness),
+            material,
+        )
+        y = y0 + (y1 - y0) * t
+        _add_box(
+            f"floor_grid_y_{index:02d}",
+            (x0, y - thickness, z),
+            (x1, y + thickness, z + thickness),
+            material,
+        )
+
+
+def _add_nozzle_block(
+    center: Vector,
+    span: float,
+    mins: Vector,
+    maxs: Vector,
+    material: bpy.types.Material,
+) -> None:
+    length = span * 0.08
+    half_y = max((maxs.y - mins.y) * 0.10, span * 0.018)
+    half_z = max((maxs.z - mins.z) * 0.10, span * 0.014)
+    x1 = mins.x + span * 0.035
+    x0 = x1 - length
+    _add_box(
+        "rectangular_nozzle_block",
+        (x0, center.y - half_y, center.z - half_z),
+        (x1, center.y + half_y, center.z + half_z),
+        material,
+    )
+    lip = span * 0.008
+    _add_box(
+        "rectangular_nozzle_lip",
+        (x1 - lip, center.y - half_y * 1.25, center.z - half_z * 1.25),
+        (x1 + lip, center.y + half_y * 1.25, center.z + half_z * 1.25),
+        material,
+    )
+
+
 def _add_studio_walls(
     center: Vector,
     span: float,
@@ -592,7 +686,15 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--surface-material",
-        choices=("cyan-glassy", "clear-water", "tinted-water", "review-water", "hero-water"),
+        choices=(
+            "cyan-glassy",
+            "clear-water",
+            "tinted-water",
+            "review-water",
+            "hero-water",
+            "scientific-water",
+            "opaque-control",
+        ),
         default="cyan-glassy",
         help="Material preset used for the reconstructed IsoSurface.",
     )
@@ -623,6 +725,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--floor-color", type=_parse_color, default=(0.84, 0.86, 0.85, 1.0))
     parser.add_argument("--back-wall-color", type=_parse_color, default=(0.91, 0.92, 0.90, 1.0))
     parser.add_argument("--side-wall-color", type=_parse_color, default=(0.73, 0.77, 0.78, 1.0))
+    parser.add_argument("--add-nozzle-block", action="store_true")
+    parser.add_argument("--add-floor-grid", action="store_true")
+    parser.add_argument("--nozzle-color", type=_parse_color, default=(0.78, 0.78, 0.74, 1.0))
+    parser.add_argument("--grid-color", type=_parse_color, default=(0.58, 0.62, 0.64, 1.0))
     parser.add_argument("--camera-lens", type=float, default=55.0)
     parser.add_argument("--ortho-scale", type=float)
     parser.add_argument("--camera-target-x-fraction", type=float)
@@ -632,6 +738,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--light-energy", type=float, default=700.0)
     parser.add_argument("--light-size", type=float, default=1.6)
     parser.add_argument("--light-offset", type=_parse_vector3, default=(0.15, -1.25, 1.35))
+    parser.add_argument("--fill-light-energy", type=float, default=0.0)
+    parser.add_argument("--fill-light-offset", type=_parse_vector3, default=(-0.8, 0.6, 0.55))
+    parser.add_argument("--rim-light-energy", type=float, default=0.0)
+    parser.add_argument("--rim-light-offset", type=_parse_vector3, default=(0.65, 0.8, 0.8))
     parser.add_argument("--samples", type=int, default=64)
     parser.add_argument("--view-transform", default="Filmic")
     parser.add_argument("--view-look", default="Medium High Contrast")
@@ -751,6 +861,24 @@ def main() -> None:
                 transmission=0.68,
                 ior=1.333,
             )
+        elif args.surface_material == "scientific-water":
+            iso_mat = _make_material(
+                "hero_scene_scientific_water_material",
+                (0.72, 0.93, 0.96, max(0.62, min(args.iso_color[3], 0.82))),
+                roughness=0.012,
+                specular=1.0,
+                transmission=0.28,
+                ior=1.333,
+            )
+        elif args.surface_material == "opaque-control":
+            iso_mat = _make_material(
+                "opaque_pale_blue_control_material",
+                (0.70, 0.90, 1.0, 1.0),
+                roughness=0.18,
+                specular=0.7,
+                transmission=0.0,
+                ior=1.333,
+            )
         else:
             iso_mat = _make_material(
                 "surface_glassy_cyan",
@@ -781,6 +909,18 @@ def main() -> None:
         args.side_wall_color,
         roughness=0.78,
         specular=0.14,
+    )
+    nozzle_mat = _make_material(
+        "test_rig_nozzle_block_matte",
+        args.nozzle_color,
+        roughness=0.55,
+        specular=0.22,
+    )
+    grid_mat = _make_material(
+        "floor_grid_scale_cues",
+        args.grid_color,
+        roughness=0.7,
+        specular=0.1,
     )
 
     bounds_points = list(reference.points) if reference else list(fluid.points)
@@ -823,6 +963,10 @@ def main() -> None:
         _add_studio_walls(center, span, mins, maxs, floor_mat, back_wall_mat, side_wall_mat)
     elif args.add_floor:
         _add_floor(center, span, mins.z - span * 0.045, floor_mat)
+    if args.add_floor_grid:
+        _add_floor_grid(center, span, mins, maxs, grid_mat)
+    if args.add_nozzle_block:
+        _add_nozzle_block(center, span, mins, maxs, nozzle_mat)
 
     if not args.hide_fluid and args.color_by:
         if args.color_by not in fluid.point_scalars:
@@ -877,6 +1021,18 @@ def main() -> None:
         light.data.use_shadow = True
     if args.contact_shadows and hasattr(light.data, "use_contact_shadow"):
         light.data.use_contact_shadow = True
+    if args.fill_light_energy > 0:
+        bpy.ops.object.light_add(type="AREA", location=center + Vector(args.fill_light_offset) * span)
+        fill = bpy.context.object
+        fill.name = "soft_fill_light"
+        fill.data.energy = args.fill_light_energy
+        fill.data.size = span * max(0.1, args.light_size * 0.85)
+    if args.rim_light_energy > 0:
+        bpy.ops.object.light_add(type="AREA", location=center + Vector(args.rim_light_offset) * span)
+        rim = bpy.context.object
+        rim.name = "rim_highlight_light"
+        rim.data.energy = args.rim_light_energy
+        rim.data.size = span * max(0.1, args.light_size * 0.45)
 
     bpy.ops.object.camera_add(location=_camera_location(center, camera_span, args.camera_preset))
     camera = bpy.context.object
@@ -930,6 +1086,8 @@ def main() -> None:
     print(f"LIGHT_ENERGY={args.light_energy}")
     print(f"LIGHT_SIZE={args.light_size}")
     print(f"LIGHT_OFFSET={args.light_offset}")
+    print(f"FILL_LIGHT_ENERGY={args.fill_light_energy}")
+    print(f"RIM_LIGHT_ENERGY={args.rim_light_energy}")
     print(f"VIEW_TRANSFORM={bpy.context.scene.view_settings.view_transform}")
     print(f"VIEW_LOOK={bpy.context.scene.view_settings.look}")
     print(f"EXPOSURE={bpy.context.scene.view_settings.exposure}")
@@ -944,6 +1102,8 @@ def main() -> None:
     print(f"ISO_VISIBLE={bool(iso and iso.polygons and not args.hide_iso)}")
     print(f"STUDIO_FLOOR={args.add_floor}")
     print(f"STUDIO_WALLS={args.add_studio_walls}")
+    print(f"FLOOR_GRID={args.add_floor_grid}")
+    print(f"NOZZLE_BLOCK={args.add_nozzle_block}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.blend:

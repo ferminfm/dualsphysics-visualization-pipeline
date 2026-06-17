@@ -726,6 +726,28 @@ The v4.2 visual package is a public-preview candidate with a duration blocker.
 It improves the cinematic inspection and diagnostic communication, but it is
 not a longer-duration accepted replacement for v4.1.
 
+## Hero Scene Render Lab
+
+A follow-up render-only lab reuses the v4.2 medium VTK/IsoSurface frames and
+focuses on a local, close-framed hero scene instead of another full-domain
+sequence.
+
+```text
+$HOME/stack-validation/20260612-rectangular-jet-hero-scene-render-lab
+```
+
+The lab adds optional renderer controls for brighter studio/test-rig context,
+including a procedural floor grid, rectangular nozzle block, fill/rim lights,
+and material presets for a lightly tinted transparent-water surface and an
+opaque control. The selected recipe is a Cycles `scientific-water` material in a
+warm test-rig environment with a fixed side camera that keeps the rectangular
+nozzle visible. It produces a still matrix, contact sheet, short mini-animation
+from all 18 available v4.2 medium frames, and a final-frame probe-camera
+preview.
+
+This pass improves render readability only. It does not rerun the solver,
+extend physical duration, or change the single-phase proxy limitation.
+
 ## SprayGeo / Ideal Explorer Metrics Handoff
 
 The v4.1 particle-slab geometry metrics were converted into an analysis-ready
@@ -783,6 +805,9 @@ Explorer import surface.
   but the completed run is `0.85 s`, not the intended `3.4 s` longer run. It is
   therefore a partial cinematic-analysis package, not a new accepted
   longer-duration result.
+- The hero-scene render lab improves local lighting, material readability, and
+  camera framing only; it should not be presented as better physics or
+  validation evidence.
 
 ## Next Step Toward True Atomization
 
