@@ -84,7 +84,8 @@ production CFD, and not experimental agreement.
 
 ## Rectangular Jet Geometry Proxy
 
-- YouTube URL: not uploaded yet; use manual hosting or upload before embedding.
+- YouTube URL: <https://youtu.be/tWSvAAVp-nU>
+- Suggested embed URL: `https://www.youtube-nocookie.com/embed/tWSvAAVp-nU`
 - Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction | EN/JA/ES`
 - Local pre-audit root:
   `/home/franco/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual`

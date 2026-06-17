@@ -911,6 +911,10 @@ Final local artifacts:
 - `YOUTUBE_AND_WEB_METADATA_FINAL.md`
 - `acceptance_checklist.md`
 
+Hosted video:
+
+- <https://youtu.be/tWSvAAVp-nU>
+
 Use this final layout-corrected package as the freeze candidate after manual
 playback review. It remains a single-phase geometry-proxy demonstration, not
 atomization, validation, production CFD, gas-phase simulation, internal nozzle

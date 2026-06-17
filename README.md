@@ -81,7 +81,7 @@ than a set of unrelated clips:
 | Dam-break workflow | Small proof of GPU SPH -> VTK -> Blender -> MP4 assembly. | Hosted on YouTube; supporting workflow demo. |
 | ShapesInlet3D | Official 3D inlet/open-boundary demonstration with particle, surface, and velocity views. | Hosted on YouTube; primary scientific-demonstration video. |
 | ImpingingJet | Official 2D impinging-jet visualization with reconstructed-surface scalar analysis. | Hosted on YouTube; 2D visualization demo with caveat. |
-| Rectangular jet proxy final-polish | Modified single-phase rectangular inlet geometry proxy with surface cuts, pressure/velocity/proxy diagnostics, multilingual publication cards, and SprayGeo/Ideal overlay handoff lineage. | Public-preview candidate; video not hosted yet; not fit-ready validation data. |
+| Rectangular jet proxy final-polish | Modified single-phase rectangular inlet geometry proxy with surface cuts, pressure/velocity/proxy diagnostics, multilingual publication cards, and SprayGeo/Ideal overlay handoff lineage. | Hosted on YouTube; public-preview geometry proxy; not fit-ready validation data. |
 
 See [docs/dualsphysics_demo_family.md](docs/dualsphysics_demo_family.md) for
 the recommended public structure, redundancy decision, audience mapping, and
