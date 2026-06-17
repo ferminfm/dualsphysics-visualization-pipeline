@@ -592,6 +592,49 @@ def _add_nozzle_block(
     )
 
 
+def _add_nozzle_aperture(
+    center: Vector,
+    span: float,
+    mins: Vector,
+    material: bpy.types.Material,
+) -> None:
+    """Add a simple four-bar rectangular nozzle frame around the inlet plane."""
+    x1 = mins.x + span * 0.035
+    depth = span * 0.012
+    x0 = x1 - depth
+    aperture_half_y = 0.30
+    aperture_half_z = 0.20
+    frame_thickness = max(0.055, span * 0.003)
+    outer_half_y = aperture_half_y + frame_thickness
+    outer_half_z = aperture_half_z + frame_thickness
+    y0 = center.y
+    z0 = center.z
+    parts = [
+        (
+            "rectangular_nozzle_top_bar",
+            (x0, y0 - outer_half_y, z0 + aperture_half_z),
+            (x1, y0 + outer_half_y, z0 + outer_half_z),
+        ),
+        (
+            "rectangular_nozzle_bottom_bar",
+            (x0, y0 - outer_half_y, z0 - outer_half_z),
+            (x1, y0 + outer_half_y, z0 - aperture_half_z),
+        ),
+        (
+            "rectangular_nozzle_left_bar",
+            (x0, y0 - outer_half_y, z0 - aperture_half_z),
+            (x1, y0 - aperture_half_y, z0 + aperture_half_z),
+        ),
+        (
+            "rectangular_nozzle_right_bar",
+            (x0, y0 + aperture_half_y, z0 - aperture_half_z),
+            (x1, y0 + outer_half_y, z0 + aperture_half_z),
+        ),
+    ]
+    for name, min_corner, max_corner in parts:
+        _add_box(name, min_corner, max_corner, material)
+
+
 def _add_studio_walls(
     center: Vector,
     span: float,
@@ -726,6 +769,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--back-wall-color", type=_parse_color, default=(0.91, 0.92, 0.90, 1.0))
     parser.add_argument("--side-wall-color", type=_parse_color, default=(0.73, 0.77, 0.78, 1.0))
     parser.add_argument("--add-nozzle-block", action="store_true")
+    parser.add_argument("--add-nozzle-aperture", action="store_true")
     parser.add_argument("--add-floor-grid", action="store_true")
     parser.add_argument("--nozzle-color", type=_parse_color, default=(0.78, 0.78, 0.74, 1.0))
     parser.add_argument("--grid-color", type=_parse_color, default=(0.58, 0.62, 0.64, 1.0))
@@ -735,6 +779,14 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-target-y-fraction", type=float)
     parser.add_argument("--camera-target-z-fraction", type=float)
     parser.add_argument("--camera-span-scale", type=float, default=1.0)
+    parser.add_argument(
+        "--camera-offset",
+        type=_parse_vector3,
+        help=(
+            "Override camera preset with an x,y,z offset scaled by camera span. "
+            "Useful for deterministic fly-through paths."
+        ),
+    )
     parser.add_argument("--light-energy", type=float, default=700.0)
     parser.add_argument("--light-size", type=float, default=1.6)
     parser.add_argument("--light-offset", type=_parse_vector3, default=(0.15, -1.25, 1.35))
@@ -967,6 +1019,8 @@ def main() -> None:
         _add_floor_grid(center, span, mins, maxs, grid_mat)
     if args.add_nozzle_block:
         _add_nozzle_block(center, span, mins, maxs, nozzle_mat)
+    if args.add_nozzle_aperture:
+        _add_nozzle_aperture(center, span, mins, nozzle_mat)
 
     if not args.hide_fluid and args.color_by:
         if args.color_by not in fluid.point_scalars:
@@ -1034,7 +1088,11 @@ def main() -> None:
         rim.data.energy = args.rim_light_energy
         rim.data.size = span * max(0.1, args.light_size * 0.45)
 
-    bpy.ops.object.camera_add(location=_camera_location(center, camera_span, args.camera_preset))
+    if args.camera_offset:
+        camera_location = tuple(center + Vector(args.camera_offset) * camera_span)
+    else:
+        camera_location = _camera_location(center, camera_span, args.camera_preset)
+    bpy.ops.object.camera_add(location=camera_location)
     camera = bpy.context.object
     direction = center - camera.location
     camera.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
@@ -1080,8 +1138,10 @@ def main() -> None:
     print(f"SURFACE_SMOOTHING={args.surface_smoothing}")
     print(f"RENDER_ENGINE={args.render_engine}")
     print(f"CAMERA_LENS={args.camera_lens}")
+    print(f"CAMERA_LOCATION={tuple(camera.location)}")
     print(f"CAMERA_TARGET={tuple(center)}")
     print(f"CAMERA_SPAN_SCALE={args.camera_span_scale}")
+    print(f"CAMERA_OFFSET={args.camera_offset}")
     print(f"ORTHO_SCALE={ortho_scale}")
     print(f"LIGHT_ENERGY={args.light_energy}")
     print(f"LIGHT_SIZE={args.light_size}")
@@ -1104,6 +1164,7 @@ def main() -> None:
     print(f"STUDIO_WALLS={args.add_studio_walls}")
     print(f"FLOOR_GRID={args.add_floor_grid}")
     print(f"NOZZLE_BLOCK={args.add_nozzle_block}")
+    print(f"NOZZLE_APERTURE={args.add_nozzle_aperture}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.blend:

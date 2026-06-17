@@ -46,6 +46,7 @@ See:
 - `docs/dualsphysics_demo_family.md`
 - `docs/blender_water_render_benchmark.md`
 - `docs/rectangular_jet_hero_scene_render_lab.md`
+- `docs/rectangular_jet_v43_cinematic_correction.md`
 - `docs/video_publish_notes.md`
 - `docs/dualsphysics_rectangular_highspeed_jet_proxy.md`
 - `docs/jet_workflow_feasibility_20260608.md`
@@ -221,6 +222,15 @@ local scene readability with a brighter studio/test-rig environment, procedural
 floor/grid/nozzle context, transparent-water material variants, a short
 all-available-frame mini-animation, and a final-frame probe-camera preview. It
 does not rerun the solver or change the single-phase proxy caveat.
+
+Rectangular-jet v4.3 cinematic/cross-section correction:
+`$HOME/stack-validation/20260617-rectangular-jet-v43-cinematic-correction`.
+This render/postprocessing pass reuses existing v4.2 medium VTK/IsoSurface
+frames, adds a nozzle-aperture pre-roll, renders all available data frames,
+uses presentation interpolation for smoother viewing, adds a curved probe
+fly-through, and replaces tracked-particle cross-section emphasis with fixed
+Eulerian IsoSurface station cuts plus particle-slab comparison. It remains a
+public-preview geometry-proxy package, not validation media.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not

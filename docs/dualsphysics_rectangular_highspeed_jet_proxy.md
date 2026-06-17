@@ -748,6 +748,42 @@ preview.
 This pass improves render readability only. It does not rerun the solver,
 extend physical duration, or change the single-phase proxy limitation.
 
+## v4.3 Cinematic / Cross-Section Correction
+
+The v4.3 correction package reuses the v4.2 medium PartVTK/IsoSurface frames and
+does not rerun DualSPHysics:
+
+```text
+$HOME/stack-validation/20260617-rectangular-jet-v43-cinematic-correction
+```
+
+Key corrections:
+
+- procedural rectangular nozzle/aperture pre-roll before outflow;
+- all 18 available v4.2 paired data frames rendered;
+- presentation interpolation for smoother viewing, with the real data-frame
+  count documented;
+- brighter floor/wall/grid/nozzle context and stronger key/fill/rim lighting;
+- improved transparent-water surface presentation;
+- 84-frame curved probe fly-through over the final frozen IsoSurface frame;
+- fixed Eulerian `x`-station IsoSurface cross-sections normal to the `+x` jet
+  axis, with particle-slab centroid/count comparison;
+- velocity magnitude, pressure, and velocity-fluctuation energy proxy views.
+
+Final local artifacts:
+
+- `showcase/rectangular_jet_v43_scientific_demonstration.mp4`
+- `showcase/rectangular_jet_v43_clean_all_frames.mp4`
+- `showcase/rectangular_jet_v43_surface_hero.mp4`
+- `showcase/rectangular_jet_v43_curved_probe_flythrough.mp4`
+- `showcase/rectangular_jet_v43_surface_cross_section_evolution.mp4`
+- `showcase/rectangular_jet_v43_contact_sheet.png`
+
+The cross-section correction demotes the tracked-particle cut to a diagnostic
+and uses fixed downstream station cuts for the main geometric story. The
+velocity-fluctuation energy panel is a derived proxy, not true turbulence. The
+v4.3 package is a public-preview candidate, not validation media.
+
 ## SprayGeo / Ideal Explorer Metrics Handoff
 
 The v4.1 particle-slab geometry metrics were converted into an analysis-ready
@@ -808,6 +844,9 @@ Explorer import surface.
 - The hero-scene render lab improves local lighting, material readability, and
   camera framing only; it should not be presented as better physics or
   validation evidence.
+- The v4.3 cinematic/cross-section correction improves presentation and
+  diagnostic consistency, but still uses 18 real v4.2 data frames with
+  presentation interpolation; it is not new solver evidence.
 
 ## Next Step Toward True Atomization
 
