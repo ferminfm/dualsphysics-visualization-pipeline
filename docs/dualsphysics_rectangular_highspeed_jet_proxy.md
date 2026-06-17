@@ -882,6 +882,40 @@ demonstration. It is not internal nozzle flow, gas-phase simulation,
 atomization, physical validation, production CFD, true turbulence, or
 experimental agreement.
 
+## Final Layout-Corrected Freeze Candidate
+
+The final layout-correction package should supersede the geometry-audit MP4 for
+manual playback review, upload, or freeze decisions:
+
+```text
+$HOME/stack-validation/20260617-rectangular-jet-final-layout-correction
+```
+
+This pass reassembles only cards, overlays, and existing marker-free clips. It
+does not rerun DualSPHysics. It fixes right-edge card overflow in the English,
+Japanese, and Spanish cards while preserving the audited interpretation:
+
+- rectangular imposed inlet boundary at `x = -1.5 m`;
+- uniform top-hat imposed velocity, `u ~= (20, 0, 0) m/s`;
+- finite numerical InOut buffer;
+- no internal nozzle flow;
+- no gas phase;
+- no separate downstream InOut outlet;
+- downstream side open in the copied domain.
+
+Final local artifacts:
+
+- `rectangular_jet_final_layout_corrected_multilingual.mp4`
+- `rectangular_jet_final_layout_corrected_clean_visuals.mp4`
+- `rectangular_jet_final_layout_corrected_contact_sheet.png`
+- `YOUTUBE_AND_WEB_METADATA_FINAL.md`
+- `acceptance_checklist.md`
+
+Use this final layout-corrected package as the freeze candidate after manual
+playback review. It remains a single-phase geometry-proxy demonstration, not
+atomization, validation, production CFD, gas-phase simulation, internal nozzle
+flow, or experimental agreement.
+
 ## SprayGeo / Ideal Explorer Metrics Handoff
 
 The v4.1 particle-slab geometry metrics were converted into an analysis-ready

@@ -88,8 +88,16 @@ production CFD, and not experimental agreement.
 - Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction | EN/JA/ES`
 - Local pre-audit root:
   `/home/franco/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual`
-- Marker-corrected root:
-  `/home/franco/stack-validation/20260617-rectangular-jet-inlet-marker-audit`
+- Final layout-corrected root:
+  `/home/franco/stack-validation/20260617-rectangular-jet-final-layout-correction`
+- Final MP4:
+  `rectangular_jet_final_layout_corrected_multilingual.mp4`
+- Clean visual companion:
+  `rectangular_jet_final_layout_corrected_clean_visuals.mp4`
+- Contact sheet:
+  `rectangular_jet_final_layout_corrected_contact_sheet.png`
+- Superseded marker-corrected root:
+  `/home/franco/stack-validation/20260617-rectangular-jet-inlet-outlet-geometry-audit`
 - Superseded local root:
   `/home/franco/stack-validation/20260617-rectangular-jet-final-polish`
 - Recommended classification: `public_preview_candidate`
@@ -100,9 +108,9 @@ production CFD, and not experimental agreement.
 - Caption: Single-phase geometry-proxy demonstration; not atomization
   validation.
 - Recommended use: public-preview demonstration of a reproducible scientific
-  visualization and post-processing workflow. Host the marker-corrected MP4
-  externally before embedding it on a website; do not commit video media to Git.
-  Use one multilingual MP4 rather than separate EN/JA/ES videos.
+  visualization and post-processing workflow. Host the final layout-corrected
+  MP4 externally before embedding it on a website; do not commit video media to
+  Git. Use one multilingual MP4 rather than separate EN/JA/ES videos.
 
 Long description:
 
@@ -133,6 +141,12 @@ marker from active pressure/velocity/surface views because the audit found it
 was downstream of the actual imposed inlet plane. Do not describe that marker
 as a physical nozzle, gas-phase window, measurement window, or solver-resolved
 inlet geometry.
+
+The final layout-corrected package fixes EN/JA/ES card wrapping while preserving
+the audited boundary interpretation: rectangular imposed InOut inlet at
+`x = -1.5 m`, uniform top-hat `u ~= (20, 0, 0) m/s`, finite numerical InOut
+buffer, no internal nozzle flow, no gas phase, no separate downstream InOut
+outlet, and an open downstream side in the copied domain.
 ```
 
 ## Shared Caveat

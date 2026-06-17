@@ -247,12 +247,14 @@ Rectangular-jet inlet-marker audit correction:
 `$HOME/stack-validation/20260617-rectangular-jet-inlet-marker-audit`.
 This was superseded by the inlet/outlet geometry audit:
 `$HOME/stack-validation/20260617-rectangular-jet-inlet-outlet-geometry-audit`.
-Use the geometry-corrected package for any manual upload or freeze decision. It
-verifies the actual imposed inlet plane at `x = -1.5 m`, identifies the
-procedural rectangular render marker as downstream of that plane, and removes
-the marker from active data views. The corrected videos keep inlet/outlet
-interpretation in cards and documentation rather than implying solver-resolved
-internal nozzle geometry.
+That audit was followed by the final layout-corrected freeze candidate:
+`$HOME/stack-validation/20260617-rectangular-jet-final-layout-correction`.
+Use the final layout-corrected package for any manual upload or freeze decision.
+It verifies the actual imposed inlet plane at `x = -1.5 m`, identifies the
+procedural rectangular render marker as downstream of that plane, removes the
+marker from active data views, and fixes EN/JA/ES card text wrapping. The
+corrected videos keep inlet/outlet interpretation in cards and documentation
+rather than implying solver-resolved internal nozzle geometry.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
