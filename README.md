@@ -233,12 +233,13 @@ Eulerian IsoSurface station cuts plus particle-slab comparison. It remains a
 public-preview geometry-proxy package, not validation media.
 
 Rectangular-jet final-polish publication package:
-`$HOME/stack-validation/20260617-rectangular-jet-final-polish`. This
-pre-freeze polish pass reuses the v4.3 videos without rerunning the solver,
-adds English/Japanese/Spanish title and method cards, clarifies that no
-gas-phase field is present, documents the imposed-inlet/internal-nozzle
-limitation, and prepares YouTube/web metadata. It is recommended only as a
-public-preview scientific-computing workflow artifact.
+`$HOME/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual`.
+This pre-freeze polish pass reuses the v4.3 videos without rerunning the
+solver, creates one single multilingual EN/JA/ES video with longer cards,
+clarifies that no gas-phase field is present, labels the visible pressure and
+velocity inlet/nozzle reference region, documents the imposed-inlet/internal
+nozzle limitation, and prepares YouTube/web metadata. It is recommended only
+as a public-preview scientific-computing workflow artifact.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not

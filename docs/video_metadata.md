@@ -85,34 +85,33 @@ production CFD, and not experimental agreement.
 ## Rectangular Jet Geometry Proxy
 
 - YouTube URL: not uploaded yet; use manual hosting or upload before embedding.
-- Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction`
+- Suggested title: `Rectangular Jet Geometry Proxy | DualSPHysics + Surface Reconstruction | EN/JA/ES`
 - Local accepted root:
-  `/home/franco/stack-validation/20260617-rectangular-jet-final-polish`
+  `/home/franco/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual`
 - Superseded local root:
-  `/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v41-accepted-v1`
+  `/home/franco/stack-validation/20260617-rectangular-jet-final-polish`
 - Recommended classification: `public_preview_candidate`
 - Short description: Final-polished DualSPHysics rectangular inlet jet geometry
   proxy using GPU SPH data, PartVTK/IsoSurface post-processing, transparent
-  IsoSurface rendering, pressure/velocity diagnostics, multilingual cards, and
-  ffmpeg assembly.
+  IsoSurface rendering, pressure/velocity diagnostics, one multilingual EN/JA/ES
+  video, and ffmpeg assembly.
 - Caption: Single-phase geometry-proxy demonstration; not atomization
   validation.
 - Recommended use: public-preview demonstration of a reproducible scientific
   visualization and post-processing workflow. Host the MP4 externally before
-  embedding it on a website; do not commit video media to Git. Use the English
-  final-polish MP4 by default and keep Japanese/Spanish card variants as
-  localized alternatives if uploaded.
+  embedding it on a website; do not commit video media to Git. Use the v2
+  multilingual MP4 as one upload rather than separate EN/JA/ES videos.
 
 Long description:
 
 ```text
 This video presents a modified single-phase DualSPHysics rectangular inlet jet
 geometry proxy. The workflow starts from bounded v4.2/v4.3 solver and
-post-processing outputs, then applies a final-polish card and metadata pass:
+post-processing outputs, then applies a v2 final-polish card and metadata pass:
 particle provenance, reconstructed IsoSurface views, velocity and pressure
 post-processing views, velocity-fluctuation energy proxy, fixed-station
 surface-cut diagnostics, final-frame probe fly-through, and explicit
-English/Japanese/Spanish caveat cards.
+English/Japanese/Spanish caveat cards in one video.
 
 Pipeline: DualSPHysics v5.4 GPU data -> PartVTK/IsoSurface outputs ->
 headless Blender render pass -> ffmpeg assembly.
@@ -120,7 +119,9 @@ headless Blender render pass -> ffmpeg assembly.
 This is a scientific-computing workflow demonstration. It is not fully atomized
 spray, not physical validation, not production CFD, not experimental agreement,
 not a gas-phase simulation, and not a true turbulence result. The imposed inlet
-does not resolve internal nozzle flow upstream of the boundary.
+does not resolve internal nozzle flow upstream of the boundary. The visible
+rectangular marker in pressure/velocity views is an inlet/nozzle reference
+region from the render setup, not a gas-phase or measurement window.
 ```
 
 ## Shared Caveat

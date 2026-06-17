@@ -81,32 +81,33 @@ particle velocities. It is not a true turbulence field.
 
 ## Final-Polish Publication Package
 
-The pre-freeze final-polish pass reuses the v4.3 MP4 segments and adds
+The current pre-freeze final-polish pass reuses the v4.3 MP4 segments and adds
 publication-oriented cards and metadata without rerunning DualSPHysics:
 
 ```text
-/home/franco/stack-validation/20260617-rectangular-jet-final-polish
+/home/franco/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual
 ```
 
 Additional outputs:
 
 ```text
-rectangular_jet_final_polished_en.mp4
-rectangular_jet_final_polished_ja.mp4
-rectangular_jet_final_polished_es.mp4
-rectangular_jet_final_polished_clean.mp4
-rectangular_jet_final_polished_contact_sheet.png
-YOUTUBE_AND_WEB_METADATA.md
-gas_phase_status.md
-multilingual_card_text.md
+rectangular_jet_final_polished_multilingual.mp4
+rectangular_jet_final_polished_multilingual_clean_visuals.mp4
+rectangular_jet_final_polished_multilingual_contact_sheet.png
+YOUTUBE_AND_WEB_METADATA_MULTILINGUAL.md
+multilingual_card_text_v2.md
+pressure_velocity_window_explanation.md
 acceptance_checklist.md
 ```
 
 The cards make the CFD-method boundary explicit: this is a single-phase SPH
 geometry proxy with an imposed inlet condition. No gas-phase field or
 liquid-gas identifier is present in the exported data, and internal nozzle flow
-or upstream corner-induced development is not resolved. The package is a
-public-preview scientific-computing workflow artifact, not validation media.
+or upstream corner-induced development is not resolved. The pressure and
+velocity clips label the visible rectangular marker as an inlet/nozzle
+reference region from the render setup, not a gas-phase or measurement window.
+The package is a public-preview scientific-computing workflow artifact, not
+validation media.
 
 ## Renderer Support
 

@@ -784,32 +784,33 @@ and uses fixed downstream station cuts for the main geometric story. The
 velocity-fluctuation energy panel is a derived proxy, not true turbulence. The
 v4.3 package is a public-preview candidate, not validation media.
 
-## Final-Polish Publication Package
+## Final-Polish v2 Multilingual Publication Package
 
-Before freezing a public artifact, a final-polish pass reuses the v4.3 video
-segments and generates publication-oriented cards and metadata:
+Before freezing a public artifact, the v2 final-polish pass reuses the v4.3
+video segments and generates one single multilingual EN/JA/ES video with
+publication-oriented cards and metadata:
 
 ```text
-$HOME/stack-validation/20260617-rectangular-jet-final-polish
+$HOME/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual
 ```
 
 Outputs include:
 
-- `rectangular_jet_final_polished_en.mp4`
-- `rectangular_jet_final_polished_ja.mp4`
-- `rectangular_jet_final_polished_es.mp4`
-- `rectangular_jet_final_polished_clean.mp4`
-- `rectangular_jet_final_polished_contact_sheet.png`
-- `YOUTUBE_AND_WEB_METADATA.md`
-- `gas_phase_status.md`
-- `multilingual_card_text.md`
+- `rectangular_jet_final_polished_multilingual.mp4`
+- `rectangular_jet_final_polished_multilingual_clean_visuals.mp4`
+- `rectangular_jet_final_polished_multilingual_contact_sheet.png`
+- `YOUTUBE_AND_WEB_METADATA_MULTILINGUAL.md`
+- `multilingual_card_text_v2.md`
+- `pressure_velocity_window_explanation.md`
 - `acceptance_checklist.md`
 
-The final-polish package adds English, Japanese, and Spanish cards; makes the
-single-phase SPH method boundary explicit; clarifies that no gas-phase field or
-liquid-gas identifier is present; and documents that the rectangular inlet is
-an imposed boundary condition rather than a resolved internal nozzle flow. It
-is recommended as a public-preview scientific-computing workflow artifact only.
+The v2 package adds longer English, Japanese, and Spanish cards in one video;
+makes the single-phase SPH method boundary explicit; clarifies that no
+gas-phase field or liquid-gas identifier is present; documents that the
+rectangular inlet is an imposed boundary condition rather than a resolved
+internal nozzle flow; and labels the visible pressure/velocity rectangular
+marker as an inlet/nozzle reference region. It is recommended as a
+public-preview scientific-computing workflow artifact only.
 
 ## SprayGeo / Ideal Explorer Metrics Handoff
 
@@ -874,7 +875,7 @@ Explorer import surface.
 - The v4.3 cinematic/cross-section correction improves presentation and
   diagnostic consistency, but still uses 18 real v4.2 data frames with
   presentation interpolation; it is not new solver evidence.
-- The final-polish package improves cards, multilingual metadata, gas-phase
+- The final-polish v2 package improves cards, multilingual metadata, gas-phase
   clarification, and publication readiness only; it does not add new solver
   evidence, gas-phase physics, internal-nozzle resolution, or validation.
 
