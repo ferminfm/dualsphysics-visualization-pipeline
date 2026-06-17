@@ -127,10 +127,12 @@ profile is used.
 This is a scientific-computing workflow demonstration. It is not fully atomized
 spray, not physical validation, not production CFD, not experimental agreement,
 not a gas-phase simulation, and not a true turbulence result. The imposed inlet
-does not resolve internal nozzle flow upstream of the boundary. The visible
-rectangular marker in pressure/velocity views is a rendered inlet-boundary
-reference frame from the render setup, not a gas-phase, measurement window, or
-solver-resolved physical nozzle.
+does not resolve internal nozzle flow upstream of the boundary. The
+geometry-corrected package removes the previous procedural rectangular render
+marker from active pressure/velocity/surface views because the audit found it
+was downstream of the actual imposed inlet plane. Do not describe that marker
+as a physical nozzle, gas-phase window, measurement window, or solver-resolved
+inlet geometry.
 ```
 
 ## Shared Caveat

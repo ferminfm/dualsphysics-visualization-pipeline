@@ -237,17 +237,22 @@ Rectangular-jet final-polish publication package:
 `$HOME/stack-validation/20260617-rectangular-jet-final-polish-v2-multilingual`.
 This pre-freeze polish pass reuses the v4.3 videos without rerunning the
 solver, creates one single multilingual EN/JA/ES video with longer cards,
-clarifies that no gas-phase field is present, labels the visible pressure and
-velocity rendered inlet-boundary reference frame, documents the imposed-inlet
-and unresolved-internal-nozzle limitation, and prepares YouTube/web metadata.
+clarifies that no gas-phase field is present, documents the imposed-inlet and
+unresolved-internal-nozzle limitation, and prepares YouTube/web metadata. Its
+render-marker wording is superseded by the inlet/outlet geometry audit below.
 It is recommended only
 as a public-preview scientific-computing workflow artifact.
 
 Rectangular-jet inlet-marker audit correction:
 `$HOME/stack-validation/20260617-rectangular-jet-inlet-marker-audit`.
-Use this corrected package for any manual upload or freeze decision. It
-classifies the visible pressure/velocity rectangle as a rendered inlet-boundary
-reference frame, not solver-resolved nozzle geometry or internal nozzle flow.
+This was superseded by the inlet/outlet geometry audit:
+`$HOME/stack-validation/20260617-rectangular-jet-inlet-outlet-geometry-audit`.
+Use the geometry-corrected package for any manual upload or freeze decision. It
+verifies the actual imposed inlet plane at `x = -1.5 m`, identifies the
+procedural rectangular render marker as downstream of that plane, and removes
+the marker from active data views. The corrected videos keep inlet/outlet
+interpretation in cards and documentation rather than implying solver-resolved
+internal nozzle geometry.
 
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not

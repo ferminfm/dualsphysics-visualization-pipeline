@@ -785,7 +785,9 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help=(
             "Add a render-only rectangular inlet-boundary reference frame. "
-            "Legacy option name; not solver-resolved nozzle geometry."
+            "Legacy option name; not solver-resolved nozzle geometry. Uses a "
+            "camera-bounds heuristic and should not be treated as audited "
+            "inlet-plane geometry."
         ),
     )
     parser.add_argument("--add-floor-grid", action="store_true")

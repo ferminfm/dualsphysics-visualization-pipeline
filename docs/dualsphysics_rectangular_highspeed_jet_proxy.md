@@ -825,11 +825,10 @@ Outputs include:
 
 The v2 package adds longer English, Japanese, and Spanish cards in one video;
 makes the single-phase SPH method boundary explicit; clarifies that no
-gas-phase field or liquid-gas identifier is present; documents that the
+gas-phase field or liquid-gas identifier is present; and documents that the
 rectangular inlet is an imposed boundary condition rather than a resolved
-internal nozzle flow; and labels the visible pressure/velocity rectangular
-marker as a rendered inlet-boundary reference frame. It is recommended as a
-public-preview scientific-computing workflow artifact only.
+internal nozzle flow. A later inlet/outlet geometry audit supersedes the v2
+render-marker interpretation and should be used before any public freeze.
 
 ## Inlet-Marker Audit Correction
 
@@ -844,6 +843,44 @@ The audit checks the v4.2 XML, v4.3 render logs, and Blender importer behavior.
 It classifies the visible pressure/velocity rectangular region as a rendered
 inlet-boundary reference frame. It is not a gas phase, measurement window,
 solver-resolved physical nozzle, or evidence of internal nozzle flow.
+
+## Inlet / Outlet Geometry Audit Correction
+
+The inlet/outlet geometry audit supersedes the inlet-marker audit for public
+freeze decisions:
+
+```text
+$HOME/stack-validation/20260617-rectangular-jet-inlet-outlet-geometry-audit
+```
+
+The coordinate audit found:
+
+- actual imposed inlet plane: `x = -1.5 m`, `y = -0.3..0.3 m`,
+  `z = 0..0.4 m`;
+- numerical InOut real domain: `x = -1.65..-1.3375 m`, direction `+x`;
+- previous rendered rectangular frame: procedural Blender overlay placed about
+  `0.68..1.09 m` downstream of the actual inlet plane in active views;
+- downstream geometry: no separate downstream InOut outlet zone was found, and
+  the copied box geometry is open on the downstream side; `Run.csv` showed
+  `PartsOut = 0` for the audited run.
+
+The corrected package removes the procedural rectangular marker from active
+surface, probe, velocity, and pressure views. Inlet and outlet interpretation is
+kept in cards and documentation instead of being drawn as a potentially
+misleading in-flow marker.
+
+Corrected local artifacts:
+
+- `rectangular_jet_final_polished_multilingual_geometry_corrected.mp4`
+- `rectangular_jet_final_polished_multilingual_geometry_corrected_clean_visuals.mp4`
+- `rectangular_jet_geometry_corrected_contact_sheet.png`
+- `CODEX_INLET_OUTLET_GEOMETRY_AUDIT_REPORT.md`
+- `CODEX_INLET_OUTLET_GEOMETRY_AUDIT_SUMMARY.json`
+
+The corrected package remains a single-phase geometry-proxy and workflow
+demonstration. It is not internal nozzle flow, gas-phase simulation,
+atomization, physical validation, production CFD, true turbulence, or
+experimental agreement.
 
 ## SprayGeo / Ideal Explorer Metrics Handoff
 

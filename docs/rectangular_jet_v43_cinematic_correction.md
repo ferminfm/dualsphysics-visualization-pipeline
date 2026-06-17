@@ -103,10 +103,11 @@ acceptance_checklist.md
 The cards make the CFD-method boundary explicit: this is a single-phase SPH
 geometry proxy with an imposed inlet condition. No gas-phase field or
 liquid-gas identifier is present in the exported data, and internal nozzle flow
-or upstream corner-induced development is not resolved. The pressure and
-velocity clips label the visible rectangular marker as a rendered
-inlet-boundary reference frame from the render setup, not a gas-phase,
-measurement window, or solver-resolved physical nozzle.
+or upstream corner-induced development is not resolved. The later inlet/outlet
+geometry audit supersedes the pressure/velocity marker interpretation in this
+v4.3 package: the procedural rectangular marker was found downstream of the
+actual imposed inlet plane and should not be used for public-ready active data
+views.
 The package is a public-preview scientific-computing workflow artifact, not
 validation media.
 
