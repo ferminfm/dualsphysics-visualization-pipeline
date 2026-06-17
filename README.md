@@ -51,6 +51,7 @@ See:
 - `docs/dualsphysics_rectangular_highspeed_jet_proxy.md`
 - `docs/jet_workflow_feasibility_20260608.md`
 - `docs/basilisk_jet_showcase.md`
+- `docs/basilisk_atomisation_route.md`
 
 ## What Developers Can Learn
 
@@ -119,6 +120,15 @@ Latest local smoke result:
 - Render: `1280 x 720`, five-frame MP4 assembled outside Git
 - Caveat: solver-generated 3D VOF smoke/export case only; not validated
   atomization, not production CFD, and not experimental agreement
+
+**Basilisk route update (2026-06-18):** A bounded 3D VOF atomisation-route pass
+completed under
+`/home/franco/stack-validation/20260618-basilisk-atomisation-route`. It produced
+13 exported VOF/VTK frames, 148 preliminary slice-metric rows, frame-wise
+interface diagnostics, a Blender fallback MP4/contact sheet, and a short native
+Basilisk `draw_vof` proof. The result is useful as an interface-breakup workflow
+prototype, but it is still coarse, transient, and not stationary spray data.
+See `docs/basilisk_atomisation_route.md`.
 
 **Update (2026-06):** Official `05_ShapesInlet3D` was recovered from the full v5.4 package,
 permissions fixed, and the GPU case executed successfully to 100 parts with VTK outputs
