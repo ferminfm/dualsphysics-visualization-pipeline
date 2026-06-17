@@ -131,3 +131,77 @@ The next useful Basilisk step is a bounded native-view wrapper around the
 official atomisation-style case with explicit stop time, frame cadence,
 `tag()`-based connected-component output, and either a longer stable 3D run or a
 carefully labeled 2D/axisymmetric reduction if 3D cost becomes limiting.
+
+## Official-Style Wrapper - 2026-06-18
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper
+```
+
+Reusable wrapper:
+
+```text
+cases/basilisk/basilisk_official_atomisation_bounded.c
+```
+
+This wrapper adapts the local official Basilisk example:
+
+```text
+/home/franco/opt/basilisk-survey-20260606/basilisk/src/examples/atomisation.c
+```
+
+It keeps the official atomisation-style ingredients: dense liquid jet into a
+lighter phase, VOF, surface tension, sinusoidally modulated inlet velocity,
+Basilisk View `draw_vof()` frames, and `tag()` connected-component diagnostics.
+It adds explicit bounded controls for `maxlevel`, end time, output interval,
+velocity-adaptation tolerance, and frame-count target.
+
+Compile pattern:
+
+```bash
+/home/franco/opt/basilisk-survey-20260606/basilisk/src/qcc \
+  -O2 -Wall -grid=octree basilisk_official_atomisation_bounded.c \
+  -o basilisk_official_atomisation_bounded \
+  -L/home/franco/opt/basilisk-survey-20260606/basilisk/src/gl \
+  -lglutils -lfb_tiny -lm
+```
+
+Medium bounded run:
+
+```bash
+timeout 1200 ./basilisk_official_atomisation_bounded 8 0.5 0.025 0.08 21
+```
+
+Run summary:
+
+| Item | Value |
+| --- | --- |
+| Wrapped source | Basilisk `examples/atomisation.c` structure |
+| Max level | `8` |
+| End time | `0.5` |
+| Output frames | `21` |
+| Native rendering | `draw_vof()` PNG frames |
+| Component diagnostics | `tag()` CSV frames |
+| Max interface-cell rows | `9869` |
+| Max tagged components | `7` |
+| Final tagged components | `3` |
+| Max streamwise extent proxy | about `0.457` Basilisk units |
+
+Main local artifacts:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper/basilisk_official_atomisation_medium_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper/basilisk_official_atomisation_medium_contact_sheet.png
+/home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper/metrics/basilisk_official_atomisation_frame_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper/metrics/basilisk_official_atomisation_diagnostics_summary.json
+```
+
+This is a real advance beyond the previous voxel/point export proof: native
+Basilisk VOF surface frames work, and `tag()` reports late multi-component
+interface breakup. It is still internal technical evidence rather than a
+public-ready video. The default official camera leaves the interface small in
+the frame, the run is short/coarse, no stationary window is defined, and the
+component counts are preliminary VOF connected components rather than validated
+droplet statistics.
