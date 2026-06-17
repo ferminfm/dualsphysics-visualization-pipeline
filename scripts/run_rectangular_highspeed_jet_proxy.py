@@ -103,6 +103,23 @@ V4_DEFAULTS = {
 }
 
 
+V42_DEFAULTS = {
+    "dp": 0.025,
+    "tank_point": (-1.5, -7.0, -7.2),
+    "tank_size": (181.0, 14.0, 14.4),
+    "tank_boxfill": "bottom | left | front | back",
+    "inlet_point": (-1.5, -0.3, 0.0),
+    "inlet_size": (0.0, 0.6, 0.4),
+    "pointmin": (-2.5, -7.6, -7.8),
+    "pointmax": (181.5, 7.6, 7.8),
+    "sim_posmin": (-2.2, -7.6, -7.7),
+    "sim_posmax": (181.0, 7.6, 7.7),
+    "freecentre": (80.0, 0.0, 0.0),
+    "gravity": (9.81, 0.0, 0.0),
+    "axis_convention": "jet axis is +x; gravity is streamwise +x",
+}
+
+
 @dataclass(frozen=True)
 class Paths:
     repo_root: Path
@@ -245,6 +262,8 @@ def _profile_defaults(profile: str) -> dict[str, object] | None:
         return V3_DEFAULTS
     if profile == "v4":
         return V4_DEFAULTS
+    if profile == "v42":
+        return V42_DEFAULTS
     return None
 
 
@@ -1528,6 +1547,8 @@ def _write_surface_cut_diagnostics(
         width_z = max(zs) - min(zs) if zs else math.nan
         area = _polygon_area(cut_points) if cut_points else math.nan
         aspect, orientation = _principal_metrics(ys, zs) if len(cut_points) >= 3 else (math.nan, math.nan)
+        cut_centroid_y = _mean(ys) if ys else math.nan
+        cut_centroid_z = _mean(zs) if zs else math.nan
         row = {
             "frame": frame,
             "particle_id": tracked_id,
@@ -1537,6 +1558,8 @@ def _write_surface_cut_diagnostics(
             "cut_station_x": particle[0],
             "surface_segments": len(segments),
             "cut_points": len(cut_points),
+            "cut_centroid_y": cut_centroid_y,
+            "cut_centroid_z": cut_centroid_z,
             "area_proxy": area,
             "Ahat": area / NOZZLE_AREA if math.isfinite(area) and area > 0 else math.nan,
             "width_y": width_y,
@@ -1618,6 +1641,7 @@ def _write_surface_cut_diagnostics(
             f"frame: {frame}",
             f"tracked particle id: {row['particle_id']}",
             f"particle x/y/z: {row['particle_x']:.3f}, {row['particle_y']:.3f}, {row['particle_z']:.3f}",
+            f"cut centroid y/z: {row['cut_centroid_y']:.3f}, {row['cut_centroid_z']:.3f}",
             f"surface segments: {row['surface_segments']}",
             f"cut points: {row['cut_points']}",
             f"area proxy: {row['area_proxy']:.5f}" if isinstance(row["area_proxy"], float) and math.isfinite(row["area_proxy"]) else "area proxy: n/a",
@@ -2618,13 +2642,14 @@ def main() -> int:
     parser.add_argument("--blender", type=Path, default=DEFAULT_BLENDER)
     parser.add_argument(
         "--profile",
-        choices=("coarse", "upgraded", "v2", "v3", "v4"),
+        choices=("coarse", "upgraded", "v2", "v3", "v4", "v42"),
         default="coarse",
         help=(
             "coarse reproduces the first proxy; upgraded stretches the domain; "
             "v2 uses a longer open-downstream box for accepted-quality renders; "
             "v3 aligns gravity with the +x jet axis and extends the domain; "
-            "v4 extends duration/domain and adds surface-cut diagnostics"
+            "v4 extends duration/domain and adds surface-cut diagnostics; "
+            "v42 extends the downstream domain for longer cinematic review runs"
         ),
     )
     parser.add_argument("--dp", type=float, help="particle spacing for upgraded profile")

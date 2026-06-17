@@ -664,6 +664,68 @@ ffprobe output, SHA256 checksums, artifact manifest, acceptance note, and
 YouTube/web metadata draft. Heavy media are not tracked in Git; upload or host
 the MP4 externally before embedding it in a public website.
 
+## v4.2 Cinematic-Analysis Pass
+
+The v4.2 pass is a partial follow-up to the accepted v4/v4.1 data package. It
+adds a `v42` runner profile, corrected surface-cut centroid diagnostics, a
+phase-field inventory, all-available-frame segment rendering, and a final-frame
+transparent-surface flyby. It does not supersede the accepted v4.1 freeze
+because the intended `3.4 s` longer run was not completed.
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v42-extended-cinematic
+```
+
+Showcase root:
+
+```text
+/home/franco/stack-validation/20260612-dualsphysics-rectangular-jet-v42-extended-cinematic/showcase
+```
+
+Key setup and execution notes:
+
+- profile: `v42`
+- particle spacing: `dp = 0.025`
+- inlet speed: `20 m/s`
+- configured gravity: `(9.81, 0, 0)` using the `+x` jet-axis convention
+- generated long-domain box: approximately `181 m` streamwise extent
+- staged runs completed: GenCase-only, `0.25 s` smoke, and `0.85 s` medium
+- intended `3.4 s` longer run: not run in this pass because the full-wall
+  domain creates about `12.7M` fixed boundary particles and the smoke/medium
+  runtimes made a 2x-v4 all-frame package unreasonable
+- exported fields: `Idp`, `Press`, `Rhop`, and `Vel`
+- phase status: no separate gas/liquid phase indicator was found, so the
+  package remains single-phase geometry-proxy evidence
+- preserved solver warning: DualSPHysics reports that only Z gravity is used in
+  some inlet/outlet hydrostatic calculations
+
+Main v4.2 artifacts:
+
+- final scientific-demonstration MP4:
+  `showcase/rectangular_jet_v42_scientific_demonstration.mp4`
+- clean all-frame MP4:
+  `showcase/rectangular_jet_v42_clean_all_frames.mp4`
+- transparent surface hero MP4:
+  `showcase/rectangular_jet_v42_surface_hero.mp4`
+- final-frame flyby MP4:
+  `showcase/rectangular_jet_v42_cinematic_flyby.mp4`
+- true surface-cut cross-section MP4:
+  `showcase/rectangular_jet_v42_cross_section_evolution.mp4`
+- contact sheet:
+  `showcase/rectangular_jet_v42_contact_sheet.png`
+- phase inventory:
+  `v42_phase_field_inventory.md`
+- cross-section audit:
+  `v42_cross_section_audit.md`
+- acceptance checklist:
+  `acceptance_checklist.md`
+
+The v4.2 visual package is a public-preview candidate with a duration blocker.
+It improves the cinematic inspection and diagnostic communication, but it is
+not a longer-duration accepted replacement for v4.1.
+
 ## SprayGeo / Ideal Explorer Metrics Handoff
 
 The v4.1 particle-slab geometry metrics were converted into an analysis-ready
@@ -717,6 +779,10 @@ Explorer import surface.
   but it remains a single-phase SPH geometry proxy. The tracked-particle cuts
   depend on reconstructed IsoSurface quality and should be interpreted as
   visualization/geometry diagnostics, not experimental cross-sections.
+- The v4.2 package improves all-frame rendering and surface-cut diagnostics,
+  but the completed run is `0.85 s`, not the intended `3.4 s` longer run. It is
+  therefore a partial cinematic-analysis package, not a new accepted
+  longer-duration result.
 
 ## Next Step Toward True Atomization
 

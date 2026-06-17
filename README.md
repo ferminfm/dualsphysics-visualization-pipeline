@@ -203,6 +203,15 @@ small Ideal Momentum Jet Explorer area-overlay preview. The overlay is marked
 `blocked_pending_stationary_window`; it is for data-contract and import testing,
 not fitting or validation.
 
+Rectangular-jet v4.2 cinematic-analysis pass:
+`$HOME/stack-validation/20260612-dualsphysics-rectangular-jet-v42-extended-cinematic`.
+This pass adds a `v42` runner profile, all-available-frame rendering, corrected
+surface-cut centroid diagnostics, phase-field inventory, pressure/velocity/proxy
+analysis views, and a final-frame transparent-surface flyby. It is classified
+as a partial package because the intended `3.4 s` longer run was not completed;
+the produced package uses the bounded `0.85 s` stage and documents the runtime
+blocker.
+
 This is a modified DualSPHysics inlet-jet geometry proxy. It is not a fully
 atomized spray simulation, not validation, not production CFD, and not
 experimental agreement. See
