@@ -350,3 +350,63 @@ No case passed the breakup-proxy gate. The maximum credible post-exit
 another expensive 3D maxlevel-9/10 run, use a lower-cost 2D/axisymmetric or
 reduced-domain scout to find an instability range for gas shear and surface
 tension. Connected waviness is still not atomization.
+
+## 2D/Planar Shear-Sigma Scout - 2026-06-18
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout
+```
+
+Reusable case:
+
+```text
+cases/basilisk/planar_slot_shear_sigma_scout.c
+```
+
+This branch is a reduced 2D/planar parameter scout, not a faithful 3D
+rectangular-slot result. It was added after the expensive 3D morphology
+escalation remained negative. The goal is to identify whether any low-cost
+gas-Weber, surface-tension, gas-shear, or perturbation setting produces
+roll-up, necking, ligament-like elongation, detached components, persistent
+credible `tag()` components greater than one, or strong interface-length growth.
+
+Run summary:
+
+| Case | Purpose | Status | `We_g` | Resolution | Result |
+| --- | --- | --- | ---: | --- | --- |
+| `A_baseline` | 2D sanity and baseline morphology | completed | `80` | about `64` cells across sheet | rolled-up rim with detached-component proxies |
+| `E_repeat_A_refine` | maxlevel-11 repeat/refinement of Case A | completed | `80` | about `128` cells across sheet | repeated rolled-up rim and detached-component proxies |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/metrics/scout_case_summary.csv
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/metrics/scout_frame_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/metrics/scout_component_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/metrics/scout_parameter_map.json
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/artifacts/A_baseline_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/artifacts/A_baseline_contact_sheet.png
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/artifacts/E_repeat_A_refine_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout/artifacts/E_repeat_A_refine_contact_sheet.png
+```
+
+The scout found a reduced-model instability candidate at `We_g = 80` with mild
+transverse inlet perturbation and no gas-shear forcing. `A_baseline` reached an
+active front of about `3.19 Dh`, with maximum post-exit `tag()` component count
+`6`, detached-component proxy count `5`, and post-interface-length growth of
+about `9.1x`. The maxlevel-11 repeat reached about `2.47 Dh`, with maximum
+post-exit `tag()` component count `4`, detached-component proxy count `3`, and
+post-interface-length growth of about `7.1x`.
+
+This is a useful scout signal for the next physics-route decision, but it is
+not 3D validation, not stationary spray data, not production CFD, not
+experimental agreement, and not final atomisation prediction. The next step is
+to translate the successful reduced-model controls back into a carefully
+bounded 3D micro-branch, preserving the conservative breakup-proxy gate.
