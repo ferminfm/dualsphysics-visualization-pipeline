@@ -213,7 +213,8 @@ def classify_run(frames: list[dict[str, Any]], comps: list[dict[str, Any]]) -> d
 
 
 def run_diagnostics(run_dirs: list[Path], output_dir: Path, threshold: float,
-                    min_component_volume: float, min_component_cells: int) -> dict[str, Any]:
+                    min_component_volume: float, min_component_cells: int,
+                    prefix: str) -> dict[str, Any]:
     frame_rows: list[dict[str, Any]] = []
     component_rows: list[dict[str, Any]] = []
     case_rows: list[dict[str, Any]] = []
@@ -279,9 +280,14 @@ def run_diagnostics(run_dirs: list[Path], output_dir: Path, threshold: float,
         "max_credible_detached_proxy_count", "frames_with_credible_components_gt1",
         "bridge_candidate_found", "morphology_label", "classification_reason",
     ]
-    write_csv(output_dir/"periodic_bridge_frame_diagnostics.csv", frame_rows, frame_fields)
-    write_csv(output_dir/"periodic_bridge_component_diagnostics.csv", component_rows, comp_fields)
-    write_csv(output_dir/"periodic_bridge_case_summary.csv", case_rows, case_fields)
+    frame_path = output_dir/f"{prefix}_frame_diagnostics.csv"
+    component_path = output_dir/f"{prefix}_component_diagnostics.csv"
+    case_path = output_dir/f"{prefix}_case_summary.csv"
+    parameter_path = output_dir/f"{prefix}_parameter_map.json"
+
+    write_csv(frame_path, frame_rows, frame_fields)
+    write_csv(component_path, component_rows, comp_fields)
+    write_csv(case_path, case_rows, case_fields)
 
     summary = {
         "run_dirs": [str(path) for path in run_dirs],
@@ -299,11 +305,11 @@ def run_diagnostics(run_dirs: list[Path], output_dir: Path, threshold: float,
             (row["max_interface_area_growth"] for row in case_rows),
             default=0.0,
         ),
-        "case_summary_csv": str(output_dir/"periodic_bridge_case_summary.csv"),
-        "frame_diagnostics_csv": str(output_dir/"periodic_bridge_frame_diagnostics.csv"),
-        "component_diagnostics_csv": str(output_dir/"periodic_bridge_component_diagnostics.csv"),
+        "case_summary_csv": str(case_path),
+        "frame_diagnostics_csv": str(frame_path),
+        "component_diagnostics_csv": str(component_path),
     }
-    with (output_dir/"periodic_bridge_parameter_map.json").open("w") as f:
+    with parameter_path.open("w") as f:
         json.dump(summary, f, indent=2, sort_keys=True)
     return summary
 
@@ -325,6 +331,11 @@ def main() -> int:
         default=8,
         help="Minimum post-exit component cell count for credibility",
     )
+    parser.add_argument(
+        "--prefix",
+        default="periodic_bridge",
+        help="Output filename prefix for consolidated CSV/JSON metrics",
+    )
     args = parser.parse_args()
 
     run_dirs = [path for path in args.run_dirs if path.is_dir()]
@@ -336,6 +347,7 @@ def main() -> int:
         args.threshold,
         args.min_component_volume,
         args.min_component_cells,
+        args.prefix,
     )
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0

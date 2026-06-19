@@ -607,3 +607,56 @@ credible detached-volume proxy count stayed `0`. The contact sheet shows a
 coherent sheet/surface, not ligaments, roll-up with detached structures, or a
 3D breakup-proxy candidate. This is a negative transfer result for the tested
 periodic-span bridge, not atomization evidence.
+
+## Periodic-Span Follow-up Map - 2026-06-20
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map
+```
+
+Case source reused:
+
+```text
+cases/basilisk/periodic_span_sheet_bridge.c
+```
+
+This follow-up reads the negative upstream periodic-span bridge result first
+and then maps the nearest non-equivalent periodic-span design space. It does
+not return to finite-width rectangular-slot geometry. The key change is a
+smaller compact periodic span/domain (`Lz/h = 2.5`) at maxlevel 7, which gives
+about `51` cells across the sheet and `128` cells across the periodic span
+while keeping the same reduced-model `We_g = 80` controls.
+
+Run summary:
+
+| Case | Purpose | Status | Result |
+| --- | --- | --- | --- |
+| `N1_short_L24_highres_probe` | shortest-domain maxlevel-8 cost probe | timeout after frames through `t = 0.2` | high-resolution cubic periodic domain remains cost-limited |
+| `N2_small_span_L25_level7` | smaller-span direct bridge | completed to `t = 1.0` | credible post-exit component count reached `2`, detached proxy count `1` |
+| `N2_repeat_L25_level7_longer` | longer same-control check | completed to `t = 1.2` | credible post-exit component count reached `3`, detached proxy count `2` and persisted over late frames |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_case_summary.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_frame_diagnostics.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_component_diagnostics.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_parameter_map.json
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/artifacts/N2_small_span_L25_level7_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/artifacts/N2_repeat_L25_level7_longer_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/artifacts/followup_contact_sheet.png
+```
+
+This is the first credible 3D periodic-span bridge candidate in the Basilisk
+route. It is still internal route-finding evidence, not atomization validation,
+not stationary spray data, not production CFD, and not experimental agreement.
+The result should be treated as a reduced-model periodic-span instability
+candidate requiring a targeted repeat/refinement branch before any public
+claim or higher-level spray metric.
