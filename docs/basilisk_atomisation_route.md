@@ -410,3 +410,65 @@ not 3D validation, not stationary spray data, not production CFD, not
 experimental agreement, and not final atomisation prediction. The next step is
 to translate the successful reduced-model controls back into a carefully
 bounded 3D micro-branch, preserving the conservative breakup-proxy gate.
+
+## 3D Micro-Translation of the 2D We_g = 80 Scout - 2026-06-18
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80
+```
+
+Reusable case:
+
+```text
+cases/basilisk/rectangular_slot_3d_micro_translation_we80.c
+```
+
+This branch translates the positive reduced 2D control window back into a
+tightly bounded 3D rectangular-slot case. It preserves the central 2D scout
+controls first: `We_g = 80`, mild coherent perturbation (`0.02 U_l`, period
+`0.20`), no gas shear, short external domain, and native Basilisk `draw_vof()`
+decision artifacts. The purpose is transfer evidence, not public video polish.
+
+Run summary:
+
+| Case | Purpose | Status | `We_g` | Slot resolution | Result |
+| --- | --- | --- | ---: | --- | --- |
+| `A_direct` | Direct maxlevel-9 translation | resource-limited at `t ~= 0.049` | `80` | about `64 x 43` | no useful post-exit window |
+| `B_shorter_domain_prerefine` | Shorter maxlevel-9 domain with limited pre-refinement | runtime-limited at `t ~= 0.028` | `80` | about `80 x 53` | no useful post-exit window |
+| `B_affordable_L8` | Affordable maxlevel-8 transfer case | timeout at `t ~= 1.41`, useful frames through `t = 1.35` | `80` | about `40 x 27` | one connected post-exit component |
+| `C_seed_geometry_L8` | Seed-geometry sensitivity | timeout at `t ~= 1.14`, useful frames through `t = 1.05` | `80` | about `40 x 27` | one connected post-exit component |
+| `D_we100_short_L8` | Small We/sigma sensitivity check | completed to `t = 1.0` | `100` | about `43 x 28` | one connected post-exit component |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/metrics/micro_translation_case_summary.csv
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/metrics/micro_translation_frame_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/metrics/micro_translation_component_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/metrics/micro_translation_slice_occupancy.csv
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/metrics/micro_translation_parameter_map.json
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/artifacts/B_affordable_L8_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/artifacts/C_seed_geometry_L8_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80/artifacts/D_we100_short_L8_native_vof.mp4
+```
+
+The transfer result is negative for the tested bounded 3D cases. The useful
+maxlevel-8 runs reached post-exit active fronts of about `0.91-1.47 Dh`, but
+the maximum credible post-exit `tag()` component count remained `1` and the
+detached-volume proxy count remained `0`. Interface-area growth occurred while
+the liquid stayed connected, so it is recorded as connected waviness/bulging,
+not as a 3D breakup-proxy candidate and not as atomization.
+
+The decision point is now clearer: the positive 2D scout does not transfer to
+this compact 3D setup under the tested cost bounds. Further 3D work should not
+repeat the same `We_g = 80` mild-perturbation settings. A next branch should
+either redesign cost control around a smaller physical window and targeted
+interface refinement, or test a different gas-shear/coflow/crossflow route with
+the same conservative breakup-proxy gate.
