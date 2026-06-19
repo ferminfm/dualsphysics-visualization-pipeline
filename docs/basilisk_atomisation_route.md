@@ -15,6 +15,12 @@ The cross-route diagnostics harness is documented in
 rectangular-slot, official-wrapper, micro-translation, and adaptive-refinement
 results into a consistent conservative classification table.
 
+The route-level synthesis across DualSPHysics, OpenFOAM, and Basilisk is
+summarized in `docs/spray_route_synthesis_decision.md`. The current decision is
+that Basilisk remains the most relevant liquid-gas interface route, but current
+3D rectangular-slot branches are negative unless a materially different
+formulation or future evidence changes the classification.
+
 ## Local Run - 2026-06-18
 
 Output root:

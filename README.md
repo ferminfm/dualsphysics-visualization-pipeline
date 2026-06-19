@@ -53,6 +53,7 @@ See:
 - `docs/basilisk_jet_showcase.md`
 - `docs/basilisk_atomisation_route.md`
 - `docs/basilisk_diagnostics_harness.md`
+- `docs/spray_route_synthesis_decision.md`
 
 ## What Developers Can Learn
 
@@ -190,6 +191,13 @@ harness outputs live under
 the positive 2D scout evidence separate from the negative 3D rectangular-slot
 evidence and do not promote either branch to validation or atomisation claims.
 See `docs/basilisk_diagnostics_harness.md`.
+
+**Spray-route synthesis decision:** The current route-level synthesis keeps
+DualSPHysics as the public visualization/proxy family, OpenFOAM as a scaled
+KH/deformation proxy after manual review, and Basilisk as the internal
+interface-breakup route. The positive Basilisk 2D scout remains reduced-model
+evidence only; current 3D rectangular-slot branches remain negative under the
+credible-component gate. See `docs/spray_route_synthesis_decision.md`.
 
 **Update (2026-06):** Official `05_ShapesInlet3D` was recovered from the full v5.4 package,
 permissions fixed, and the GPU case executed successfully to 100 parts with VTK outputs
