@@ -10,6 +10,11 @@ The current result is a bounded atomisation-route demonstration only. It is not
 physical validation, not production CFD, not experimental agreement, not
 statistically stationary spray data, and not a final atomisation prediction.
 
+The cross-route diagnostics harness is documented in
+`docs/basilisk_diagnostics_harness.md`. It consolidates the 2D scout, 3D
+rectangular-slot, official-wrapper, micro-translation, and adaptive-refinement
+results into a consistent conservative classification table.
+
 ## Local Run - 2026-06-18
 
 Output root:

@@ -52,6 +52,7 @@ See:
 - `docs/jet_workflow_feasibility_20260608.md`
 - `docs/basilisk_jet_showcase.md`
 - `docs/basilisk_atomisation_route.md`
+- `docs/basilisk_diagnostics_harness.md`
 
 ## What Developers Can Learn
 
@@ -179,6 +180,16 @@ minimal crossflow proxy. The high-resolution branch stayed cost-limited, and
 the lower-burden completed cases remained connected under the credible
 component gate. This strengthens the negative 3D transfer map; it is internal
 physics-route evidence, not public atomization or validation evidence.
+
+**Basilisk diagnostics harness:** `scripts/basilisk_collect_diagnostics.py`,
+`scripts/basilisk_classify_morphology.py`, and
+`scripts/basilisk_compare_routes.py` consolidate the existing Basilisk summaries
+and metrics into route-level comparison tables. The generated 2026-06-18
+harness outputs live under
+`/home/franco/stack-validation/20260618-basilisk-diagnostics-harness`; they keep
+the positive 2D scout evidence separate from the negative 3D rectangular-slot
+evidence and do not promote either branch to validation or atomisation claims.
+See `docs/basilisk_diagnostics_harness.md`.
 
 **Update (2026-06):** Official `05_ShapesInlet3D` was recovered from the full v5.4 package,
 permissions fixed, and the GPU case executed successfully to 100 parts with VTK outputs
