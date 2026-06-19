@@ -472,3 +472,68 @@ repeat the same `We_g = 80` mild-perturbation settings. A next branch should
 either redesign cost control around a smaller physical window and targeted
 interface refinement, or test a different gas-shear/coflow/crossflow route with
 the same conservative breakup-proxy gate.
+
+## 3D Adaptive Refinement / Sensitivity Map - 2026-06-18
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map
+```
+
+Reusable case:
+
+```text
+cases/basilisk/rectangular_slot_3d_adaptive_refinement_map.c
+```
+
+This branch reads the 3D micro-translation summary first and follows the
+negative-transfer path. It tests whether a shorter domain, explicit
+pre-refinement controls, mild sigma sensitivity, coherent perturbation changes,
+and a minimal crossflow proxy can produce credible 3D breakup-proxy topology
+around the positive 2D `We_g = 80` window.
+
+Run summary:
+
+| Case | Purpose | Status | `We_g` | Slot resolution | Result |
+| --- | --- | --- | ---: | --- | --- |
+| `N1_short_highres_L8` | Short-domain high-resolution repeat | timeout at `t ~= 0.116` | `80` | about `91 x 61` | cost-limited before useful post-exit window |
+| `N2_sigma_we100_L7_feas` | Lower-burden sigma/We sensitivity | completed to `t = 0.65` | `100` | about `46 x 30` | one credible post-exit component |
+| `N3_perturb_z2_L7_feas` | Coherent height-wave perturbation sensitivity | completed to `t = 0.65` | `80` | about `46 x 30` | one credible post-exit component |
+| `N4_mild_crossflow_L7_feas` | Mild crossflow proxy | completed to `t = 0.65` | `80` | about `49 x 33` | one credible post-exit component |
+| `N5_longer_we80_L7_feas` | Longer low-burden `We_g = 80` check | completed to `t = 1.2` | `80` | about `46 x 30` | connected front; one raw one-cell speck at final frame |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/metrics/adaptive_case_summary.csv
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/metrics/adaptive_frame_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/metrics/adaptive_component_diagnostics.csv
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/metrics/adaptive_parameter_map.json
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/artifacts/N2_sigma_we100_L7_feas_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/artifacts/N3_perturb_z2_L7_feas_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/artifacts/N4_mild_crossflow_L7_feas_native_vof.mp4
+/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map/artifacts/N5_longer_we80_L7_feas_native_vof.mp4
+```
+
+The adaptive map remains negative under the conservative breakup-proxy gate.
+The longer low-burden case reached about `1.10 Dh` active front and showed
+interface-area growth, but the liquid front stayed connected. A raw `tag()`
+count of `2` appeared only at the final frame as a one-cell, tiny-volume side
+speck; after a minimum cell-count and volume credibility gate, the maximum
+credible post-exit component count remained `1` and the credible detached
+proxy count remained `0`.
+
+The decision is now stronger than the first 3D micro-translation: the
+high-resolution short-domain branch is still cost-limited on this workstation,
+and lower-burden sigma, perturbation, crossflow, and longer-window checks did
+not produce credible 3D detached-volume or ligament morphology. The next
+physics branch should either change the 3D formulation more substantially,
+use targeted interface-window refinement, test different gas-shear forcing, or
+move to another solver route, rather than repeating equivalent `We_g = 80`
+settings.
