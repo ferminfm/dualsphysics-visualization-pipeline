@@ -49,6 +49,8 @@ python3 scripts/basilisk_collect_diagnostics.py \
   /home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation \
   /home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80 \
   /home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map \
+  /home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge \
+  /home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map \
   /home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper \
   /home/franco/stack-validation/20260618-basilisk-atomisation-route
 ```
@@ -69,6 +71,7 @@ The harness keeps these evidence classes separate:
 | --- | --- |
 | Positive 2D scout | Useful reduced-model signal for parameter selection only. |
 | Negative 3D rectangular-slot map | Tested settings stayed connected or runtime-limited. |
+| Periodic-span 3D bridge | A separate 3D liquid-sheet bridge class, classified from its own credible post-exit diagnostics. |
 | Internal official-wrapper evidence | Demonstrates native VOF/tag workflow, not public-ready validation. |
 | Missing optional route | Marked missing without failing the whole comparison. |
 
@@ -86,6 +89,9 @@ The consolidated audit reproduces the expected route distinctions:
 - `basilisk_3d_micro_translation_we80`: negative 3D transfer result.
 - `basilisk_3d_adaptive_refinement_map`: negative 3D map with raw debris rejected
   by the credible-component gate.
+- Periodic-span bridge/follow-up routes: assimilate as a separate 3D bridge
+  family; do not infer their result from the positive 2D scout or from the
+  finite-width rectangular-slot negative map.
 - `basilisk_official_atomisation_wrapper`: internal/preliminary only.
 - `basilisk_atomisation_route`: internal/preliminary proof route.
 

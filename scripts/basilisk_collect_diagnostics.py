@@ -22,6 +22,8 @@ DEFAULT_ROOTS = [
     "/home/franco/stack-validation/20260618-basilisk-2d-shear-sigma-scout",
     "/home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80",
     "/home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map",
+    "/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge",
+    "/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map",
 ]
 
 ROUTE_IDS = {
@@ -32,6 +34,9 @@ ROUTE_IDS = {
     "20260618-basilisk-2d-shear-sigma-scout": "basilisk_2d_shear_sigma_scout",
     "20260618-basilisk-3d-micro-translation-we80": "basilisk_3d_micro_translation_we80",
     "20260618-basilisk-3d-adaptive-refinement-map": "basilisk_3d_adaptive_refinement_map",
+    "20260619-basilisk-periodic-span-sheet-bridge": "basilisk_periodic_span_sheet_bridge",
+    "20260619-basilisk-periodic-span-followup-map": "basilisk_periodic_span_followup_map",
+    "20260618-basilisk-diagnostics-harness": "basilisk_diagnostics_harness",
 }
 
 CASE_TABLE_FIELDS = [
@@ -50,6 +55,9 @@ CASE_TABLE_FIELDS = [
     "sigma_or_scaling",
     "gas_forcing",
     "perturbation",
+    "span_length",
+    "spanwise_spread",
+    "periodic_directions",
     "maxlevel",
     "resolution_width_height_or_cells_across_sheet",
     "end_time",
@@ -68,6 +76,8 @@ CASE_TABLE_FIELDS = [
     "classification",
     "breakup_proxy_candidate",
     "scout_candidate_found",
+    "bridge_candidate_found",
+    "followup_candidate_found",
     "public_ready",
     "exact_blocker",
     "next_step",
@@ -222,6 +232,8 @@ def _flatten_gas_weber(summary: Mapping[str, Any], route_id: str) -> dict[str, A
 
 def extract_case_rows(inventory: Mapping[str, Any], summary: Mapping[str, Any]) -> list[dict[str, Any]]:
     route_id = _as_text(inventory.get("route_id"))
+    if route_id == "basilisk_diagnostics_harness":
+        return []
     metrics_paths = list(inventory.get("metrics_paths", []))
     rows: list[dict[str, Any]] = []
 
@@ -259,6 +271,8 @@ def extract_case_rows(inventory: Mapping[str, Any], summary: Mapping[str, Any]) 
             "scout_candidate_found": summary.get("scout_candidate_found"),
             "micro_translation_candidate_found": summary.get("micro_translation_candidate_found"),
             "adaptive_candidate_found": summary.get("adaptive_candidate_found"),
+            "bridge_candidate_found": summary.get("bridge_candidate_found"),
+            "followup_candidate_found": summary.get("followup_candidate_found"),
             "breakup_proxy_candidate": summary.get("breakup_proxy_candidate"),
         }
     ]
@@ -288,7 +302,7 @@ def normalize_case(
     artifacts = list(inventory.get("mp4_contact_sheet_paths", []))
     normalized: dict[str, Any] = {
         "route_id": route_id,
-        "case_id": _as_text(_get(row, "case_id", "name", default=summary.get("best_case") or route_id)),
+        "case_id": _as_text(_get(row, "case_id", "run_id", "name", default=summary.get("best_case") or route_id)),
         "model_type": _as_text(_get(row, "model_type", default=summary.get("best_case_model_type") or "")),
         "source_case": _as_text(_get(summary, "case_source", "wrapper_source", "case_path", default=inventory.get("case_source"))),
         "output_root": str(root),
@@ -301,6 +315,9 @@ def normalize_case(
         "sigma_or_scaling": _as_text(_get(row, "sigma", "sigma_or_scaling", default=summary.get("best_case_sigma_or_scaling") or "")),
         "gas_forcing": _as_text(_get(row, "gas_forcing", "gas_mode", default=summary.get("best_case_gas_forcing") or "")),
         "perturbation": _perturbation(row, summary),
+        "span_length": _as_text(_get(row, "span_length", "Lz", "best_case_span_length", default=summary.get("best_case_span_length") or "")),
+        "spanwise_spread": _as_text(_get(row, "spanwise_spread", "z_spread", "span_spread")),
+        "periodic_directions": _as_text(_get(row, "periodic_directions", "periodic directions", default="z" if "periodic-span" in str(root) or "periodic_span" in route_id else "")),
         "maxlevel": _as_text(_get(row, "maxlevel")),
         "resolution_width_height_or_cells_across_sheet": _as_text(
             _get(
@@ -316,15 +333,15 @@ def normalize_case(
         "end_time": _as_text(_get(row, "end_time", "final_time", "time_final", "last_output_time")),
         "active_front": _as_text(_get(row, "active_front", "active_front_x")),
         "active_front_Dh": _as_text(
-            _get(row, "active_front_Dh", "max_active_front_Dh", default=summary.get("best_case_active_front_Dh") or summary.get("best_case_active_front") or "")
+            _get(row, "active_front_Dh", "max_active_front_Dh", "max_active_front", default=summary.get("best_case_active_front_Dh") or summary.get("best_case_active_front") or "")
         ),
         "tag_component_count": _as_text(_get(row, "tag_component_count", "max_all_tag_component_count", "max_tag_component_count", default=summary.get("max_tag_component_count") or "")),
-        "post_exit_tag_component_count": _as_text(_get(row, "post_exit_tag_component_count", "max_post_tag_component_count", "max_post_tag_component_count", default=summary.get("max_tag_component_count") or "")),
+        "post_exit_tag_component_count": _as_text(_get(row, "post_exit_tag_component_count", "max_post_tag_component_count", "max_credible_post_component_count", default=summary.get("max_tag_component_count") or "")),
         "detached_proxy_count": _as_text(_get(row, "detached_proxy_count", "max_detached_proxy_count", "max_post_detached_proxy_count", default=summary.get("max_detached_proxy_count") or "")),
-        "credible_post_exit_tag_component_count": _as_text(_get(row, "max_credible_post_tag_component_count", "credible_post_exit_tag_component_count", default=summary.get("max_credible_tag_component_count") or "")),
+        "credible_post_exit_tag_component_count": _as_text(_get(row, "max_credible_post_tag_component_count", "max_credible_post_component_count", "credible_post_exit_tag_component_count", default=summary.get("max_credible_tag_component_count") or "")),
         "credible_detached_proxy_count": _as_text(_get(row, "max_credible_detached_proxy_count", "credible_detached_proxy_count", default=summary.get("max_credible_detached_proxy_count") or "")),
         "frames_with_post_components_gt1": _as_text(_get(row, "frames_with_post_components_gt1")),
-        "frames_with_credible_post_components_gt1": _as_text(_get(row, "frames_with_credible_post_components_gt1")),
+        "frames_with_credible_post_components_gt1": _as_text(_get(row, "frames_with_credible_post_components_gt1", "frames_with_credible_components_gt1")),
         "interface_length_or_area_growth": _as_text(
             _get(row, "max_interface_length_growth", "max_interface_area_growth", "interface_length_or_area_growth", default=summary.get("max_interface_length_growth") or summary.get("max_interface_area_growth") or "")
         ),
@@ -332,9 +349,11 @@ def normalize_case(
         "centroid": _as_text(_get(row, "centroid", "centroid_x")),
         "spread": _as_text(_get(row, "spread", "width_y", "y_extent")),
         "aspect_ratio": _as_text(_get(row, "aspect_ratio", "aspect_ratio_yz_covariance")),
-        "classification": _as_text(_get(row, "morphology_classification", "classification", default=summary.get("morphology_classification") or "")),
+        "classification": _as_text(_get(row, "morphology_classification", "classification", "morphology_label", default=summary.get("morphology_classification") or "")),
         "breakup_proxy_candidate": _as_text(_get(row, "breakup_proxy_candidate", default=summary.get("breakup_proxy_candidate") or False)),
         "scout_candidate_found": _as_text(_get(row, "scout_candidate_found", default=summary.get("scout_candidate_found") or False)),
+        "bridge_candidate_found": _as_text(_get(row, "bridge_candidate_found", default=summary.get("bridge_candidate_found") or False)),
+        "followup_candidate_found": _as_text(_get(row, "followup_candidate_found", default=summary.get("followup_candidate_found") or False)),
         "public_ready": _as_text(row.get("public_ready") if row.get("public_ready") not in (None, "") else summary.get("public_ready", False)),
         "exact_blocker": _as_text(summary.get("exact_blocker") or ""),
         "next_step": _as_text(summary.get("next_step") or summary.get("recommended_followup") or ""),
@@ -402,6 +421,22 @@ def summarize_routes(cases: list[Mapping[str, Any]], inventory: list[Mapping[str
             )
             continue
 
+        if route_id == "basilisk_diagnostics_harness":
+            summaries.append(
+                {
+                    "route_id": route_id,
+                    "route_family": "diagnostics harness",
+                    "best_case": "",
+                    "best_evidence_type": "meta-analysis harness output",
+                    "strongest_positive_metric": "",
+                    "strongest_negative_evidence": "",
+                    "transfer_status": "meta",
+                    "public_ready_any_case": False,
+                    "recommended_next_step": "Use as prior consolidated diagnostics context; do not treat as a physics route.",
+                }
+            )
+            continue
+
         route_family = route_family_for(route_id, rows)
         positives_2d = [r for r in rows if r.get("scout_candidate_found") == "True"]
         positives_3d = [r for r in rows if r.get("breakup_proxy_candidate") == "True"]
@@ -453,6 +488,10 @@ def summarize_routes(cases: list[Mapping[str, Any]], inventory: list[Mapping[str
 def route_family_for(route_id: str, rows: list[Mapping[str, Any]]) -> str:
     if "2d" in route_id:
         return "2D scout"
+    if route_id == "basilisk_diagnostics_harness":
+        return "diagnostics harness"
+    if "periodic_span" in route_id:
+        return "3D periodic-span sheet bridge"
     if "official" in route_id:
         return "official atomisation wrapper"
     if route_id == "basilisk_atomisation_route":
@@ -505,8 +544,10 @@ def recommended_next_step(route_id: str, rows: list[Mapping[str, Any]], transfer
     if transfer_status == "2D-only":
         return "Use as parameter-scout evidence only; translate cautiously to bounded 3D branches."
     if transfer_status == "3D candidate":
-        return "Repeat and sensitivity-check before any public communication."
+        return "Repeat/refine and sensitivity-check before any public communication."
     if transfer_status == "3D negative":
+        if "periodic_span" in route_id:
+            return "Treat as periodic-span negative evidence; avoid equivalent span/domain/reduced-sigma repeats."
         return "Do not repeat equivalent settings; change physics controls, refinement strategy, or solver route."
     if transfer_status == "internal":
         return "Keep internal unless a separate quality/statistics task supports public use."
@@ -566,6 +607,7 @@ def write_route_comparison(path: Path, summaries: list[Mapping[str, Any]]) -> No
             "",
             "- The 2D shear-sigma branch is positive reduced-model scout evidence only.",
             "- The current 3D rectangular-slot branches remain negative under the conservative credible-component gate.",
+            "- Periodic-span 3D bridge routes are classified from their own summaries/metrics, not inferred from the 2D scout.",
             "- Official atomisation-wrapper evidence is internal/preliminary and not public-ready.",
             "- No route is treated as validation, production CFD, stationary spray evidence, or final atomisation prediction.",
         ]
@@ -639,6 +681,8 @@ def write_usage(path: Path) -> None:
         "  /home/franco/stack-validation/20260618-basilisk-rect-slot-morphology-escalation \\",
         "  /home/franco/stack-validation/20260618-basilisk-3d-micro-translation-we80 \\",
         "  /home/franco/stack-validation/20260618-basilisk-3d-adaptive-refinement-map \\",
+        "  /home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge \\",
+        "  /home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map \\",
         "  /home/franco/stack-validation/20260618-basilisk-official-atomisation-wrapper \\",
         "  /home/franco/stack-validation/20260618-basilisk-atomisation-route",
         "```",

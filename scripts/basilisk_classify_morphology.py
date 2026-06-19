@@ -22,11 +22,13 @@ POSITIVE_2D_LABELS = {
 POSITIVE_3D_LABELS = {
     "3d_breakup_proxy_candidate",
     "3d_ligament_or_detached_proxy_candidate",
+    "periodic_span_3d_bridge_candidate",
 }
 
 NEGATIVE_LABELS = {
     "connected_waviness_not_atomization",
     "negative_transfer_result",
+    "periodic_span_negative_transfer_result",
     "runtime_limited_no_post_exit_morphology_window",
     "insufficient_post_exit_window",
     "numerically_unstable_not_interpretable",
@@ -90,7 +92,7 @@ def infer_dimensionality(row: Mapping[str, Any]) -> str:
         return "2D"
     if "axisym" in parts:
         return "axisymmetric"
-    if "3d" in parts or "rectangular_slot" in parts or "atomisation" in parts:
+    if "3d" in parts or "rectangular_slot" in parts or "periodic_span" in parts or "atomisation" in parts:
         return "3D"
     return "unknown"
 
@@ -128,6 +130,7 @@ def classify_case(row: Mapping[str, Any]) -> dict[str, Any]:
     frames_with_components = max(
         _as_int(row.get("frames_with_credible_post_components_gt1")),
         _as_int(row.get("frames_with_post_components_gt1")),
+        _as_int(row.get("frames_with_credible_components_gt1")),
     )
 
     if explicit_credible_components not in (None, ""):
@@ -151,6 +154,8 @@ def classify_case(row: Mapping[str, Any]) -> dict[str, Any]:
     )
     scout_flag = _as_bool(row.get("scout_candidate_found")) or _as_bool(row.get("adaptive_candidate_found"))
     micro_flag = _as_bool(row.get("micro_translation_candidate_found"))
+    bridge_flag = _as_bool(row.get("bridge_candidate_found"))
+    followup_flag = _as_bool(row.get("followup_candidate_found"))
     breakup_flag = _as_bool(row.get("breakup_proxy_candidate"))
 
     notes: list[str] = []
@@ -184,7 +189,7 @@ def classify_case(row: Mapping[str, Any]) -> dict[str, Any]:
         if source_label in POSITIVE_3D_LABELS and credible_components > 1 and credible_detached > 0:
             classification = source_label
             three_d_candidate = True
-        elif breakup_flag and credible_components > 1 and credible_detached > 0:
+        elif (breakup_flag or bridge_flag or followup_flag) and credible_components > 1 and credible_detached > 0:
             classification = "3d_breakup_proxy_candidate"
             three_d_candidate = True
         elif credible_components > 1 and credible_detached > 0 and frames_with_components > 0:
