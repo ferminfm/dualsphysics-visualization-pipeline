@@ -52,6 +52,10 @@ See:
 - `docs/jet_workflow_feasibility_20260608.md`
 - `docs/basilisk_jet_showcase.md`
 - `docs/basilisk_atomisation_route.md`
+- `docs/basilisk_internal_nozzle_batch_summary.md`
+- `docs/basilisk_internal_nozzle_claim_boundary.md`
+- `docs/basilisk_internal_nozzle_geometry_handoff.md`
+- `docs/basilisk_internal_nozzle_reproduction_map.md`
 - `docs/basilisk_diagnostics_harness.md`
 - `docs/spray_route_synthesis_decision.md`
 
