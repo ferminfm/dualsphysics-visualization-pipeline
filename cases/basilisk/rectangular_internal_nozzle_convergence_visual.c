@@ -677,13 +677,14 @@ static void write_station_slab (FILE *fp, int station_id, double xi) {
 }
 
 static void write_station_slab_cells (FILE *fp, double active_front) {
-  const double fixed_xi[] = {0.25, 0.5, 0.75, 1.0, 1.5};
-  for (int s = 0; s < 5; s++)
+  const double fixed_xi[] = {0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00};
+  for (int s = 0; s < 7; s++)
     write_station_slab(fp, s, fixed_xi[s]);
   if (active_front > 0.25*Dhrect) {
     double af_xi = active_front/Dhrect;
-    write_station_slab(fp, 90, max(0.1, 0.5*af_xi));
-    write_station_slab(fp, 91, max(0.1, 0.9*af_xi));
+    const double front_relative_xi[] = {0.25, 0.50, 0.75, 0.90};
+    for (int s = 0; s < 4; s++)
+      write_station_slab(fp, 90 + s, front_relative_xi[s]*af_xi);
   }
 }
 
