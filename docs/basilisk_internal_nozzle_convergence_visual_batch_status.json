@@ -1,0 +1,126 @@
+{
+  "asset_availability": {
+    "blender_assets_available_for_internal_review": true,
+    "descriptive_asset_names": [
+      "internal_nozzle_l7_full_domain_native_vof.mp4",
+      "internal_nozzle_l8_full_domain_native_vof.mp4",
+      "internal_nozzle_l7_l8_side_by_side.mp4",
+      "internal_nozzle_full_domain_blender_physics_sequence.mp4",
+      "internal_nozzle_l7_l8_scientific_comparison.mp4",
+      "internal_nozzle_quarter_symmetry_blender_diagnostic.mp4"
+    ],
+    "native_assets_available_for_internal_review": true,
+    "public_ready": false
+  },
+  "batch_id": "20260622-basilisk-internal-nozzle-convergence-visual",
+  "claim_boundary": {
+    "atomisation_claim_allowed": false,
+    "breakup_claim_allowed": false,
+    "production_cfd_claim_allowed": false,
+    "public_ready_claim_allowed": false,
+    "summary": "Connected waviness is internal prototype evidence only. It is not validation, atomisation, breakup, stationary spray data, fit-ready calibration, or public-ready media.",
+    "validation_claim_allowed": false
+  },
+  "convergence": {
+    "convergence_passed": false,
+    "reason": "Mean-exit-velocity, active-front, Ahat, thickness, aspect, and warp thresholds did not all pass; station coverage remains limited.",
+    "threshold_pass_fraction": 0.3333333333333333,
+    "valid_station_time_pairs": 6,
+    "verdict": "failed_conservative_matched_cadence_gate"
+  },
+  "gpu_solver_used": false,
+  "human_decision_points": [
+    "Accept or reject the failed conservative convergence verdict.",
+    "Accept or reject overlay-only model readiness and exploratory-fit deferral.",
+    "Inspect native and Blender media before any portfolio use.",
+    "Decide whether PR #1 should merge, remain draft, or be split.",
+    "Authorize or defer future schedule-aligned L7 raw export or HPC/breakup work."
+  ],
+  "model_readiness": {
+    "exploratory_fit_ready": false,
+    "fit_ready": false,
+    "metrics_ready": true,
+    "overlay_ready": true,
+    "public_ready": false
+  },
+  "morphology_classification": "connected_waviness_not_atomization",
+  "quarter_full_evidence_boundary": "Quarter-domain media is a scout/comparison diagnostic only, not independent full-domain evidence.",
+  "repository_relative_paths": {
+    "blender_sequence_script": "scripts/blender_internal_nozzle_surface_sequence.py",
+    "claim_boundary": "docs/basilisk_internal_nozzle_claim_boundary.md",
+    "convergence_analyzer": "scripts/analyze_internal_nozzle_convergence.py",
+    "native_video_assembler": "scripts/assemble_internal_nozzle_native_video.py",
+    "quarter_source": "cases/basilisk/rectangular_internal_nozzle_quarter_symmetry.c",
+    "raw_export_source": "cases/basilisk/rectangular_internal_nozzle_raw_export.c",
+    "visual_pipeline_docs": "docs/basilisk_internal_nozzle_visual_output_pipeline.md",
+    "visual_pipeline_source": "cases/basilisk/rectangular_internal_nozzle_convergence_visual.c"
+  },
+  "review_branch": "review/basilisk-internal-nozzle-and-periodic-span-20260621",
+  "schema": "basilisk_internal_nozzle_convergence_visual_batch_status_v1",
+  "scientific_pr": "https://github.com/ferminfm/dualsphysics-visualization-pipeline/pull/1",
+  "selected_execution_mode": "OpenMP 4 threads for Basilisk CPU solve; Blender OptiX GPU render qualified; no GPU CFD solver used",
+  "source_docs_commit_shas": {
+    "task01_visual_output_pipeline": "41e51e3553c232fe1bdd2160889f9871768c7d98",
+    "task04_l8_convergence_source": "c96b8702586887ff86f5489f78cb09e69dc6038a",
+    "task06_convergence_analysis": "90cb99e375e606fe2cbf6362a695ed7dec822ee3",
+    "task07_blender_pipeline": "dc9ffff801caeb674df9ac73120ac2c605536279",
+    "task08_status_docs_commit": "recorded in local git history after commit"
+  },
+  "status_scope": "internal scientific review status only",
+  "task_statuses": {
+    "01_visual_output_checkpoint_pipeline": {
+      "classification": "pipeline_ready_checkpoint_restore_verified",
+      "qa_passed": true,
+      "repo_changed": true,
+      "status": "success"
+    },
+    "02_execution_scaling_qualification": {
+      "classification": "execution_mode_selected_blender_gpu_qualified",
+      "qa_passed": true,
+      "repo_changed": false,
+      "status": "success"
+    },
+    "03_full_domain_l7_reference": {
+      "classification": "l7_reference_ready",
+      "qa_passed": true,
+      "repo_changed": false,
+      "status": "success"
+    },
+    "04_full_domain_l8_convergence": {
+      "classification": "l8_preferred_convergence_package_ready",
+      "qa_passed": true,
+      "repo_changed": true,
+      "status": "success"
+    },
+    "05_quarter_domain_visual_recovery": {
+      "classification": "quarter_scout_comparable",
+      "qa_passed": true,
+      "repo_changed": false,
+      "status": "success"
+    },
+    "06_convergence_geometry_model_refresh": {
+      "classification": "negative_convergence_decision_overlay_refreshed",
+      "qa_passed": true,
+      "repo_changed": true,
+      "status": "success"
+    },
+    "07_gpu_blender_portfolio_assets": {
+      "classification": "internal-only connected-jet/VOF prototype evidence; not atomisation validation",
+      "qa_passed": true,
+      "repo_changed": true,
+      "status": "complete"
+    }
+  },
+  "times": {
+    "convergence_gate_accepted_l8_time": 0.12,
+    "convergence_gate_matched_times": [
+      0.03,
+      0.06,
+      0.09,
+      0.12
+    ],
+    "l7_final_time": 0.3,
+    "l8_final_time": 0.18,
+    "quarter_final_time": 0.3
+  }
+}
