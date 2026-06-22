@@ -104,7 +104,7 @@ Run a short smoke export:
 
 ```sh
 OMP_NUM_THREADS=4 timeout 600s /tmp/rectangular_internal_nozzle_raw_export \
-  E0_raw_export_smoke 2 5 2524.75 0.01 1.5 OUTPUT_DIR 0.01 0 0.03 1 0.15 0.75
+  E0_raw_export_smoke 2 5 351.48 0.01 1.5 OUTPUT_DIR 0.01 0 0.03 1 0.15 0.75
 ```
 
 Run the bounded W2 baseline export:
@@ -122,3 +122,15 @@ scripts/extract_internal_nozzle_raw_geometry.py \
   --output-root OUTPUT_ROOT \
   --source-case W2_longer_duration
 ```
+
+Build the model-handoff package from existing raw-derived metrics:
+
+```sh
+scripts/build_internal_nozzle_geometry_model_handoff.py \
+  --raw-root /home/franco/stack-validation/20260621-basilisk-internal-nozzle-raw-field-export-rerun \
+  --output-root /home/franco/stack-validation/20260621-basilisk-internal-nozzle-geometry-model-handoff-from-raw
+```
+
+This second step does not run a solver. It writes SprayGeo and Ideal Momentum Jet
+Explorer overlay files under the output root and keeps `fit_ready=false` until a
+matched-cadence L7/L8 station convergence gate passes.

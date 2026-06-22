@@ -1,10 +1,22 @@
 # Basilisk Internal-Nozzle Geometry Handoff
 
-The selected geometry handoff case is `W2_longer_duration` from:
+The selected geometry handoff case is `W2_longer_duration`.
+
+Two handoff levels exist:
+
+1. The older reduced-metric package from:
 
 `/home/franco/stack-validation/20260620-basilisk-internal-nozzle-robustness-window`
 
-The upstream geometry task reported:
+2. The raw-field package from:
+
+`/home/franco/stack-validation/20260621-basilisk-internal-nozzle-raw-field-export-rerun`
+
+The raw-field package is preferred for current SprayGeo/Ideal Explorer overlay
+work because it computes station geometry from exported VOF station-slab cells
+rather than only repackaging reduced cross-section diagnostics.
+
+The older upstream geometry task reported:
 
 - extraction mode: `upstream_metric_repackaging`
 - raw VOF fields available: `false`
@@ -52,5 +64,34 @@ python3 scripts/extract_basilisk_internal_nozzle_geometry.py \
   --output-dir /tmp/internal_nozzle_geometry_handoff
 ```
 
-The generated output remains an internal overlay interface artifact unless a
-separate raw-field export and convergence plan is completed.
+## Raw-Derived Model Handoff
+
+The raw-export path writes selective VOF station cells, interface cells,
+component summaries, and exit-profile samples. The reusable scripts are:
+
+- `scripts/extract_internal_nozzle_raw_geometry.py`
+- `scripts/build_internal_nozzle_geometry_model_handoff.py`
+
+The second script consumes the raw-derived station metrics and writes:
+
+- `geometry_handoff/jet_station_metrics.csv`
+- `geometry_handoff/jet_frame_summary.csv`
+- `geometry_handoff/jet_component_summary.csv`
+- `spraygeo_handoff/basilisk_internal_nozzle_geometry_metrics.csv`
+- `ideal_explorer_overlay/basilisk_internal_nozzle_Ahat_overlay.csv`
+- schemas, README files, and internal diagnostic SVGs.
+
+The generated output is overlay-ready for internal model comparison but not
+exploratory-fit-ready. The matched-cadence L7/L8 station-shape convergence gate
+has not passed, and the morphology is still a connected internal-nozzle jet.
+
+Example:
+
+```bash
+python3 scripts/build_internal_nozzle_geometry_model_handoff.py \
+  --raw-root /home/franco/stack-validation/20260621-basilisk-internal-nozzle-raw-field-export-rerun \
+  --output-root /home/franco/stack-validation/20260621-basilisk-internal-nozzle-geometry-model-handoff-from-raw
+```
+
+Do not treat the resulting overlay as validation, a stationary spray, a breakup
+claim, or public-ready material.
