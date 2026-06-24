@@ -88,3 +88,14 @@ Quarter-domain media remains a mirrored scout/comparison diagnostic only.
 - Inspect native and Blender media before any portfolio use.
 - Decide whether PR #1 should merge, remain draft, or be split.
 - Authorize or defer future schedule-aligned L7 raw export or HPC/breakup work.
+
+
+## Layer-1 Review Packet
+
+A compact private/internal review packet is available at:
+
+`review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/`
+
+Start with `review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/README_LAYER1_REVIEW.md` and `review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/ARTIFACT_MANIFEST.json`.
+
+This packet is for Layer-1 review only. It does not change `fit_ready=false` or `public_ready=false`.
