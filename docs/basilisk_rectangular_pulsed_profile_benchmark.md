@@ -90,3 +90,29 @@ python3 scripts/analyze_basilisk_atomisation_benchmark.py \
 The helper writes compact CSV/JSON/Markdown review artifacts only. It does not
 run the solver, render media, publish, or treat component counts as validated
 droplet statistics.
+
+## Scientific Media Assembly
+
+After a long-run route has passed the conservative route-selection audit, the
+scientific media helper can assemble readable internal media from completed
+physical frames and existing diagnostics without running the solver:
+
+```sh
+python3 scripts/assemble_basilisk_atomisation_media.py \
+  --media-route-manifest /home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/05_breakup_credibility_resolution_audit/MEDIA_ROUTE_MANIFEST.json \
+  --output-root /home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/06_scientific_media_comparison \
+  --topology-onset-time 0.48
+```
+
+The helper writes videos, contact sheets, source-frame mapping, and media
+manifests under the requested output root. It uses every physical frame listed
+in the selected route manifests, labels the rectangular route as an imposed
+inlet-boundary benchmark, and keeps all outputs as internal scientific media.
+
+Diagnostic SVG plots can be regenerated separately:
+
+```sh
+python3 scripts/plot_basilisk_atomisation_diagnostics.py \
+  --media-route-manifest /home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/05_breakup_credibility_resolution_audit/MEDIA_ROUTE_MANIFEST.json \
+  --output-dir /home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/06_scientific_media_comparison/plots
+```
