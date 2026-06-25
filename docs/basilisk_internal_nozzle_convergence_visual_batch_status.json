@@ -23,10 +23,11 @@
   },
   "convergence": {
     "convergence_passed": false,
-    "reason": "Mean-exit-velocity, active-front, Ahat, thickness, aspect, and warp thresholds did not all pass; station coverage remains limited.",
-    "threshold_pass_fraction": 0.3333333333333333,
-    "valid_station_time_pairs": 6,
-    "verdict": "failed_conservative_matched_cadence_gate"
+    "failure_cause_classification": "schedule_misalignment_resolved_but_resolution_sensitive",
+    "reason": "No-solver re-extraction recovered 12 valid station/time pairs from existing L7/full-L8 raw data, but unchanged gates still fail; schedule mismatch was real but not sufficient to explain failure.",
+    "threshold_pass_fraction": 0.25,
+    "valid_station_time_pairs": 12,
+    "verdict": "failed_schedule_aligned_existing_data_gate"
   },
   "gpu_solver_used": false,
   "human_decision_points": [
@@ -65,6 +66,7 @@
     "visual_pipeline_source": "cases/basilisk/rectangular_internal_nozzle_convergence_visual.c"
   },
   "review_branch": "review/basilisk-internal-nozzle-and-periodic-span-20260621",
+  "schedule_aligned_convergence_review_packet_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/",
   "schema": "basilisk_internal_nozzle_convergence_visual_batch_status_v1",
   "scientific_pr": "https://github.com/ferminfm/dualsphysics-visualization-pipeline/pull/1",
   "selected_execution_mode": "OpenMP 4 threads for Basilisk CPU solve; Blender OptiX GPU render qualified; no GPU CFD solver used",

@@ -102,3 +102,23 @@ The review-artifact workflow and promotion rules are documented in
 `docs/layer1_layer2_review_artifact_workflow.md`.
 
 This packet is for Layer-1 review only. It does not change `fit_ready=false` or `public_ready=false`.
+
+
+## Schedule-Aligned Convergence Update - 2026-06-23
+
+A no-solver alignment audit and re-extraction packet is available at:
+
+`review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/`
+
+Start with `review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/README_LAYER1_REVIEW.md` and `review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/ARTIFACT_MANIFEST.json`.
+
+Result:
+
+- Existing data re-extraction recovered `12` valid station/time pairs using the existing full L8 raw export through `t=0.18`.
+- Convergence still passed: `false`.
+- Failure cause classification: `schedule_misalignment_resolved_but_resolution_sensitive`.
+- No L7 solver rerun was performed.
+- No L8 rerun was performed.
+- `fit_ready=false`.
+- `public_ready=false`.
+- Morphology remains `connected_waviness_not_atomization`; no breakup claim is allowed.
