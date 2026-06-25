@@ -17,6 +17,7 @@
 #include <float.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 
 enum {
   MODE_ROUND_OFFICIAL_TOP_HAT = 0,
@@ -43,6 +44,7 @@ double interface_threshold = 1e-6;
 double min_component_cell_factor = 4.;
 double restore_time = -1.;
 double poisseuille_raw_mean = 1.;
+double profile_peak_factor = 1.;
 double A0 = 0.;
 double rect_W = 0.;
 double rect_H = 0.;
@@ -274,6 +276,28 @@ static void compute_poisseuille_normalization (void) {
   }
 }
 
+static void compute_profile_peak_factor (void) {
+  if (mode == MODE_ROUND_OFFICIAL_TOP_HAT || mode == MODE_RECT_AREA_TOP_HAT) {
+    profile_peak_factor = 1.;
+    return;
+  }
+  if (mode == MODE_RECT_AREA_SEPARABLE_PARABOLIC) {
+    profile_peak_factor = 9./4.;
+    return;
+  }
+  double peak = inlet_profile(0., 0.);
+  for (int iy = 0; iy < poisseuille_norm_ny; iy++) {
+    double yy = -rect_half_W + (iy + 0.5)*rect_W/poisseuille_norm_ny;
+    for (int iz = 0; iz < poisseuille_norm_nz; iz++) {
+      double zz = -rect_half_H + (iz + 0.5)*rect_H/poisseuille_norm_nz;
+      double value = inlet_profile(yy, zz);
+      if (value > peak)
+        peak = value;
+    }
+  }
+  profile_peak_factor = peak > 0. ? peak : 1.;
+}
+
 u.n[left]  = dirichlet(f0[]*bulk_velocity(t)*inlet_profile(y,z));
 u.t[left]  = dirichlet(0);
 #if dimension > 2
@@ -395,9 +419,9 @@ static void ensure_output_dirs (void) {
 static void initialize_output_files (void) {
   char path[1024];
   output_path(path, sizeof(path), "raw_frame_summary.csv");
-  write_header_if_missing(path, "case_id,profile_mode,frame_index,t,i,maxlevel,grid_cells,liquid_volume,liquid_volume_error,active_front,active_front_over_L0,interface_proxy,interface_growth,mean_inlet_velocity,expected_mass_flow,tag_count,credible_component_count,detached_proxy_count,largest_component_volume\n");
+  write_header_if_missing(path, "case_id,profile_mode,frame_index,t,i,maxlevel,grid_cells,liquid_volume,liquid_volume_error,active_front,active_front_over_L0,interface_proxy,interface_growth,mean_inlet_velocity,expected_mass_flow,tag_count,credible_component_count,detached_proxy_count,largest_component_volume,max_inlet_velocity,integrated_mass_flow,wall_time_seconds,max_rss_kb\n");
   output_path(path, sizeof(path), "raw_component_summary.csv");
-  write_header_if_missing(path, "case_id,profile_mode,frame_index,t,component_id,volume,cell_count,centroid_x,centroid_y,centroid_z,min_x,max_x,credible,detached_proxy\n");
+  write_header_if_missing(path, "case_id,profile_mode,frame_index,t,component_id,volume,cell_count,centroid_x,centroid_y,centroid_z,min_x,max_x,credible,detached_proxy,min_y,max_y,min_z,max_z,streamwise_extent,cross_extent,aspect_proxy,equivalent_diameter,credible_cell_gate\n");
   output_path(path, sizeof(path), "raw_interface_cells.csv");
   write_header_if_missing(path, "case_id,profile_mode,frame_index,t,x,y,z,f,ux,uy,uz,level,Delta\n");
   output_path(path, sizeof(path), "visual_frame_manifest.csv");
@@ -699,6 +723,13 @@ static void write_raw_interface_cells (void) {
   fclose(fp);
 }
 
+static long max_rss_kb_now (void) {
+  struct rusage usage;
+  if (getrusage(RUSAGE_SELF, &usage) == 0)
+    return usage.ru_maxrss;
+  return 0;
+}
+
 static void write_component_and_frame_diagnostics (int iter_value) {
   double liquid_volume = liquid_volume_total();
   if (initial_liquid_volume < 0.)
@@ -731,12 +762,16 @@ static void write_component_and_frame_diagnostics (int iter_value) {
     exit(2);
   }
   if (n > 0) {
-    double volume[n], bx[n], by[n], bz[n], minx[n], maxx[n];
+    double volume[n], bx[n], by[n], bz[n], minx[n], maxx[n], miny[n], maxy[n], minz[n], maxz[n];
     int cells[n];
     for (int j = 0; j < n; j++) {
       volume[j] = bx[j] = by[j] = bz[j] = 0.;
       minx[j] = 1e30;
+      miny[j] = 1e30;
+      minz[j] = 1e30;
       maxx[j] = -1e30;
+      maxy[j] = -1e30;
+      maxz[j] = -1e30;
       cells[j] = 0;
     }
     foreach(serial) {
@@ -752,6 +787,10 @@ static void write_component_and_frame_diagnostics (int iter_value) {
 #endif
         if (xn < minx[j]) minx[j] = xn;
         if (xn > maxx[j]) maxx[j] = xn;
+        if (yn < miny[j]) miny[j] = yn;
+        if (yn > maxy[j]) maxy[j] = yn;
+        if (zn < minz[j]) minz[j] = zn;
+        if (zn > maxz[j]) maxz[j] = zn;
         cells[j]++;
       }
     }
@@ -762,9 +801,16 @@ static void write_component_and_frame_diagnostics (int iter_value) {
     MPI_Allreduce(MPI_IN_PLACE, bz, n, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(MPI_IN_PLACE, minx, n, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
     MPI_Allreduce(MPI_IN_PLACE, maxx, n, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, miny, n, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, maxy, n, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, minz, n, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, maxz, n, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     MPI_Allreduce(MPI_IN_PLACE, cells, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 #endif
     double min_credible_volume = min_component_cell_factor*cube(1./(1 << maxlevel));
+    int min_component_cells = (int)ceil(min_component_cell_factor);
+    if (min_component_cells < 2)
+      min_component_cells = 2;
     double initial_length_over_L0 = initial_length/L0;
     for (int j = 0; j < n; j++) {
       if (volume[j] > largest)
@@ -772,15 +818,22 @@ static void write_component_and_frame_diagnostics (int iter_value) {
       double cx = volume[j] > 0. ? bx[j]/volume[j] : 0.;
       double cy = volume[j] > 0. ? by[j]/volume[j] : 0.;
       double cz = volume[j] > 0. ? bz[j]/volume[j] : 0.;
-      int credible = volume[j] >= min_credible_volume && cells[j] > 1;
+      int credible_cell_gate = cells[j] >= min_component_cells;
+      int credible = volume[j] >= min_credible_volume && credible_cell_gate;
       int detached = credible && minx[j] > initial_length_over_L0;
+      double streamwise_extent = maxx[j] - minx[j];
+      double cross_extent = max(maxy[j] - miny[j], maxz[j] - minz[j]);
+      double aspect_proxy = cross_extent > 0. ? streamwise_extent/cross_extent : 0.;
+      double equivalent_diameter = volume[j] > 0. ? pow(6.*volume[j]/pi, 1./3.) : 0.;
       if (credible)
         credible_count++;
       if (detached)
         detached_count++;
-      fprintf(cp, "%s,%s,%d,%.12g,%d,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d\n",
+      fprintf(cp, "%s,%s,%d,%.12g,%d,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d\n",
               case_id, mode_name(), raw_frame_index, t, j, volume[j], cells[j],
-              cx, cy, cz, minx[j], maxx[j], credible, detached);
+              cx, cy, cz, minx[j], maxx[j], credible, detached,
+              miny[j], maxy[j], minz[j], maxz[j], streamwise_extent, cross_extent,
+              aspect_proxy, equivalent_diameter, credible_cell_gate);
     }
   }
   fclose(cp);
@@ -797,12 +850,14 @@ static void write_component_and_frame_diagnostics (int iter_value) {
     exit(2);
   }
   double mean_u = bulk_velocity(t);
+  double max_u = mean_u*profile_peak_factor;
   double expected_mass_flow = A0*mean_u;
-  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%ld,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g\n",
+  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%ld,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%ld\n",
           case_id, mode_name(), raw_frame_index, t, iter_value, maxlevel, grid->tn,
           liquid_volume, final_liquid_volume_error, active_front, active_front,
           interface_proxy, interface_growth, mean_u, expected_mass_flow,
-          n, credible_count, detached_count, largest);
+          n, credible_count, detached_count, largest, max_u, expected_mass_flow,
+          perf.t, max_rss_kb_now());
   fclose(fp);
 }
 
@@ -824,7 +879,7 @@ static void write_final_summary_once (void) {
           "  \"rectangular_route_is_inlet_boundary_imposed\": %s,\n"
           "  \"official_control_defaults\": {\"radius\": %.12g, \"initial_length\": %.12g, \"Re\": %.12g, \"sigma\": %.12g, \"density_ratio\": 27.84, \"u0\": %.12g, \"pulse_amplitude\": %.12g, \"pulse_period\": %.12g},\n"
           "  \"geometry\": {\"A0\": %.12g, \"W\": %.12g, \"H\": %.12g, \"half_W\": %.12g, \"half_H\": %.12g, \"Dh\": %.12g},\n"
-          "  \"profile\": {\"poisseuille_terms\": %d, \"poisseuille_raw_mean\": %.12g},\n"
+          "  \"profile\": {\"poisseuille_terms\": %d, \"poisseuille_raw_mean\": %.12g, \"profile_peak_factor\": %.12g},\n"
           "  \"run\": {\"t\": %.12g, \"i\": %d, \"maxlevel\": %d, \"end_time\": %.12g, \"stable_flag\": %d, \"restored_from\": \"%s\"},\n"
           "  \"outputs\": {\"native_frame_output_ready\": %s, \"surface_export_ready\": %s, \"checkpoint_restore_supported\": true, \"raw_export_enabled\": %s},\n"
           "  \"diagnostics\": {\"liquid_volume\": %.12g, \"liquid_volume_error\": %.12g, \"max_active_front\": %.12g, \"max_interface_proxy\": %.12g, \"max_interface_growth\": %.12g, \"max_tag_count\": %d, \"max_credible_component_count\": %d, \"max_detached_proxy_count\": %d},\n"
@@ -833,7 +888,7 @@ static void write_final_summary_once (void) {
           case_id, mode_name(), mode_is_rectangular() ? "true" : "false",
           radius, initial_length, Re, SIGMA, u0, pulse_amplitude, T0,
           A0, rect_W, rect_H, rect_half_W, rect_half_H, rect_Dh,
-          poisseuille_terms, poisseuille_raw_mean, t, last_iter, maxlevel, end_time,
+          poisseuille_terms, poisseuille_raw_mean, profile_peak_factor, t, last_iter, maxlevel, end_time,
           stable_flag, restored_from[0] ? restored_from : "",
           enable_native_frames ? "true" : "false",
           enable_facet_export ? "true" : "false",
@@ -991,6 +1046,7 @@ int main (int argc, char **argv) {
   if (poisseuille_terms < 3)
     poisseuille_terms = 3;
   compute_poisseuille_normalization();
+  compute_profile_peak_factor();
 
   init_grid(64);
   origin(0., -1.5, -1.5);
@@ -1008,10 +1064,10 @@ int main (int argc, char **argv) {
   write_all_manifests();
 
   fprintf(stderr,
-          "CASE_CONFIG case_id=%s mode=%s radius=%.12g length=%.12g Re=%.12g sigma=%.12g rho_ratio=27.84 u0=%.12g pulse_amplitude=%.12g T0=%.12g maxlevel=%d end_time=%.12g uemax=%.12g A0=%.12g rect_W=%.12g rect_H=%.12g rect_Dh=%.12g poisseuille_terms=%d poisseuille_raw_mean=%.12g output_dir=%s\n",
+          "CASE_CONFIG case_id=%s mode=%s radius=%.12g length=%.12g Re=%.12g sigma=%.12g rho_ratio=27.84 u0=%.12g pulse_amplitude=%.12g T0=%.12g maxlevel=%d end_time=%.12g uemax=%.12g A0=%.12g rect_W=%.12g rect_H=%.12g rect_Dh=%.12g poisseuille_terms=%d poisseuille_raw_mean=%.12g profile_peak_factor=%.12g output_dir=%s\n",
           case_id, mode_name(), radius, initial_length, Re, SIGMA, u0,
           pulse_amplitude, T0, maxlevel, end_time, uemax, A0, rect_W, rect_H,
-          rect_Dh, poisseuille_terms, poisseuille_raw_mean, output_dir);
+          rect_Dh, poisseuille_terms, poisseuille_raw_mean, profile_peak_factor, output_dir);
   run();
 }
 
