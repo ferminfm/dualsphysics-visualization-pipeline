@@ -1,0 +1,81 @@
+{
+  "task_id": "07_gpu_blender_portfolio_assets",
+  "created_utc": "2026-06-22T23:21:51.089450+00:00",
+  "output_root": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/07_gpu_blender_portfolio_assets",
+  "source_surfaces": {
+    "full_domain_l7_manifest": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/03_full_domain_l7_reference/manifests/surface_manifest.json",
+    "full_domain_l8_manifest": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/04_full_domain_l8_convergence/accepted_t0p12/manifests/surface_manifest.json",
+    "quarter_mirrored_manifest": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/05_quarter_domain_visual_recovery/manifests/mirrored_surface_manifest.json"
+  },
+  "assets": [
+    {
+      "role": "full_domain_physics_sequence",
+      "path": "showcase/internal_nozzle_full_domain_blender_physics_sequence.mp4",
+      "frames": 61,
+      "source": "Task 03 L7 full-domain physical frames 0..60",
+      "sha256": "7d687411e9e11545a5bb4ad731449530762c899e1298945f8c3f81382e90dc0e",
+      "public_ready": false
+    },
+    {
+      "role": "final_frame_probe_flythrough",
+      "path": "showcase/internal_nozzle_final_frame_probe_flythrough.mp4",
+      "frames": 72,
+      "source": "Task 03 L7 final physical frame 60; camera-only curved flythrough",
+      "sha256": "1ec05e31a022fba2681d062e8a52bf06e9f29922c1456836b8fa10cafc09eaff",
+      "public_ready": false
+    },
+    {
+      "role": "l7_l8_scientific_comparison",
+      "path": "showcase/internal_nozzle_l7_l8_scientific_comparison.mp4",
+      "frames": 25,
+      "source": "Matched L7/L8 physical times through t=0.12",
+      "sha256": "765e4c6a468ee2d2667b51a4d967af5d8349a1a820710f09da7f1a140dac8444",
+      "public_ready": false
+    },
+    {
+      "role": "quarter_mirrored_diagnostic",
+      "path": "showcase/internal_nozzle_quarter_symmetry_blender_diagnostic.mp4",
+      "frames": 61,
+      "source": "Task 05 mirrored quarter-domain diagnostic surfaces",
+      "sha256": "9feffb9a34e9c7783020202bb6be711e1086f304e06926065dd8f3b1dcb3946a",
+      "public_ready": false
+    },
+    {
+      "role": "full_domain_temporal_contact_sheet",
+      "path": "showcase/internal_nozzle_blender_contact_sheet.png",
+      "source": "Rendered L7 full-domain frames sampled every 4 frames",
+      "sha256": "e042e2e8fefc97bb44a521514f35e4ddcaa830da50e2057bae143be452b1f2a9",
+      "public_ready": false
+    },
+    {
+      "role": "final_frame_multiview_contact_sheet",
+      "path": "showcase/internal_nozzle_multiview_final_frame.png",
+      "source": "Task 03 L7 final physical frame rendered from four cameras",
+      "sha256": "66c357549991755cc84f36d7ba9c3cfe7faa1f1f7f054351a48d3aacdb72a907",
+      "public_ready": false
+    }
+  ],
+  "rendering": {
+    "blender_device": "Cycles OPTIX: NVIDIA GeForce RTX 5070 Laptop GPU, NVIDIA GeForce RTX 5070 Laptop GPU",
+    "gpu_render_used": true,
+    "samples": 24,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "denoising": true
+  },
+  "scientific_gate": {
+    "classification": "internal-only connected-jet/VOF prototype evidence",
+    "fit_ready": false,
+    "public_ready": false,
+    "breakup_claim_allowed": false,
+    "convergence_passed": false,
+    "exploratory_fit_ready": false,
+    "public_claim": "Not atomisation validation; no breakup, droplet, validation, convergence, or fit-ready claim allowed."
+  },
+  "labels": {
+    "full_domain_label": "Pressure-driven two-phase connected-jet VOF prototype - not atomisation validation",
+    "quarter_label": "One simulated quadrant mirrored for visualization \u2014 not independent full-domain physics"
+  }
+}

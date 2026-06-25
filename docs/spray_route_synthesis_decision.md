@@ -13,6 +13,13 @@ package is kept outside Git at:
 Generated artifacts include the evidence inventory, decision matrix, synthesis
 report, public/private claim boundary, and ranked next-actions plan.
 
+A periodic-span refresh after the quasi-2D 3D bridge and follow-up map is kept
+outside Git at:
+
+```text
+/home/franco/stack-validation/20260619-periodic-span-route-synthesis-refresh
+```
+
 ## Current Decision
 
 - DualSPHysics is the public scientific-visualization and geometry-proxy route.
@@ -26,6 +33,10 @@ report, public/private claim boundary, and ranked next-actions plan.
   conservative credible-component gate.
 - The Basilisk 2D shear-sigma scout is positive reduced-model evidence only.
   It does not validate 3D rectangular-slot breakup.
+- The Basilisk periodic-span follow-up produced one internal 3D bridge
+  candidate in a reduced quasi-2D periodic geometry. This is stronger than the
+  2D scout in dimensionality, but it is not public-ready, not validation, and
+  not full rectangular-slot evidence.
 
 ## Stop / Continue Guidance
 
@@ -36,10 +47,11 @@ report, public/private claim boundary, and ranked next-actions plan.
   materially different solver/mesh/resource plan or HPC path is available.
 - Stop repeating equivalent Basilisk `We_g = 80` mild-perturbation 3D
   rectangular-slot transfer attempts.
-- Continue Basilisk only with a materially different 3D formulation,
-  targeted-interface refinement strategy, gas-shear control, or validation-data
-  target.
-- Prefer a validation-data or parameter-selection branch before spending more
+- Continue Basilisk only with one focused periodic-span repeat/refinement and
+  sensitivity check around the smaller-span candidate, or with a materially
+  different 3D formulation, targeted-interface refinement strategy,
+  gas-shear control, or validation-data target.
+- Prefer validation-data or parameter-selection work before broad additional
   local 3D runtime.
 
 ## Public Boundary
@@ -54,4 +66,5 @@ Acceptable public language:
 - not stationary spray data
 
 Do not claim validated atomisation, stationary spray, production CFD, physical
-droplet statistics, experimental agreement, or 2D evidence as 3D proof.
+droplet statistics, experimental agreement, 2D evidence as 3D proof, or the
+periodic-span bridge as full rectangular-slot validation.

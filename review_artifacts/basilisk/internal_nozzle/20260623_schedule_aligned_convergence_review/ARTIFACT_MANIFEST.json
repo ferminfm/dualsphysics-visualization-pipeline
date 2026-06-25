@@ -1,0 +1,90 @@
+{
+  "artifacts": [
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 1823,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/evidence/ALIGNMENT_AUDIT.md",
+      "sha256": "bc0dc908a4430fdd790fc627178a57e70d341cfb3e4f69f622bc4fd297c666a3",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/ALIGNMENT_AUDIT.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 4179,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/evidence/ALIGNMENT_AUDIT.json",
+      "sha256": "0835aa715397ba08d5828af7ceaac63268eff3d53cb39ea75e892cbe00c20fb6",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/ALIGNMENT_AUDIT.json"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 21706,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/evidence/L7_L8_CONFIG_DIFF.json",
+      "sha256": "56fad7aef0b30c522782a3b36f12f4fbff3c3155b707a5a2c0a524df981adc83",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/L7_L8_CONFIG_DIFF.json"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 944,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/evidence/NO_SOLVER_REEXTRACTION_DECISION.md",
+      "sha256": "5c92e3af33c2c80801be1b0e2639b34ea42e6945159157896eacd81a846630a5",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/no_solver_reextract/NO_SOLVER_REEXTRACTION_DECISION.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 2382,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/metrics/convergence_summary.json",
+      "sha256": "ddf907f6033a7761c1d9a3e2a03c1385c51400c9bc95f16bbe6903681a41a054",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/no_solver_reextract/metrics/convergence_summary.json"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 15850,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/metrics/convergence_station_pairs.csv",
+      "sha256": "5be33f648f7c74d0833e71247cc6a9bf3a1f46a7b9342eb04fee487b7900a64e",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/no_solver_reextract/metrics/convergence_station_pairs.csv"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 2314,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/metrics/convergence_frame_pairs.csv",
+      "sha256": "dbf6df06dc2e428603038197406fe03cdd74148f9f621afd4f2ea424951c07b5",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/no_solver_reextract/metrics/convergence_frame_pairs.csv"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 3603,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/metrics/convergence_quality_coverage.csv",
+      "sha256": "d289a9f72a7b8dfd86f4b8783f3d78e62acbc097dc09fb73d85f86a768ac4206",
+      "source_local_path": "/home/franco/stack-validation/20260623-basilisk-internal-nozzle-schedule-aligned-convergence/no_solver_reextract/metrics/convergence_quality_coverage.csv"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+      "file_size": 1359,
+      "fit_ready": false,
+      "public_ready": false,
+      "repo_relative_review_path": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/README_LAYER1_REVIEW.md",
+      "sha256": "2d633f13d3978947f489835f664a6a0306871b6fd6f8cea241b71e74bea59c21",
+      "source_local_path": "generated"
+    }
+  ],
+  "claim_boundary": "Layer-1 private/internal review artifact only; fit_ready=false; public_ready=false; not validation, not atomisation, not breakup, not final predictive modeling.",
+  "fit_ready": false,
+  "generated_utc": "2026-06-25T18:03:20.115487+00:00",
+  "packet": "review_artifacts/basilisk/internal_nozzle/20260623_schedule_aligned_convergence_review/",
+  "public_ready": false
+}

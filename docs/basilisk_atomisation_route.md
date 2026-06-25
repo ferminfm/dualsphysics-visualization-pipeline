@@ -548,3 +548,115 @@ physics branch should either change the 3D formulation more substantially,
 use targeted interface-window refinement, test different gas-shear forcing, or
 move to another solver route, rather than repeating equivalent `We_g = 80`
 settings.
+
+## Quasi-2D Periodic-Span Liquid-Sheet Bridge - 2026-06-19
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge
+```
+
+Reusable case:
+
+```text
+cases/basilisk/periodic_span_sheet_bridge.c
+```
+
+This branch tests a materially different bridge from the finite-width
+rectangular-slot cases. It removes finite side-edge effects by using a compact
+3D liquid sheet with a periodic spanwise direction, while preserving the
+positive 2D scout controls first: `We_g = 80`, reduced-model surface-tension
+scaling, mild coherent perturbation (`0.02 U_l`, period `0.20`), and native
+Basilisk `draw_vof()` decision frames. The simple Basilisk octree setup uses a
+cubic domain, so span length is tied to domain length; this is documented as a
+cost and geometry limitation of this bridge case.
+
+Run summary:
+
+| Case | Purpose | Status | `We_g` | Effective sheet/span resolution | Result |
+| --- | --- | --- | ---: | --- | --- |
+| `A_direct_periodic_L4` | Direct higher-resolution periodic-span bridge | timeout at `t ~= 0.47`, frames through `t = 0.4` | `80` | about `64` across sheet, `256` across span | insufficient post-exit window |
+| `B_shorter_span_L3` | Shorter compact span/domain at maxlevel 8 | manually stopped as cost-limited before next frame | `80` | about `85` across sheet, `256` across span | insufficient post-exit window |
+| `D_compact_L3_level7` | Affordable direct periodic bridge | completed to `t = 1.2` | `80` | about `43` across sheet, `128` across span | one connected post-exit component |
+| `C_spanwise_seed_level7` | Weak spanwise-seed sensitivity | completed to `t = 1.2` | `80` | about `43` across sheet, `128` across span | one connected post-exit component |
+| `E_mild_crossflow_level7` | Mild gas-crossflow proxy | completed to `t = 1.0` | `80` | about `43` across sheet, `128` across span | one connected post-exit component |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/metrics/periodic_bridge_case_summary.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/metrics/periodic_bridge_frame_diagnostics.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/metrics/periodic_bridge_component_diagnostics.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/metrics/periodic_bridge_parameter_map.json
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/artifacts/D_compact_L3_level7_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/artifacts/C_spanwise_seed_level7_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/artifacts/E_mild_crossflow_level7_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-sheet-bridge/artifacts/periodic_bridge_contact_sheet.png
+```
+
+No periodic-span case passed the conservative bridge gate. The useful compact
+runs reached post-exit active fronts of about `0.93-1.12` sheet thicknesses,
+but the maximum credible post-exit `tag()` component count stayed `1` and the
+credible detached-volume proxy count stayed `0`. The contact sheet shows a
+coherent sheet/surface, not ligaments, roll-up with detached structures, or a
+3D breakup-proxy candidate. This is a negative transfer result for the tested
+periodic-span bridge, not atomization evidence.
+
+## Periodic-Span Follow-up Map - 2026-06-20
+
+Output root:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map
+```
+
+Case source reused:
+
+```text
+cases/basilisk/periodic_span_sheet_bridge.c
+```
+
+This follow-up reads the negative upstream periodic-span bridge result first
+and then maps the nearest non-equivalent periodic-span design space. It does
+not return to finite-width rectangular-slot geometry. The key change is a
+smaller compact periodic span/domain (`Lz/h = 2.5`) at maxlevel 7, which gives
+about `51` cells across the sheet and `128` cells across the periodic span
+while keeping the same reduced-model `We_g = 80` controls.
+
+Run summary:
+
+| Case | Purpose | Status | Result |
+| --- | --- | --- | --- |
+| `N1_short_L24_highres_probe` | shortest-domain maxlevel-8 cost probe | timeout after frames through `t = 0.2` | high-resolution cubic periodic domain remains cost-limited |
+| `N2_small_span_L25_level7` | smaller-span direct bridge | completed to `t = 1.0` | credible post-exit component count reached `2`, detached proxy count `1` |
+| `N2_repeat_L25_level7_longer` | longer same-control check | completed to `t = 1.2` | credible post-exit component count reached `3`, detached proxy count `2` and persisted over late frames |
+
+Main local diagnostics:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_case_summary.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_frame_diagnostics.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_component_diagnostics.csv
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/metrics/followup_parameter_map.json
+```
+
+Decision artifacts:
+
+```text
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/artifacts/N2_small_span_L25_level7_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/artifacts/N2_repeat_L25_level7_longer_vof.mp4
+/home/franco/stack-validation/20260619-basilisk-periodic-span-followup-map/artifacts/followup_contact_sheet.png
+```
+
+This is the first credible 3D periodic-span bridge candidate in the Basilisk
+route. It is still internal route-finding evidence, not atomization validation,
+not stationary spray data, not production CFD, and not experimental agreement.
+The result should be treated as a reduced-model periodic-span instability
+candidate requiring a targeted repeat/refinement branch before any public
+claim or higher-level spray metric.

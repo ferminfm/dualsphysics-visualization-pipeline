@@ -1,0 +1,828 @@
+{
+  "claim_boundary": {
+    "breakup_claim_allowed": false,
+    "fit_ready": false,
+    "public_ready": false,
+    "validation_claim_allowed": false
+  },
+  "exact_comparison": {
+    "different_maxlevel_only_target": [
+      7,
+      8
+    ],
+    "l7_fixed_xi_exported": [
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.5
+    ],
+    "l7_front_relative_exported": [
+      0.5,
+      0.9
+    ],
+    "l8_fixed_xi_exported": [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "l8_front_relative_exported": [
+      0.25,
+      0.5,
+      0.75,
+      0.9
+    ],
+    "matched_times_reextracted": [
+      0.03,
+      0.06,
+      0.09,
+      0.12,
+      0.15,
+      0.18
+    ],
+    "same_checkpoint_dt": true,
+    "same_diagnostic_dt": true,
+    "same_domain": true,
+    "same_geometry": true,
+    "same_pressure": true,
+    "same_visual_dt": true,
+    "station_schedule_mismatch": true,
+    "valid_station_time_pairs_after_full_l8_alignment": 12
+  },
+  "l7": {
+    "case_summary": {
+      "Dh": "0.139257126368",
+      "area": "0.0218166156499",
+      "base_pressure_value": "351.48",
+      "baselevel": "4",
+      "case_id": "task03_l7_full_domain",
+      "case_mode": "2",
+      "checkpoint_dt": "0.03",
+      "diagnostic_dt": "0.03",
+      "domain_mode": "full",
+      "exit_flow": "0.0348270730004",
+      "exit_liquid_area": "0.0381400105446",
+      "external_Dh": "3",
+      "facet_export": "1",
+      "height": "0.104442844776",
+      "i": "1595",
+      "liquid_volume": "0.125882517238",
+      "liquid_volume_error": "0.0484056865475",
+      "max_active_front": "0.231732561847",
+      "max_active_front_Dh": "1.6640625",
+      "max_detached_proxy_count": "1",
+      "max_interface_growth": "1.10731707317",
+      "max_interface_proxy": "1.74106819425",
+      "max_one_cell_debris_count": "0",
+      "max_post_tag_count": "1",
+      "maxlevel": "7",
+      "mean_exit_velocity": "0.913137476974",
+      "native_frames": "1",
+      "perturb_amp": "0",
+      "perturb_period": "0.03",
+      "pressure_retuned": "1",
+      "pressure_value": "351.48",
+      "raw_export": "1",
+      "restored_from": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/03_full_domain_l7_reference/checkpoints/task03_l7_full_domain_full_t00.240000_i0001276_l7.dump",
+      "stable_flag": "1",
+      "symmetry_leakage": "0",
+      "t": "0.3",
+      "target_u": "1",
+      "visual_dt": "0.005",
+      "width": "0.208885689553"
+    },
+    "frame_summary": [
+      {
+        "active_front_Dh": 0.0,
+        "frame_index": "0",
+        "interface_proxy": 1.57233030758,
+        "mean_exit_velocity": 0.0,
+        "time": 0.0
+      },
+      {
+        "active_front_Dh": 0.2578125,
+        "frame_index": "1",
+        "interface_proxy": 1.59840798098,
+        "mean_exit_velocity": 1.00529637022,
+        "time": 0.03
+      },
+      {
+        "active_front_Dh": 0.3984375,
+        "frame_index": "2",
+        "interface_proxy": 1.61067982728,
+        "mean_exit_velocity": 0.980098022509,
+        "time": 0.0599999999998
+      },
+      {
+        "active_front_Dh": 0.6796875,
+        "frame_index": "3",
+        "interface_proxy": 1.62755361595,
+        "mean_exit_velocity": 0.960140135042,
+        "time": 0.09
+      },
+      {
+        "active_front_Dh": 0.8203125,
+        "frame_index": "4",
+        "interface_proxy": 1.64442740461,
+        "mean_exit_velocity": 0.947273220342,
+        "time": 0.12
+      },
+      {
+        "active_front_Dh": 0.9609375,
+        "frame_index": "5",
+        "interface_proxy": 1.65516527013,
+        "mean_exit_velocity": 0.937487095678,
+        "time": 0.15
+      },
+      {
+        "active_front_Dh": 1.1015625,
+        "frame_index": "6",
+        "interface_proxy": 1.6720390588,
+        "mean_exit_velocity": 0.930601428847,
+        "time": 0.18
+      },
+      {
+        "active_front_Dh": 1.2421875,
+        "frame_index": "7",
+        "interface_proxy": 1.69965071298,
+        "mean_exit_velocity": 0.925157570922,
+        "time": 0.21
+      },
+      {
+        "active_front_Dh": 1.3828125,
+        "frame_index": "8",
+        "interface_proxy": 1.71345654007,
+        "mean_exit_velocity": 0.921106908437,
+        "time": 0.24
+      },
+      {
+        "active_front_Dh": 1.5234375,
+        "frame_index": "9",
+        "interface_proxy": 1.7226604248,
+        "mean_exit_velocity": 0.917031751299,
+        "time": 0.27
+      },
+      {
+        "active_front_Dh": 1.6640625,
+        "frame_index": "10",
+        "interface_proxy": 1.74106819425,
+        "mean_exit_velocity": 0.913137476974,
+        "time": 0.3
+      }
+    ],
+    "manifest": {
+      "case_id": "task03_l7_full_domain",
+      "checkpoint_dt": 0.03,
+      "claim_boundary": "internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false",
+      "diagnostic_dt": 0.03,
+      "domain_mode": "full",
+      "end_time": 0.3,
+      "exit_velocity_imposed": false,
+      "export_modes": [
+        "station_slab_raw_export",
+        "interface_cloud_export",
+        "component_diagnostics_export",
+        "profile_exit_export",
+        "native_vof_frames",
+        "output_facets_surfaces",
+        "checkpoint_dumps"
+      ],
+      "files": {
+        "case_summary": "visual_pipeline_case_summary.csv",
+        "checkpoint_manifest": "checkpoint_manifest.json",
+        "component_summary": "raw_component_summary.csv",
+        "frame_summary": "raw_frame_summary.csv",
+        "interface_cells": "raw_interface_cells.csv",
+        "profile_exit_cells": "raw_profile_exit_cells.csv",
+        "reduced_cross_sections": "raw_reduced_cross_section_metrics.csv",
+        "station_cells": "raw_station_cells.csv",
+        "surface_manifest": "surface_manifest.json",
+        "visual_manifest": "visual_frame_manifest.json"
+      },
+      "geometry": {
+        "A0": 0.0218166156499,
+        "Dh": 0.139257126368,
+        "H": 0.104442844776,
+        "W": 0.208885689553,
+        "nozzle_exit_x": 2.08885689553
+      },
+      "maxlevel": 7,
+      "pressure_driven_preserved": true,
+      "selected_case": "W2_longer_duration",
+      "visual_dt": 0.005
+    },
+    "raw_schedule": {
+      "exists": true,
+      "path": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/03_full_domain_l7_reference/raw_station_cells.csv",
+      "row_count": 373248,
+      "rows_by_station_id": {
+        "0": 76032,
+        "1": 50688,
+        "2": 50688,
+        "3": 50688,
+        "4": 50688,
+        "90": 46080,
+        "91": 48384
+      },
+      "rows_by_time": {
+        "0.0": 25344,
+        "0.03": 34560,
+        "0.06": 34560,
+        "0.09": 34560,
+        "0.12": 34560,
+        "0.15": 34560,
+        "0.18": 34560,
+        "0.21": 34560,
+        "0.24": 36864,
+        "0.27": 34560,
+        "0.3": 34560
+      },
+      "size_bytes": 77145950,
+      "station_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        90,
+        91
+      ],
+      "station_xi_by_time": {
+        "0.0": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5
+        },
+        "0.03": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.128906,
+          "91": 0.232031
+        },
+        "0.06": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.199219,
+          "91": 0.358594
+        },
+        "0.09": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.339844,
+          "91": 0.611719
+        },
+        "0.12": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.410156,
+          "91": 0.738281
+        },
+        "0.15": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.480469,
+          "91": 0.864844
+        },
+        "0.18": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.550781,
+          "91": 0.991406
+        },
+        "0.21": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.621094,
+          "91": 1.117969
+        },
+        "0.24": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.691406,
+          "91": 1.244531
+        },
+        "0.27": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.761719,
+          "91": 1.371094
+        },
+        "0.3": {
+          "0": 0.25,
+          "1": 0.5,
+          "2": 0.75,
+          "3": 1.0,
+          "4": 1.5,
+          "90": 0.832031,
+          "91": 1.497656
+        }
+      },
+      "times": [
+        0.0,
+        0.03,
+        0.06,
+        0.09,
+        0.12,
+        0.15,
+        0.18,
+        0.21,
+        0.24,
+        0.27,
+        0.3
+      ]
+    },
+    "root": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/03_full_domain_l7_reference"
+  },
+  "l8_accepted_t0p12": {
+    "frame_summary": [
+      {
+        "active_front_Dh": 0.01171875,
+        "frame_index": "0",
+        "interface_proxy": 1.58076720192,
+        "mean_exit_velocity": 0.0,
+        "time": 0.0
+      },
+      {
+        "active_front_Dh": 0.15234375,
+        "frame_index": "1",
+        "interface_proxy": 1.58460215389,
+        "mean_exit_velocity": 0.665301964438,
+        "time": 0.03
+      },
+      {
+        "active_front_Dh": 0.29296875,
+        "frame_index": "2",
+        "interface_proxy": 1.5949565242,
+        "mean_exit_velocity": 0.654736698181,
+        "time": 0.06
+      },
+      {
+        "active_front_Dh": 0.43359375,
+        "frame_index": "3",
+        "interface_proxy": 1.61298079846,
+        "mean_exit_velocity": 0.649011268103,
+        "time": 0.09
+      },
+      {
+        "active_front_Dh": 0.57421875,
+        "frame_index": "4",
+        "interface_proxy": 1.6333060439,
+        "mean_exit_velocity": 0.646444434472,
+        "time": 0.12
+      }
+    ],
+    "manifest": {
+      "accepted_dataset_note": "Filtered Task 04 package accepted at t=0.12 by Layer 2 control instruction; later valid/partial files are preserved under the root output directory but excluded here.",
+      "accepted_final_time": 0.12,
+      "case_id": "task04_l8_full_domain",
+      "checkpoint_dt": 0.03,
+      "claim_boundary": "internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false",
+      "diagnostic_dt": 0.03,
+      "domain_mode": "full",
+      "end_time": 0.12,
+      "exit_velocity_imposed": false,
+      "export_modes": [
+        "station_slab_raw_export",
+        "interface_cloud_export",
+        "component_diagnostics_export",
+        "profile_exit_export",
+        "native_vof_frames",
+        "output_facets_surfaces",
+        "checkpoint_dumps"
+      ],
+      "files": {
+        "case_summary": "visual_pipeline_case_summary.csv",
+        "checkpoint_manifest": "checkpoint_manifest.json",
+        "component_summary": "raw_component_summary.csv",
+        "frame_summary": "raw_frame_summary.csv",
+        "interface_cells": "raw_interface_cells.csv",
+        "profile_exit_cells": "raw_profile_exit_cells.csv",
+        "reduced_cross_sections": "raw_reduced_cross_section_metrics.csv",
+        "station_cells": "raw_station_cells.csv",
+        "surface_manifest": "surface_manifest.json",
+        "visual_manifest": "visual_frame_manifest.json"
+      },
+      "geometry": {
+        "A0": 0.0218166156499,
+        "Dh": 0.139257126368,
+        "H": 0.104442844776,
+        "W": 0.208885689553,
+        "nozzle_exit_x": 2.08885689553
+      },
+      "maxlevel": 8,
+      "pressure_driven_preserved": true,
+      "selected_case": "W2_longer_duration",
+      "visual_dt": 0.005
+    },
+    "raw_schedule": {
+      "exists": true,
+      "path": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/04_full_domain_l8_convergence/accepted_t0p12/raw_station_cells.csv",
+      "row_count": 1926788,
+      "rows_by_station_id": {
+        "0": 184320,
+        "1": 184320,
+        "2": 230400,
+        "3": 184320,
+        "4": 230400,
+        "5": 184320,
+        "6": 230400,
+        "90": 120452,
+        "91": 138240,
+        "92": 129024,
+        "93": 110592
+      },
+      "rows_by_time": {
+        "0.0": 285696,
+        "0.03": 285696,
+        "0.06": 452228,
+        "0.09": 442368,
+        "0.12": 460800
+      },
+      "size_bytes": 397142807,
+      "station_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        90,
+        91,
+        92,
+        93
+      ],
+      "station_xi_by_time": {
+        "0.0": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0
+        },
+        "0.03": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0
+        },
+        "0.06": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.073242,
+          "91": 0.146484,
+          "92": 0.219727,
+          "93": 0.263672
+        },
+        "0.09": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.108398,
+          "91": 0.216797,
+          "92": 0.325195,
+          "93": 0.390234
+        },
+        "0.12": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.143555,
+          "91": 0.287109,
+          "92": 0.430664,
+          "93": 0.516797
+        }
+      },
+      "times": [
+        0.0,
+        0.03,
+        0.06,
+        0.09,
+        0.12
+      ]
+    },
+    "root": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/04_full_domain_l8_convergence/accepted_t0p12"
+  },
+  "l8_full": {
+    "case_summary": {
+      "Dh": "0.139257126368",
+      "area": "0.0218166156499",
+      "base_pressure_value": "351.48",
+      "baselevel": "4",
+      "case_id": "task04_l8_full_domain",
+      "case_mode": "2",
+      "checkpoint_dt": "0.03",
+      "diagnostic_dt": "0.03",
+      "domain_mode": "full",
+      "exit_flow": "0.0263112224104",
+      "exit_liquid_area": "0.0408242516735",
+      "external_Dh": "3",
+      "facet_export": "1",
+      "height": "0.104442844776",
+      "i": "996",
+      "liquid_volume": "0.125544247176",
+      "liquid_volume_error": "0.0199836194368",
+      "max_active_front": "0.109338603125",
+      "max_active_front_Dh": "0.78515625",
+      "max_detached_proxy_count": "1",
+      "max_interface_growth": "1.0397865114",
+      "max_interface_proxy": "1.64366041422",
+      "max_one_cell_debris_count": "0",
+      "max_post_tag_count": "1",
+      "maxlevel": "8",
+      "mean_exit_velocity": "0.644499809105",
+      "native_frames": "1",
+      "perturb_amp": "0",
+      "perturb_period": "0.03",
+      "pressure_retuned": "1",
+      "pressure_value": "351.48",
+      "raw_export": "1",
+      "restored_from": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/04_full_domain_l8_convergence/checkpoints/task04_l8_full_domain_full_t00.150000_i0000830_l8.dump",
+      "stable_flag": "1",
+      "symmetry_leakage": "0",
+      "t": "0.18",
+      "target_u": "1",
+      "visual_dt": "0.005",
+      "width": "0.208885689553"
+    },
+    "frame_summary": [
+      {
+        "active_front_Dh": 0.01171875,
+        "frame_index": "0",
+        "interface_proxy": 1.58076720192,
+        "mean_exit_velocity": 0.0,
+        "time": 0.0
+      },
+      {
+        "active_front_Dh": 0.15234375,
+        "frame_index": "1",
+        "interface_proxy": 1.58460215389,
+        "mean_exit_velocity": 0.665301964438,
+        "time": 0.03
+      },
+      {
+        "active_front_Dh": 0.29296875,
+        "frame_index": "2",
+        "interface_proxy": 1.5949565242,
+        "mean_exit_velocity": 0.654736698181,
+        "time": 0.06
+      },
+      {
+        "active_front_Dh": 0.43359375,
+        "frame_index": "3",
+        "interface_proxy": 1.61298079846,
+        "mean_exit_velocity": 0.649011268103,
+        "time": 0.09
+      },
+      {
+        "active_front_Dh": 0.57421875,
+        "frame_index": "4",
+        "interface_proxy": 1.6333060439,
+        "mean_exit_velocity": 0.646444434472,
+        "time": 0.12
+      },
+      {
+        "active_front_Dh": 0.71484375,
+        "frame_index": "5",
+        "interface_proxy": 1.63867497666,
+        "mean_exit_velocity": 0.644990381517,
+        "time": 0.15
+      },
+      {
+        "active_front_Dh": 0.78515625,
+        "frame_index": "6",
+        "interface_proxy": 1.64366041422,
+        "mean_exit_velocity": 0.644499809105,
+        "time": 0.18
+      }
+    ],
+    "manifest": {
+      "case_id": "task04_l8_full_domain",
+      "checkpoint_dt": 0.03,
+      "claim_boundary": "internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false",
+      "diagnostic_dt": 0.03,
+      "domain_mode": "full",
+      "end_time": 0.18,
+      "exit_velocity_imposed": false,
+      "export_modes": [
+        "station_slab_raw_export",
+        "interface_cloud_export",
+        "component_diagnostics_export",
+        "profile_exit_export",
+        "native_vof_frames",
+        "output_facets_surfaces",
+        "checkpoint_dumps"
+      ],
+      "files": {
+        "case_summary": "visual_pipeline_case_summary.csv",
+        "checkpoint_manifest": "checkpoint_manifest.json",
+        "component_summary": "raw_component_summary.csv",
+        "frame_summary": "raw_frame_summary.csv",
+        "interface_cells": "raw_interface_cells.csv",
+        "profile_exit_cells": "raw_profile_exit_cells.csv",
+        "reduced_cross_sections": "raw_reduced_cross_section_metrics.csv",
+        "station_cells": "raw_station_cells.csv",
+        "surface_manifest": "surface_manifest.json",
+        "visual_manifest": "visual_frame_manifest.json"
+      },
+      "geometry": {
+        "A0": 0.0218166156499,
+        "Dh": 0.139257126368,
+        "H": 0.104442844776,
+        "W": 0.208885689553,
+        "nozzle_exit_x": 2.08885689553
+      },
+      "maxlevel": 8,
+      "pressure_driven_preserved": true,
+      "selected_case": "W2_longer_duration",
+      "visual_dt": 0.005
+    },
+    "raw_schedule": {
+      "exists": true,
+      "path": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/04_full_domain_l8_convergence/raw_station_cells.csv",
+      "row_count": 2820740,
+      "rows_by_station_id": {
+        "0": 258048,
+        "1": 258048,
+        "2": 322560,
+        "3": 258048,
+        "4": 322560,
+        "5": 258048,
+        "6": 322560,
+        "90": 194180,
+        "91": 221184,
+        "92": 202752,
+        "93": 202752
+      },
+      "rows_by_time": {
+        "0.0": 285696,
+        "0.03": 285696,
+        "0.06": 452228,
+        "0.09": 442368,
+        "0.12": 460800,
+        "0.15": 451584,
+        "0.18": 442368
+      },
+      "size_bytes": 586878384,
+      "station_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        90,
+        91,
+        92,
+        93
+      ],
+      "station_xi_by_time": {
+        "0.0": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0
+        },
+        "0.03": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0
+        },
+        "0.06": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.073242,
+          "91": 0.146484,
+          "92": 0.219727,
+          "93": 0.263672
+        },
+        "0.09": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.108398,
+          "91": 0.216797,
+          "92": 0.325195,
+          "93": 0.390234
+        },
+        "0.12": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.143555,
+          "91": 0.287109,
+          "92": 0.430664,
+          "93": 0.516797
+        },
+        "0.15": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.178711,
+          "91": 0.357422,
+          "92": 0.536133,
+          "93": 0.643359
+        },
+        "0.18": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.5,
+          "5": 0.75,
+          "6": 1.0,
+          "90": 0.196289,
+          "91": 0.392578,
+          "92": 0.588867,
+          "93": 0.706641
+        }
+      },
+      "times": [
+        0.0,
+        0.03,
+        0.06,
+        0.09,
+        0.12,
+        0.15,
+        0.18
+      ]
+    },
+    "root": "/home/franco/stack-validation/20260622-basilisk-internal-nozzle-convergence-visual-batch/04_full_domain_l8_convergence"
+  }
+}

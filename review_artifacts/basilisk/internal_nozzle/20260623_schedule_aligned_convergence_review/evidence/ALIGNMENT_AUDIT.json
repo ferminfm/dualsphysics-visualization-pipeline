@@ -1,0 +1,140 @@
+{
+  "decision": {
+    "breakup_claim_allowed": false,
+    "existing_data_reextraction_sufficient": true,
+    "failure_cause_classification": "schedule_misalignment_resolved_but_resolution_sensitive",
+    "fit_ready": false,
+    "l7_rerun_required": false,
+    "l8_rerun_required": false,
+    "morphology_classification": "connected_waviness_not_atomization",
+    "public_ready": false
+  },
+  "no_solver_audit": true,
+  "raw_data_integrity": {
+    "human_authorization_required_for_l8": false,
+    "l7_raw_station_exists": true,
+    "l8_raw_parse_used": "full t=0.18 root, not filtered t=0.12 package",
+    "l8_raw_station_exists": true,
+    "l8_rerun_required": false
+  },
+  "reextraction_decision": {
+    "aggregates": {
+      "max_active_front_abs_diff_Dh": 0.3164062500008976,
+      "max_centroid_separation_Dh": 6.67910536732833e-07,
+      "max_interface_proxy_rel_diff": 0.016972477066634455,
+      "max_mean_exit_velocity_rel_diff": 0.3382031566547835,
+      "max_warp_abs_diff": 0.15045911909320803,
+      "median_Ahat_rel_diff": 0.19737230118766763,
+      "median_aspect_rel_diff": 0.1322314049596061,
+      "median_thickness_rel_diff": 0.10000000000020423,
+      "median_width_rel_diff": 0.045454545455389586,
+      "p90_Ahat_rel_diff": 0.6544590729481943,
+      "p90_aspect_rel_diff": 0.31074380164204646,
+      "p90_thickness_rel_diff": 0.2028571428564129,
+      "p90_width_rel_diff": 0.045454545455389586,
+      "same_sign_Ahat_bias_ratio": 0.75,
+      "systematic_downstream_bias": false,
+      "threshold_pass_fraction": 0.25,
+      "valid_station_time_pairs": 12
+    },
+    "breakup_claim_allowed": false,
+    "convergence_passed": false,
+    "decision": "failed_conservative_matched_cadence_gate",
+    "existing_data_reextraction_sufficient": true,
+    "exploratory_fit_gate": {
+      "at_least_12_valid_station_time_pairs": true,
+      "at_least_80pct_valid_pairs_pass": false,
+      "at_least_three_matched_times_including_t_ge_0p09": true,
+      "no_systematic_downstream_bias": true,
+      "raw_field_provenance_and_profile_integrity_preserved": true
+    },
+    "exploratory_fit_ready": false,
+    "failure_cause_classification": "schedule_misalignment_resolved_but_resolution_sensitive",
+    "fit_ready": false,
+    "matched_times_completed": [
+      0.03,
+      0.06,
+      0.09,
+      0.12,
+      0.15,
+      0.18
+    ],
+    "matched_times_requested": [
+      0.03,
+      0.06,
+      0.09,
+      0.12,
+      0.15,
+      0.18
+    ],
+    "public_ready": false,
+    "threshold_checks": {
+      "active_front_abs_diff_le_0p10_Dh": false,
+      "centroid_separation_le_0p05_Dh": true,
+      "interface_proxy_rel_diff_le_20pct": true,
+      "mean_exit_velocity_rel_diff_le_2pct": false,
+      "median_Ahat_rel_diff_le_10pct": false,
+      "median_aspect_rel_diff_le_12pct": false,
+      "median_thickness_rel_diff_le_10pct": false,
+      "median_width_rel_diff_le_10pct": true,
+      "no_morphology_classification_change": true,
+      "no_new_credible_detached_claim": true,
+      "p90_Ahat_rel_diff_le_20pct": false,
+      "p90_aspect_rel_diff_le_20pct": false,
+      "p90_thickness_rel_diff_le_20pct": false,
+      "p90_width_rel_diff_le_20pct": true,
+      "warp_abs_diff_le_0p10": false
+    }
+  },
+  "solver_run_performed": false,
+  "station_schedule_misalignment_details": {
+    "different_maxlevel_only_target": [
+      7,
+      8
+    ],
+    "l7_fixed_xi_exported": [
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.5
+    ],
+    "l7_front_relative_exported": [
+      0.5,
+      0.9
+    ],
+    "l8_fixed_xi_exported": [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "l8_front_relative_exported": [
+      0.25,
+      0.5,
+      0.75,
+      0.9
+    ],
+    "matched_times_reextracted": [
+      0.03,
+      0.06,
+      0.09,
+      0.12,
+      0.15,
+      0.18
+    ],
+    "same_checkpoint_dt": true,
+    "same_diagnostic_dt": true,
+    "same_domain": true,
+    "same_geometry": true,
+    "same_pressure": true,
+    "same_visual_dt": true,
+    "station_schedule_mismatch": true,
+    "valid_station_time_pairs_after_full_l8_alignment": 12
+  },
+  "station_schedule_misalignment_found": true,
+  "status": "complete"
+}
