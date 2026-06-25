@@ -57,6 +57,7 @@ See:
 - `docs/basilisk_internal_nozzle_geometry_handoff.md`
 - `docs/basilisk_internal_nozzle_reproduction_map.md`
 - `docs/basilisk_diagnostics_harness.md`
+- `docs/basilisk_rectangular_pulsed_profile_benchmark.md`
 - `docs/spray_route_synthesis_decision.md`
 
 ## What Developers Can Learn
