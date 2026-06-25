@@ -1,0 +1,20 @@
+{
+  "cases/basilisk/official_rectangular_pulsed_atomisation.c": {
+    "sha256": "341e7d3ce32f2737d285a1aced2dfd9e9ad5ded89db2a2bbafa4406709039efc"
+  },
+  "docs/basilisk_rectangular_atomisation_blender_showcase.md": {
+    "sha256": "c8758e635b0866e65fe273af1574c81940b4c2147c19bb7124c3839302e68bbe"
+  },
+  "docs/basilisk_rectangular_pulsed_profile_benchmark.md": {
+    "sha256": "cc576052be4ca2806672428a1dc1dbbdc87885f9f5014ce23355e7e279c53af3"
+  },
+  "scripts/analyze_basilisk_atomisation_benchmark.py": {
+    "sha256": "ca1a38025d2c8d75ac1d7c76306013f89969fe3973aa1218f55e8dbf268b30cf"
+  },
+  "scripts/assemble_basilisk_atomisation_media.py": {
+    "sha256": "ab065dfb1bd593a4749ee55c740ae33c63c3fe4576abe2885f6bb6d529d9d0a2"
+  },
+  "scripts/blender_rectangular_atomisation_showcase.py": {
+    "sha256": "635da020a493777a96f2cccdfd0ad7935f007f4870fc9e479cd2ed9a45998d78"
+  }
+}

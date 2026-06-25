@@ -1,0 +1,343 @@
+{
+  "artifact_count": 7,
+  "artifacts": [
+    {
+      "asset_id": "official_round_full_length_native",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/official_round_full_length_native_contact_sheet.png",
+      "duration_seconds": 8.416667,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_official_round_full_length_native.json",
+      "file_size": 1280218,
+      "fit_ready": false,
+      "frame_count": 101,
+      "frame_mapping_source": "06_scientific_media_comparison/scientific_media/PHYSICAL_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 101,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "round_official_top_hat",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": null,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/official_round_full_length_native.mp4",
+      "review_status": "scientific reference; primary route after Task 05",
+      "role": "primary scientific native VOF reference",
+      "route": "official_round_control",
+      "route_classification": "official_round_benchmark_candidate_supported",
+      "sha256": "aa68c84836a548bd11a7dbf3a06e55f8a43239c80024e58cd6217b712417ba46",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/06_scientific_media_comparison/scientific_media/official_round_full_length_native.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/official_round_full_length_native_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/official_round_full_length_native_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/official_round_full_length_native_last.jpg"
+      ],
+      "surface_hashes": {
+        "surface_manifest_sha256": "fd37de81ec4170e8f700c51ef68f77f0e018dd19af737df97c4df90cc17c356d",
+        "visual_manifest_sha256": "d97f5d83d546e927737d12a75e69741c665acb31912d423d2c1f2e4b14ea3583"
+      },
+      "time_range": {
+        "end": 2.0,
+        "start": 0.0
+      },
+      "width": 1920
+    },
+    {
+      "asset_id": "rectangular_profile_full_length_native",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/rectangular_profile_full_length_native_contact_sheet.png",
+      "duration_seconds": 8.416667,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_rectangular_profile_full_length_native.json",
+      "file_size": 1054377,
+      "fit_ready": false,
+      "frame_count": 101,
+      "frame_mapping_source": "06_scientific_media_comparison/scientific_media/PHYSICAL_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 101,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "rect_area_top_hat",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": null,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/rectangular_profile_full_length_native.mp4",
+      "review_status": "comparison only; resolution-sensitive in Task 05",
+      "role": "caveated rectangular imposed-inlet native VOF comparison",
+      "route": "rectangular_long_modified_benchmark_resolution_sensitive",
+      "route_classification": "rectangular_candidate_resolution_sensitive",
+      "sha256": "0e98f9304b52bd0ffa10dc5a16cab30f7ff5ba73a737dd571292d59eff0a64c1",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/06_scientific_media_comparison/scientific_media/rectangular_profile_full_length_native.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/rectangular_profile_full_length_native_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/rectangular_profile_full_length_native_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/rectangular_profile_full_length_native_last.jpg"
+      ],
+      "surface_hashes": {
+        "surface_manifest_sha256": "42bf2a940c30ca33765653ded74ca26fbe376e4906240e285b0054f08efa7a0e",
+        "visual_manifest_sha256": "ffed08cd5b4b308570500b686323cb655a9e2da24db9ba82bcd90da0fd3577e9"
+      },
+      "time_range": {
+        "end": 2.0,
+        "start": 0.0
+      },
+      "width": 1920
+    },
+    {
+      "asset_id": "round_vs_rectangular_time_aligned",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/round_vs_rectangular_time_aligned_contact_sheet.png",
+      "duration_seconds": 8.416667,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_round_vs_rectangular_time_aligned.json",
+      "file_size": 978476,
+      "fit_ready": false,
+      "frame_count": 101,
+      "frame_mapping_source": "06_scientific_media_comparison/scientific_media/PHYSICAL_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 101,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "round_official_top_hat plus rect_area_top_hat",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": null,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/round_vs_rectangular_time_aligned.mp4",
+      "review_status": "diagnostic comparison; exact physical times, no interpolation",
+      "role": "scientific exact-time comparison",
+      "route": "round_vs_rectangular_exact_time_comparison",
+      "route_classification": "exact_time_scientific_comparison_with_rectangular_resolution_caveat",
+      "sha256": "4ce45e97151099707baf70f7793786bc8ce898a4d684c08b7fedc92624d34902",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/06_scientific_media_comparison/scientific_media/round_vs_rectangular_time_aligned.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/round_vs_rectangular_time_aligned_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/round_vs_rectangular_time_aligned_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/round_vs_rectangular_time_aligned_last.jpg"
+      ],
+      "surface_hashes": {
+        "official_round_control": {
+          "surface_manifest_sha256": "fd37de81ec4170e8f700c51ef68f77f0e018dd19af737df97c4df90cc17c356d",
+          "visual_manifest_sha256": "d97f5d83d546e927737d12a75e69741c665acb31912d423d2c1f2e4b14ea3583"
+        },
+        "rectangular_long_modified_benchmark": {
+          "surface_manifest_sha256": "42bf2a940c30ca33765653ded74ca26fbe376e4906240e285b0054f08efa7a0e",
+          "visual_manifest_sha256": "ffed08cd5b4b308570500b686323cb655a9e2da24db9ba82bcd90da0fd3577e9"
+        }
+      },
+      "time_range": {
+        "end": 2.0,
+        "start": 0.0
+      },
+      "width": 1920
+    },
+    {
+      "asset_id": "long_primary_route_blender_sequence",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/long_primary_route_blender_sequence_contact_sheet.png",
+      "duration_seconds": 8.416667,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_long_primary_route_blender_sequence.json",
+      "file_size": 3229202,
+      "fit_ready": false,
+      "frame_count": 101,
+      "frame_mapping_source": "07_gpu_blender_showcase/showcase/PHYSICAL_RENDER_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 101,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "round_official_top_hat",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": 101,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/long_primary_route_blender_sequence.mp4",
+      "review_status": "portfolio candidate requires human review",
+      "role": "primary Blender/Cycles internal portfolio candidate",
+      "route": "official_round_control",
+      "route_classification": "official_round_benchmark_candidate_supported",
+      "sha256": "d2052f010931585eb76ba0791464b0ed49b6445a1e27af2f5015c1879ed15254",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/07_gpu_blender_showcase/showcase/long_primary_route_blender_sequence.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/long_primary_route_blender_sequence_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/long_primary_route_blender_sequence_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/long_primary_route_blender_sequence_last.jpg"
+      ],
+      "surface_hashes": {
+        "surface_manifest_sha256": "fd37de81ec4170e8f700c51ef68f77f0e018dd19af737df97c4df90cc17c356d",
+        "visual_manifest_sha256": "d97f5d83d546e927737d12a75e69741c665acb31912d423d2c1f2e4b14ea3583"
+      },
+      "time_range": {
+        "end": 2.0,
+        "start": 0.0
+      },
+      "topology_preserving_operations": "direct mesh import from Basilisk output_facets(f); no smoothing, remeshing, decimation, boolean cleanup, or generated solver frames",
+      "width": 1920
+    },
+    {
+      "asset_id": "final_complex_geometry_flythrough",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/final_complex_geometry_flythrough_multiview.png",
+      "duration_seconds": 8.0,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_final_complex_geometry_flythrough.json",
+      "file_size": 815295,
+      "fit_ready": false,
+      "frame_count": 96,
+      "frame_mapping_source": "07_gpu_blender_showcase/showcase/PHYSICAL_RENDER_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 1,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "round_official_top_hat final frame",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": 96,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/final_complex_geometry_flythrough.mp4",
+      "review_status": "portfolio candidate requires human review; static final solver state camera path",
+      "role": "final complex-frame flythrough",
+      "route": "official_round_control_final_frame",
+      "route_classification": "official_round_final_frame_visual_review",
+      "sha256": "0c779f8f001639db506786383efa52c0202c8ba4bbdc7b3aab029c89c51c406c",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/07_gpu_blender_showcase/showcase/final_complex_geometry_flythrough.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/final_complex_geometry_flythrough_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/final_complex_geometry_flythrough_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/final_complex_geometry_flythrough_last.jpg"
+      ],
+      "surface_hashes": {
+        "surface_manifest_sha256": "fd37de81ec4170e8f700c51ef68f77f0e018dd19af737df97c4df90cc17c356d",
+        "visual_manifest_sha256": "d97f5d83d546e927737d12a75e69741c665acb31912d423d2c1f2e4b14ea3583"
+      },
+      "time_range": {
+        "end": 2.0,
+        "start": 2.0
+      },
+      "topology_preserving_operations": "direct mesh import from Basilisk output_facets(f); no smoothing, remeshing, decimation, boolean cleanup, or generated solver frames",
+      "width": 1920
+    },
+    {
+      "asset_id": "topology_onset_detail",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/topology_onset_detail_contact_sheet.jpg",
+      "duration_seconds": 2.666667,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_topology_onset_detail.json",
+      "file_size": 149551,
+      "fit_ready": false,
+      "frame_count": 16,
+      "frame_mapping_source": "06_scientific_media_comparison/scientific_media/PHYSICAL_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 16,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "round_official_top_hat",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": null,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/topology_onset_detail.mp4",
+      "review_status": "diagnostic onset detail; thresholded topology evidence only",
+      "role": "selected topology detail around onset",
+      "route": "official_round_control_onset_detail",
+      "route_classification": "official_round_onset_detail_diagnostic",
+      "sha256": "73322004949a8a0ba0de63914f1abf2c931024deffbf0c7e8e304a25e2f5848e",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/06_scientific_media_comparison/scientific_media/topology_onset_detail.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/topology_onset_detail_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/topology_onset_detail_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/topology_onset_detail_last.jpg"
+      ],
+      "surface_hashes": {
+        "surface_manifest_sha256": "fd37de81ec4170e8f700c51ef68f77f0e018dd19af737df97c4df90cc17c356d",
+        "visual_manifest_sha256": "d97f5d83d546e927737d12a75e69741c665acb31912d423d2c1f2e4b14ea3583"
+      },
+      "time_range": {
+        "end": 0.78,
+        "start": 0.48
+      },
+      "width": 1920
+    },
+    {
+      "asset_id": "round_vs_rectangular_blender_comparison",
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+      "contact_sheet_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/contact_sheets/round_vs_rectangular_blender_comparison_contact_sheet.png",
+      "duration_seconds": 8.416667,
+      "ffprobe_metadata_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/metadata/ffprobe_round_vs_rectangular_blender_comparison.json",
+      "file_size": 1739881,
+      "fit_ready": false,
+      "frame_count": 101,
+      "frame_mapping_source": "07_gpu_blender_showcase/showcase/PHYSICAL_RENDER_FRAME_MAPPING.csv",
+      "height": 1080,
+      "kind": "mp4",
+      "maxlevel": 8,
+      "physical_frame_count": 101,
+      "pix_fmt": "yuv420p",
+      "profile_mode": "round_official_top_hat plus rect_area_top_hat",
+      "proxy_or_original": "original-small-file",
+      "public_ready": false,
+      "render_frame_count": 101,
+      "repo_relative_review_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/videos_proxy/round_vs_rectangular_blender_comparison.mp4",
+      "review_status": "visual comparison requires human review; not a resolution-invariance proof",
+      "role": "Blender visual comparison; rectangular route remains caveated",
+      "route": "round_vs_rectangular_blender_comparison",
+      "route_classification": "visual_comparison_with_rectangular_resolution_caveat",
+      "sha256": "fccddd175f3f3f46a410911b3894b89d68b1be6086492fe0e6c6c0c4d2063207",
+      "source_local_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/07_gpu_blender_showcase/showcase/round_vs_rectangular_blender_comparison.mp4",
+      "still_paths": [
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/round_vs_rectangular_blender_comparison_first.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/round_vs_rectangular_blender_comparison_middle.jpg",
+        "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review/stills/round_vs_rectangular_blender_comparison_last.jpg"
+      ],
+      "surface_hashes": {
+        "official_round_control": {
+          "surface_manifest_sha256": "fd37de81ec4170e8f700c51ef68f77f0e018dd19af737df97c4df90cc17c356d",
+          "visual_manifest_sha256": "d97f5d83d546e927737d12a75e69741c665acb31912d423d2c1f2e4b14ea3583"
+        },
+        "rectangular_long_modified_benchmark": {
+          "surface_manifest_sha256": "42bf2a940c30ca33765653ded74ca26fbe376e4906240e285b0054f08efa7a0e",
+          "visual_manifest_sha256": "ffed08cd5b4b308570500b686323cb655a9e2da24db9ba82bcd90da0fd3577e9"
+        }
+      },
+      "time_range": {
+        "end": 2.0,
+        "start": 0.0
+      },
+      "topology_preserving_operations": "direct mesh import from Basilisk output_facets(f); no smoothing, remeshing, decimation, boolean cleanup, or generated solver frames",
+      "width": 1920
+    }
+  ],
+  "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD",
+  "comparison_route": "rectangular_long_modified_benchmark_resolution_sensitive",
+  "fit_ready": false,
+  "generated_at_utc": "2026-06-25T23:28:57Z",
+  "packet_id": "20260625_long_showcase_review",
+  "primary_media_route": "official_round_control",
+  "prohibited_artifacts_committed": false,
+  "public_ready": false,
+  "remote_base_sha_at_packet_write": "34fe347e5571c91dcbd35e640f39578feb80f481",
+  "remote_target_sha_at_packet_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "repo_relative_root": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review",
+  "review_status": "layer1_internal_review_ready_after_layer2_push",
+  "runbook_root": "/home/franco/Documents/GitHub/ai-agent-runbooks/basilisk/20260625-rectangular-poiseuille-atomisation-showcase-batch",
+  "source_batch_root": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch",
+  "source_file_hashes": {
+    "cases/basilisk/official_rectangular_pulsed_atomisation.c": {
+      "sha256": "341e7d3ce32f2737d285a1aced2dfd9e9ad5ded89db2a2bbafa4406709039efc"
+    },
+    "docs/basilisk_rectangular_atomisation_blender_showcase.md": {
+      "sha256": "c8758e635b0866e65fe273af1574c81940b4c2147c19bb7124c3839302e68bbe"
+    },
+    "docs/basilisk_rectangular_pulsed_profile_benchmark.md": {
+      "sha256": "cc576052be4ca2806672428a1dc1dbbdc87885f9f5014ce23355e7e279c53af3"
+    },
+    "scripts/analyze_basilisk_atomisation_benchmark.py": {
+      "sha256": "ca1a38025d2c8d75ac1d7c76306013f89969fe3973aa1218f55e8dbf268b30cf"
+    },
+    "scripts/assemble_basilisk_atomisation_media.py": {
+      "sha256": "ab065dfb1bd593a4749ee55c740ae33c63c3fe4576abe2885f6bb6d529d9d0a2"
+    },
+    "scripts/blender_rectangular_atomisation_showcase.py": {
+      "sha256": "635da020a493777a96f2cccdfd0ad7935f007f4870fc9e479cd2ed9a45998d78"
+    }
+  },
+  "source_repo_head_at_packet_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298"
+}

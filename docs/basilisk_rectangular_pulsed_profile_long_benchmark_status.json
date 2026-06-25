@@ -1,0 +1,143 @@
+{
+  "asset_availability": {
+    "artifact_count": 7,
+    "blender_assets_ready": true,
+    "review_packet_repo_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review",
+    "scientific_media_ready": true
+  },
+  "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "claim_boundary": {
+    "component_counts_are_thresholded_diagnostics": true,
+    "not_fit_ready": true,
+    "not_internal_nozzle_for_rectangular_route": true,
+    "not_public_ready": true,
+    "not_validation": true
+  },
+  "fit_ready": false,
+  "generated_at_utc": "2026-06-25T23:28:57Z",
+  "head_sha_at_status_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "human_decisions_required": [
+    "circular scientific value and portfolio lead route",
+    "rectangular comparison inclusion and mandatory caveat wording",
+    "resolution credibility next step",
+    "visual corrections before public packaging",
+    "stacked PR disposition"
+  ],
+  "public_ready": false,
+  "remote_base_sha_at_status_write": "34fe347e5571c91dcbd35e640f39578feb80f481",
+  "remote_target_sha_at_status_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "route_definitions": {
+    "official_round_control": {
+      "Re": 5800,
+      "basis": "local Basilisk examples/atomisation.c defaults",
+      "density_ratio": 27.84,
+      "profile": "round_official_top_hat",
+      "pulse_amplitude": 0.05,
+      "pulse_period": 0.1,
+      "sigma": 3e-05,
+      "u0": 1
+    },
+    "rectangular_long_modified_benchmark": {
+      "aperture": "2:1 rectangle with area equal to official circular aperture",
+      "geometry": {
+        "A0": 0.02181661564992912,
+        "H": 0.10444284477629169,
+        "W": 0.20888568955258338,
+        "aspect_ratio_W_over_H": 2.0,
+        "half_H": 0.052221422388145845,
+        "half_W": 0.10444284477629169,
+        "hydraulic_diameter": 0.1392571263683889,
+        "radius": 0.08333333333333333
+      },
+      "imposed_inlet_boundary": true,
+      "internal_nozzle_flow_resolved": false,
+      "profile": "rect_area_top_hat"
+    }
+  },
+  "source_file_hashes": {
+    "cases/basilisk/official_rectangular_pulsed_atomisation.c": {
+      "sha256": "341e7d3ce32f2737d285a1aced2dfd9e9ad5ded89db2a2bbafa4406709039efc"
+    },
+    "docs/basilisk_rectangular_atomisation_blender_showcase.md": {
+      "sha256": "c8758e635b0866e65fe273af1574c81940b4c2147c19bb7124c3839302e68bbe"
+    },
+    "docs/basilisk_rectangular_pulsed_profile_benchmark.md": {
+      "sha256": "cc576052be4ca2806672428a1dc1dbbdc87885f9f5014ce23355e7e279c53af3"
+    },
+    "scripts/analyze_basilisk_atomisation_benchmark.py": {
+      "sha256": "ca1a38025d2c8d75ac1d7c76306013f89969fe3973aa1218f55e8dbf268b30cf"
+    },
+    "scripts/assemble_basilisk_atomisation_media.py": {
+      "sha256": "ab065dfb1bd593a4749ee55c740ae33c63c3fe4576abe2885f6bb6d529d9d0a2"
+    },
+    "scripts/blender_rectangular_atomisation_showcase.py": {
+      "sha256": "635da020a493777a96f2cccdfd0ad7935f007f4870fc9e479cd2ed9a45998d78"
+    }
+  },
+  "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
+  "status": "layer1_internal_review_packet_prepared_pending_layer2_push",
+  "task_results": {
+    "claim_boundary": {
+      "component_counts_are_thresholded_diagnostics": true,
+      "fit_ready": false,
+      "not_internal_nozzle_flow": true,
+      "not_validation": true,
+      "public_ready": false,
+      "rectangular_is_imposed_inlet_boundary": true
+    },
+    "comparison_route": "rectangular_long_modified_benchmark_resolution_sensitive",
+    "generated_at_utc": "2026-06-25T23:28:57Z",
+    "primary_media_route": "official_round_control",
+    "profile_validation": {
+      "geometry": {
+        "A0": 0.02181661564992912,
+        "H": 0.10444284477629169,
+        "W": 0.20888568955258338,
+        "aspect_ratio_W_over_H": 2.0,
+        "half_H": 0.052221422388145845,
+        "half_W": 0.10444284477629169,
+        "hydraulic_diameter": 0.1392571263683889,
+        "radius": 0.08333333333333333
+      },
+      "poisseuille_series": {
+        "alias_note": "The runbook spelling rect_area_poisseuille_series is kept as the canonical mode string; rect_area_poiseuille_series is an accepted source alias.",
+        "raw_midpoint_mean": 0.1107909511423405,
+        "terms": 61
+      },
+      "profile_count": 3,
+      "rectangular_profile_validated": true,
+      "row_count": 12,
+      "tolerances": {
+        "average": 0.005,
+        "mass": 0.01,
+        "wall": 1e-10
+      }
+    },
+    "rectangular": {
+      "checkpoint_chain_valid": true,
+      "classification": "rectangular_candidate_resolution_sensitive",
+      "final_time": 2.0,
+      "l9_confirmation_performed": true,
+      "l9_final_time": 0.8,
+      "max_credible_component_count": 120,
+      "max_separated_component_count": 119,
+      "morphology_classification": "persistent_credible_detached_topology",
+      "physical_frames": 101,
+      "profile_mass_flow_valid": true,
+      "profile_mode": "rect_area_top_hat",
+      "resolution_confirmation_passed": false,
+      "selected_case": "C1_rect_area_top_hat",
+      "topology_change_onset_time": 0.56
+    },
+    "round": {
+      "checkpoint_chain_valid": true,
+      "classification": "official_round_benchmark_candidate_supported",
+      "final_time": 2.0,
+      "max_credible_component_count": 172,
+      "max_separated_component_count": 171,
+      "morphology_classification": "persistent_credible_detached_topology",
+      "physical_frames": 101,
+      "topology_change_onset_time": 0.48
+    }
+  }
+}
