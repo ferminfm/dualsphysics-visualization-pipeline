@@ -74,3 +74,19 @@ python3 scripts/validate_rectangular_inlet_profile.py \
 The profile validator checks wall zeros, unit area mean, mass-flow consistency
 with `A0*Umean`, peak/mean ratio, nonnegative pulsed inlet velocity, and the
 2:1 area-matched geometry.
+
+## Credibility Audit Helper
+
+For the long round/rectangular benchmark batch, the conservative Task 05
+topology and route-selection artifacts can be regenerated after the bounded L9
+confirmation has completed:
+
+```sh
+python3 scripts/analyze_basilisk_atomisation_benchmark.py \
+  --batch-root /home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch \
+  --output-root /home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/05_breakup_credibility_resolution_audit
+```
+
+The helper writes compact CSV/JSON/Markdown review artifacts only. It does not
+run the solver, render media, publish, or treat component counts as validated
+droplet statistics.
