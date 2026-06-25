@@ -98,4 +98,7 @@ A compact private/internal review packet is available at:
 
 Start with `review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/README_LAYER1_REVIEW.md` and `review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/ARTIFACT_MANIFEST.json`.
 
+The review-artifact workflow and promotion rules are documented in
+`docs/layer1_layer2_review_artifact_workflow.md`.
+
 This packet is for Layer-1 review only. It does not change `fit_ready=false` or `public_ready=false`.

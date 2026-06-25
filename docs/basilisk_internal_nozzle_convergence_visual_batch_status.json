@@ -44,6 +44,7 @@
     "readme": "review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/README_LAYER1_REVIEW.md",
     "repo_relative_path": "review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/"
   },
+  "layer1_review_packet_path": "review_artifacts/basilisk/internal_nozzle/20260622_convergence_visual_review/",
   "model_readiness": {
     "exploratory_fit_ready": false,
     "fit_ready": false,
