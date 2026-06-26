@@ -61,3 +61,14 @@ Remaining decisions:
 ## Claim Boundary
 
 Do not claim validation, production CFD, stationary spray, experimental agreement, pressure-atomized-nozzle validation, final predictive modeling, fit readiness, public readiness, or internal-nozzle atomisation for the rectangular route. Component counts are thresholded diagnostics, not validated droplet statistics.
+
+## 2026-06-26 Postprocess Public-Prep Packet
+
+A follow-up postprocess/public-prep review packet was added at `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/`.
+
+- Lead route remains the official circular control.
+- Rectangular comparison remains secondary and caveated as `C1_rect_area_top_hat` / `rect_area_top_hat`, a 2:1 top-hat imposed-inlet comparison.
+- Diagnostic field media are available for phase, speed, finite-difference vorticity magnitude, and ambient-VOF complement.
+- Pressure visualization is blocked by zero-range restored pressure exports.
+- Lambda2/Q-like visualization is blocked pending a validated gradient-tensor export.
+- `fit_ready=false`; `public_ready=false`.

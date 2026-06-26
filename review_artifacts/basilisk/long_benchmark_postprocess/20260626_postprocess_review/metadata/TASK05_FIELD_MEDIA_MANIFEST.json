@@ -1,0 +1,554 @@
+{
+  "task_id": "05_field_visualization_media",
+  "generated_at_utc": "2026-06-26T19:28:06.207629+00:00",
+  "status": "partial_success",
+  "output_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media",
+  "input_manifest": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports_manifest.json",
+  "solver_time_advanced": false,
+  "field_status": {
+    "phase_indicator": "generated",
+    "velocity_magnitude": "generated",
+    "vorticity_magnitude": "generated_diagnostic",
+    "ambient_phase_context": "generated_from_vof_complement",
+    "pressure": "blocked_zero_range_in_task02_exports",
+    "lambda2_or_q_like": "blocked_not_exported_validated"
+  },
+  "exports_consumed": [
+    {
+      "export_id": "official_round_control__early__t00p1",
+      "route_id": "official_round_control",
+      "frame_label": "early",
+      "source_time": 0.1,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/official_round_control__early__t00p1.csv"
+    },
+    {
+      "export_id": "official_round_control__onset_nearest_checkpoint__t00p5",
+      "route_id": "official_round_control",
+      "frame_label": "onset_nearest_checkpoint",
+      "source_time": 0.5,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/official_round_control__onset_nearest_checkpoint__t00p5.csv"
+    },
+    {
+      "export_id": "official_round_control__mid__t01p0",
+      "route_id": "official_round_control",
+      "frame_label": "mid",
+      "source_time": 1.0,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/official_round_control__mid__t01p0.csv"
+    },
+    {
+      "export_id": "official_round_control__safe_hero_proxy_checkpoint__t01p9",
+      "route_id": "official_round_control",
+      "frame_label": "safe_hero_proxy_checkpoint",
+      "source_time": 1.9,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/official_round_control__safe_hero_proxy_checkpoint__t01p9.csv"
+    },
+    {
+      "export_id": "official_round_control__final__t02p0",
+      "route_id": "official_round_control",
+      "frame_label": "final",
+      "source_time": 2.0,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/official_round_control__final__t02p0.csv"
+    },
+    {
+      "export_id": "rectangular_top_hat_comparison__early__t00p1",
+      "route_id": "rectangular_top_hat_comparison",
+      "frame_label": "early",
+      "source_time": 0.1,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/rectangular_top_hat_comparison__early__t00p1.csv"
+    },
+    {
+      "export_id": "rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6",
+      "route_id": "rectangular_top_hat_comparison",
+      "frame_label": "onset_nearest_checkpoint",
+      "source_time": 0.6,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6.csv"
+    },
+    {
+      "export_id": "rectangular_top_hat_comparison__mid__t01p0",
+      "route_id": "rectangular_top_hat_comparison",
+      "frame_label": "mid",
+      "source_time": 1.0,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/rectangular_top_hat_comparison__mid__t01p0.csv"
+    },
+    {
+      "export_id": "rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9",
+      "route_id": "rectangular_top_hat_comparison",
+      "frame_label": "safe_hero_proxy_checkpoint",
+      "source_time": 1.9,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9.csv"
+    },
+    {
+      "export_id": "rectangular_top_hat_comparison__final__t02p0",
+      "route_id": "rectangular_top_hat_comparison",
+      "frame_label": "final",
+      "source_time": 2.0,
+      "csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports/rectangular_top_hat_comparison__final__t02p0.csv"
+    }
+  ],
+  "generated_files": [
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/official_round_control__early__t00p1__phase_z0.png",
+      "size_bytes": 36984,
+      "sha256": "a18c8a3f522fe19d771fbc60b73beddfe910260b2bfb8c96e1c74bfff100f17e"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/official_round_control__early__t00p1__speed_z0.png",
+      "size_bytes": 45769,
+      "sha256": "cbbd63060a10f0f59fd7f061a780382ce03729331cc9a82b2a582aace71595fe"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/official_round_control__early__t00p1__vorticity_magnitude_z0.png",
+      "size_bytes": 42242,
+      "sha256": "338040e6442a7b2e8e79d19f94cbf8b7d0780765772e2acd8549e0862b18e407"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__early__t00p1__ambient_speed_z0.png",
+      "size_bytes": 48176,
+      "sha256": "4030a55296296c0341b5007f44c46bb6d47a4773ec892f0339a1da8207e57001"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__early__t00p1__ambient_streamlines_z0.png",
+      "size_bytes": 240700,
+      "sha256": "d590db9837de3de853e98024d13a5fb6472286bbaeda7215698199e38bdc77a2"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/official_round_control__early__t00p1__pressure_blocked.png",
+      "size_bytes": 49035,
+      "sha256": "a2bb226d9b3706516b88ed314e9af47e84e7b783d89963e6749ffdf72f3e6a18"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/official_round_control__early__t00p1__composite_panel.png",
+      "size_bytes": 191217,
+      "sha256": "2240538fa1d308996a92cf8755d4877c4215b57a585b156068f533ea5f8eeb65"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/official_round_control__onset_nearest_checkpoint__t00p5__phase_z0.png",
+      "size_bytes": 49782,
+      "sha256": "c1ae57f5a71da6523a480539bc26a8a1cac4a378e8bc8d7487c162cd7ef5ec59"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/official_round_control__onset_nearest_checkpoint__t00p5__speed_z0.png",
+      "size_bytes": 63801,
+      "sha256": "75059ac7459c74366b16f6b1876fbb17578f6685a18365e8197a7fdd693768a6"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/official_round_control__onset_nearest_checkpoint__t00p5__vorticity_magnitude_z0.png",
+      "size_bytes": 59206,
+      "sha256": "26e156b3fcff994e3be3a38a33e589fedfc46ec6c29d0b794de9399c68618b37"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__onset_nearest_checkpoint__t00p5__ambient_speed_z0.png",
+      "size_bytes": 62876,
+      "sha256": "a2c79457401ea16eef25177f3c27f5eb64df390492f2bb0116d31e895c710c32"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__onset_nearest_checkpoint__t00p5__ambient_streamlines_z0.png",
+      "size_bytes": 278773,
+      "sha256": "b7979d480c159a19122bdd870b674eedede4973c82de4a39b0fa569f8e92c939"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/official_round_control__onset_nearest_checkpoint__t00p5__pressure_blocked.png",
+      "size_bytes": 51804,
+      "sha256": "1dd71eef28d64f2d5f7ebe1300b8eb5eeaa8bb66b3e252b40d1ea6238fbaef13"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/official_round_control__onset_nearest_checkpoint__t00p5__composite_panel.png",
+      "size_bytes": 233365,
+      "sha256": "d9c510d97cf7e881a044f42ff7548f31e3bf3ceba3434dd6818e40afe5d37fe4"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/official_round_control__mid__t01p0__phase_z0.png",
+      "size_bytes": 50911,
+      "sha256": "7482ca2e216ad5fe1fdf4b8e0a29219a8817c1423664ea927e26ba7cd2b4771f"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/official_round_control__mid__t01p0__speed_z0.png",
+      "size_bytes": 74485,
+      "sha256": "799f2edee281cef6eddf7231f880f819d8278aaefc5284da4860e8255f856a35"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/official_round_control__mid__t01p0__vorticity_magnitude_z0.png",
+      "size_bytes": 72754,
+      "sha256": "40cce3eb12947a732a9c09eb4a1d63eb3c21edb7440353cd1cbb955f02cc0a6d"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__mid__t01p0__ambient_speed_z0.png",
+      "size_bytes": 74382,
+      "sha256": "f450db074a4e70e2158e859892b454445d38b8ecf762f8ca70d01189a405a819"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__mid__t01p0__ambient_streamlines_z0.png",
+      "size_bytes": 291578,
+      "sha256": "0d967dc52e6a51252c1d3ee93e37e2361525193d4d75700afe10ba4c766f40a4"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/official_round_control__mid__t01p0__pressure_blocked.png",
+      "size_bytes": 48751,
+      "sha256": "30cd198f5a3f23fdc446a767bad55a52bd96de421fff60c52ce8a770e59e011e"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/official_round_control__safe_hero_proxy_checkpoint__t01p9__phase_z0.png",
+      "size_bytes": 66608,
+      "sha256": "b380b657ede0ac7eeca26a9da9db0889b6682cae0bcc7a0564808bee6e559bca"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/official_round_control__safe_hero_proxy_checkpoint__t01p9__speed_z0.png",
+      "size_bytes": 99296,
+      "sha256": "48481119f6a776e1bb15c029c4f73278c91165a0669c9ab4a1c644fdd2d0a194"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/official_round_control__safe_hero_proxy_checkpoint__t01p9__vorticity_magnitude_z0.png",
+      "size_bytes": 108548,
+      "sha256": "8aa9dc59e9771852b838b3105b6812355fe32010411ae2d757871ff8ce2c6d3d"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__safe_hero_proxy_checkpoint__t01p9__ambient_speed_z0.png",
+      "size_bytes": 99349,
+      "sha256": "21d8559ec3a4e42a23fc7609327f092c56d8049b8c12f41109ed4591e6485952"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__safe_hero_proxy_checkpoint__t01p9__ambient_streamlines_z0.png",
+      "size_bytes": 286801,
+      "sha256": "32e94452533626eb4d89548e414f96a3867566c91c037e4cfe14b1b569bdce8a"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/official_round_control__safe_hero_proxy_checkpoint__t01p9__pressure_blocked.png",
+      "size_bytes": 52233,
+      "sha256": "072e5720fb8509c263ad2adc28c90a1fb4ae89847139a6f0ed9a1cd86821eec7"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/official_round_control__safe_hero_proxy_checkpoint__t01p9__composite_panel.png",
+      "size_bytes": 345709,
+      "sha256": "91c668087e534731516a6edf9959e672185e2ea6dab53b198ced5179ad0fd31c"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/official_round_control__final__t02p0__phase_z0.png",
+      "size_bytes": 65598,
+      "sha256": "4ad162457dc6a8d2a9f967c5ab0dab6eff14fe495f8a1baf0582cf98aaadb189"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/official_round_control__final__t02p0__speed_z0.png",
+      "size_bytes": 98176,
+      "sha256": "654d873c19118203d63f3c318bd89c7010d500ec3fd5fae3809d8b968ba79d5e"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/official_round_control__final__t02p0__vorticity_magnitude_z0.png",
+      "size_bytes": 109233,
+      "sha256": "96a30a7e9b4082627fa375f31cd6a736ba27f4efd47a781a8b2faba634885861"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__final__t02p0__ambient_speed_z0.png",
+      "size_bytes": 99267,
+      "sha256": "e352ff41fc57fab16d37ae75e9a3e7efd01f0a40d975b3829514fb05e1021efc"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/official_round_control__final__t02p0__ambient_streamlines_z0.png",
+      "size_bytes": 275108,
+      "sha256": "be7db791d9dc71fefe71c64eba4e7245c580331cb381f93325589ab836ad98ba"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/official_round_control__final__t02p0__pressure_blocked.png",
+      "size_bytes": 49023,
+      "sha256": "10f2652a0f1129b67c58abcfdfd8459d2b0b48c44310678c8b0e31cea08e22ed"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/official_round_control__final__t02p0__composite_panel.png",
+      "size_bytes": 342414,
+      "sha256": "a9d43a866ad12b2c263aba49c2821439181e72117bd250312ec6bb24ef3310a1"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/rectangular_top_hat_comparison__early__t00p1__phase_z0.png",
+      "size_bytes": 38932,
+      "sha256": "eff515ff82a423b11f81d82d0ea8f51e88dabb06750e4943d1dd84b8393b68d8"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/rectangular_top_hat_comparison__early__t00p1__speed_z0.png",
+      "size_bytes": 46937,
+      "sha256": "a5c0fc4421b58a3d00a496f5b534ec3711218fc47eb47e65e69b868b8876df6e"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/rectangular_top_hat_comparison__early__t00p1__vorticity_magnitude_z0.png",
+      "size_bytes": 43590,
+      "sha256": "5298ea9ad4513f6809946a89135f4fc16b3e965b57fc73bc8a80d5f2e10ca9c9"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__early__t00p1__ambient_speed_z0.png",
+      "size_bytes": 50124,
+      "sha256": "72c2bb0458f53475730ab145b2db35ca5aeb2d6a86faeb7ddc66fd0efde3f334"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__early__t00p1__ambient_streamlines_z0.png",
+      "size_bytes": 250960,
+      "sha256": "f568d4a1f02e8fbed3ba24499591b1019b7133bf89d1fda626db9386f8a834c4"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/rectangular_top_hat_comparison__early__t00p1__pressure_blocked.png",
+      "size_bytes": 50730,
+      "sha256": "606c4cdb5dd981145badc1e6aeb29b69fe6f8b0717683f30e58600ba205dc035"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/rectangular_top_hat_comparison__early__t00p1__composite_panel.png",
+      "size_bytes": 195325,
+      "sha256": "29d92717c7093bced03cd1fba9f9dc0d00fd9f0de99eb65ec8ebe00934892344"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__phase_z0.png",
+      "size_bytes": 51426,
+      "sha256": "18e117b8b9f4ef960e840850a608210a5d8b23886f7a5825eb949792eab6684e"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__speed_z0.png",
+      "size_bytes": 65289,
+      "sha256": "e090e455062f0aaa17ce4942b542f33e3f1e8b73458dd9a9c088912e9de5d9a5"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__vorticity_magnitude_z0.png",
+      "size_bytes": 62741,
+      "sha256": "7ceb588411e331321e1f25ec9a0aecdfb80e809d3d97257f4caedaf4bf1dde71"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__ambient_speed_z0.png",
+      "size_bytes": 65088,
+      "sha256": "d20f9e15fc2f47f4551a3a5404a91648e55173e9c43b443d8ca5f5f25ad58396"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__ambient_streamlines_z0.png",
+      "size_bytes": 283433,
+      "sha256": "ab2e8b0c662b0cddae956a3d887baf16f074632029e6de1ffd53cb7da94579ba"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__pressure_blocked.png",
+      "size_bytes": 53762,
+      "sha256": "5998c197edb1cc8e44dc873e60472d2d9f0efd42bbce54a540848f7eee0d199b"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/rectangular_top_hat_comparison__onset_nearest_checkpoint__t00p6__composite_panel.png",
+      "size_bytes": 240598,
+      "sha256": "62dadab383a410ef73615b1c754ac2057295b41c2464bb4e0854b17043ed83e4"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/rectangular_top_hat_comparison__mid__t01p0__phase_z0.png",
+      "size_bytes": 49419,
+      "sha256": "78bee45651a641871c2b8025b3bc0c9282e03ef0cd7ef90373f999b7ecaaf8f0"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/rectangular_top_hat_comparison__mid__t01p0__speed_z0.png",
+      "size_bytes": 75302,
+      "sha256": "bb033c1399dc3fd67cd56c5c47ba027d36276bcc1ad9864811311664c7730aa6"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/rectangular_top_hat_comparison__mid__t01p0__vorticity_magnitude_z0.png",
+      "size_bytes": 72717,
+      "sha256": "739220b2a3f57485fd699de627678ba6d1701eb75fe43e235b32f66f2b55fab0"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__mid__t01p0__ambient_speed_z0.png",
+      "size_bytes": 77835,
+      "sha256": "babf64281e860df7419639f29be24dc61b2e6626bcb105ddb4f1c5c86f5c29ac"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__mid__t01p0__ambient_streamlines_z0.png",
+      "size_bytes": 291937,
+      "sha256": "e431ff825fb0977e26893cf4f9d2b68b591faf18abd5ac3ad1c446e0fe9b38d2"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/rectangular_top_hat_comparison__mid__t01p0__pressure_blocked.png",
+      "size_bytes": 50187,
+      "sha256": "410e895615e4e9a264fc21fed2924823eb3739195542bcdb1a2539c7f620f509"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__phase_z0.png",
+      "size_bytes": 72885,
+      "sha256": "46ff8f992e4f8f31532309a898c4e5a58f365cced0d5b05ea2180a69e1a027cd"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__speed_z0.png",
+      "size_bytes": 106666,
+      "sha256": "92fad6b8a8ff42081af81ee2dd32ec8a6eeb4dd990b5a7547bbfb28762effa19"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__vorticity_magnitude_z0.png",
+      "size_bytes": 108922,
+      "sha256": "cad37b075d4defe38422b87e363cdd5e7f5de221cc3dc478da7d83c5ddcf6972"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__ambient_speed_z0.png",
+      "size_bytes": 103643,
+      "sha256": "a4620e6b420a38ae09255a9bdcf9a122b3294b349b517e594624da92d1cc564c"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__ambient_streamlines_z0.png",
+      "size_bytes": 287225,
+      "sha256": "0a912b82ebc45e2e5befd248ee402151c2356ef7fd2efaed3c987de7b0b52b61"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__pressure_blocked.png",
+      "size_bytes": 54501,
+      "sha256": "c485e62bcbd39dfc84203171181944eaaf6796b293be0a50444ad9c627323637"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/rectangular_top_hat_comparison__safe_hero_proxy_checkpoint__t01p9__composite_panel.png",
+      "size_bytes": 353836,
+      "sha256": "144d7a3016c6315e9ec9d37a8278d82456b27045c1783b40f895852dc38ac328"
+    },
+    {
+      "kind": "phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/phase/rectangular_top_hat_comparison__final__t02p0__phase_z0.png",
+      "size_bytes": 71618,
+      "sha256": "422a007be0012f8bf73b540e6756582fadc82f20e015bef41fc4487757891f8c"
+    },
+    {
+      "kind": "velocity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/velocity_magnitude/rectangular_top_hat_comparison__final__t02p0__speed_z0.png",
+      "size_bytes": 104917,
+      "sha256": "54a3d4e351bec0b7b24dd170cf11d3beb089c3f0bb16f594f4ece899c9eac3be"
+    },
+    {
+      "kind": "vorticity_magnitude",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/vorticity_magnitude/rectangular_top_hat_comparison__final__t02p0__vorticity_magnitude_z0.png",
+      "size_bytes": 109379,
+      "sha256": "6642860da1ca302f28c467bd1f694eaa388e282786cd2bc41d4140a1d8adabf2"
+    },
+    {
+      "kind": "ambient_phase",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__final__t02p0__ambient_speed_z0.png",
+      "size_bytes": 102257,
+      "sha256": "3e50ddf2f3bd078dd21dfde1dc3e5df76f26ad5f1af36f4c25f3679c048eab6b"
+    },
+    {
+      "kind": "ambient_streamlines",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/ambient_phase/rectangular_top_hat_comparison__final__t02p0__ambient_streamlines_z0.png",
+      "size_bytes": 277177,
+      "sha256": "6ea45408f91a40ebfa693517c9bd67f716c6841f9235df98401225c4f7e58197"
+    },
+    {
+      "kind": "pressure_blocked_notice",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots/pressure_blocked/rectangular_top_hat_comparison__final__t02p0__pressure_blocked.png",
+      "size_bytes": 50580,
+      "sha256": "32e85d27a8cb010d19919f9705bc7be4144fb7a5ea15cf862890fe72b4145a07"
+    },
+    {
+      "kind": "composite_panel",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite/rectangular_top_hat_comparison__final__t02p0__composite_panel.png",
+      "size_bytes": 351397,
+      "sha256": "c8659e36bc7f5a85777abc91f82741fa1a035d21aaccd941bb5eaf2cd0108281"
+    }
+  ],
+  "contact_sheets": [
+    {
+      "route_id": "official_round_control",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets/official_round_control__task05_composite_contact_sheet.jpg",
+      "size_bytes": 82529,
+      "sha256": "34491e7e3a07479fed0a15a555dd485fcbfac021e92d2ad7a2f33398909a8f22"
+    },
+    {
+      "route_id": "rectangular_top_hat_comparison",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets/rectangular_top_hat_comparison__task05_composite_contact_sheet.jpg",
+      "size_bytes": 85811,
+      "sha256": "af459fa6f44af7b021e9423a4b52cc4489d1bd418af8bb1f3d92cd7bf846f922"
+    },
+    {
+      "route_id": "all",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets/task05_all_composite_contact_sheet.jpg",
+      "size_bytes": 165928,
+      "sha256": "735faddb5a4fd6663177fcc18b65d11b56e6bd50acecd2e56512398fb497d215"
+    }
+  ],
+  "videos": [
+    {
+      "available": true,
+      "output": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media/task05_field_visualization_reel.mp4",
+      "returncode": 0,
+      "log": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/logs/ffmpeg_task05_field_visualization_reel.log",
+      "size_bytes": 578353,
+      "sha256": "07e6d1f3fad68ba30106b3dc1ca192bbee7f1439a797319051d006f6fd64293b"
+    },
+    {
+      "available": true,
+      "output": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media/official_round_control__field_visualization_reel.mp4",
+      "returncode": 0,
+      "log": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/logs/ffmpeg_official_round_control_field_visualization_reel.log",
+      "size_bytes": 314461,
+      "sha256": "926494f5b805341cb6b32f7a5b92d9d0b0a459eb1deec2adc4103e3352df1d8d"
+    },
+    {
+      "available": true,
+      "output": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media/rectangular_top_hat_comparison__field_visualization_reel.mp4",
+      "returncode": 0,
+      "log": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/logs/ffmpeg_rectangular_top_hat_comparison_field_visualization_reel.log",
+      "size_bytes": 339671,
+      "sha256": "e9612b03d6ab8ec0cf789506027e5128800f684a0c82b4ea861c65baf61f0ffc"
+    }
+  ],
+  "claim_boundary": {
+    "public_ready": false,
+    "fit_ready": false,
+    "pressure_heatmaps_generated": false,
+    "notes": [
+      "Field media are diagnostic visualizations from restore-only Task 02 exports.",
+      "Pressure media remain blocked because restored p has zero range.",
+      "Ambient phase is VOF complement only; no separate gas tracer was exported."
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "generated_at_utc": "2026-06-26T19:45:16Z",
+  "statuses": {
+    "01_physical_framing_claim_strategy": "success",
+    "02_field_export_diagnostic_extraction": "partial_success",
+    "03_smooth_render_surface_pipeline": "success",
+    "04_blender_material_camera_v3": "success",
+    "05_field_visualization_media": "partial_success",
+    "06_internal_package_draft": "success"
+  },
+  "safe_to_continue": true,
+  "partial_successes": [
+    "02_field_export_diagnostic_extraction",
+    "05_field_visualization_media"
+  ],
+  "blockers": {
+    "02_field_export_diagnostic_extraction": "Pressure visualization blocked: restored p has zero range in all selected saved-checkpoint exports. Lambda2/Q-like fields blocked pending a separately validated adaptive-octree gradient export.",
+    "05_field_visualization_media": "Pressure visualization blocked because restored p has zero range in Task 02 exports; lambda2/Q-like media blocked because no validated gradient-tensor export exists. Usable phase, speed, diagnostic-vorticity, and ambient-phase media were generated."
+  },
+  "fit_ready": false,
+  "public_ready": false
+}

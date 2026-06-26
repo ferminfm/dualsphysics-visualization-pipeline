@@ -1,0 +1,100 @@
+{
+  "assets": [
+    {
+      "asset_id": "long_primary_route_blender_sequence_v3",
+      "avg_frame_rate": "12/1",
+      "codec_name": "h264",
+      "contact_sheet_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/contact_sheets/long_primary_route_blender_sequence_v3_contact_sheet.jpg",
+      "duration_seconds": 8.416667,
+      "ffprobe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/metadata/ffprobe_long_primary_route_blender_sequence_v3.json",
+      "fit_ready": false,
+      "frame_count": 101,
+      "height": 1080,
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/long_primary_route_blender_sequence_v3.mp4",
+      "pix_fmt": "yuv420p",
+      "public_ready": false,
+      "role": "primary official-round v3 Blender sequence",
+      "sha256": "da9e9e727f42d2ebbdec18d85d78e0491e3f5d8c1ac0e517230a98c132ce910d",
+      "size_bytes": 4788583,
+      "still_paths": [
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/long_primary_route_blender_sequence_v3_first.jpg",
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/long_primary_route_blender_sequence_v3_middle.jpg",
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/long_primary_route_blender_sequence_v3_last.jpg"
+      ],
+      "width": 1920
+    },
+    {
+      "asset_id": "round_vs_rectangular_split_screen_v3",
+      "avg_frame_rate": "12/1",
+      "codec_name": "h264",
+      "contact_sheet_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/contact_sheets/round_vs_rectangular_split_screen_v3_contact_sheet.jpg",
+      "duration_seconds": 8.416667,
+      "ffprobe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/metadata/ffprobe_round_vs_rectangular_split_screen_v3.json",
+      "fit_ready": false,
+      "frame_count": 101,
+      "height": 1080,
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/round_vs_rectangular_split_screen_v3.mp4",
+      "pix_fmt": "yuv420p",
+      "public_ready": false,
+      "role": "exact-time round vs rectangular comparison",
+      "sha256": "5d8b49eb2dc827eeb5b960236c395f4652479fe64843cf7eef8f00c54a50cdfb",
+      "size_bytes": 4715885,
+      "still_paths": [
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/round_vs_rectangular_split_screen_v3_first.jpg",
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/round_vs_rectangular_split_screen_v3_middle.jpg",
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/round_vs_rectangular_split_screen_v3_last.jpg"
+      ],
+      "width": 1920
+    },
+    {
+      "asset_id": "final_complex_geometry_flythrough_v3",
+      "avg_frame_rate": "12/1",
+      "codec_name": "h264",
+      "contact_sheet_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg",
+      "duration_seconds": 6.0,
+      "ffprobe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/metadata/ffprobe_final_complex_geometry_flythrough_v3.json",
+      "fit_ready": false,
+      "frame_count": 72,
+      "height": 1080,
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/final_complex_geometry_flythrough_v3.mp4",
+      "pix_fmt": "yuv420p",
+      "public_ready": false,
+      "role": "safe-frame staged flythrough",
+      "sha256": "187d454ab15d8618ca5326520f4f45d07705a66355a3d155baecf3739ad2416a",
+      "size_bytes": 4722651,
+      "still_paths": [
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/final_complex_geometry_flythrough_v3_first.jpg",
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/final_complex_geometry_flythrough_v3_middle.jpg",
+        "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/final_complex_geometry_flythrough_v3_last.jpg"
+      ],
+      "width": 1920
+    }
+  ],
+  "claim_boundary": {
+    "fit_ready": false,
+    "public_ready": false,
+    "rectangular_route_description": "2:1 rectangular top-hat imposed-inlet comparison, not internal-nozzle flow",
+    "validation_claim_allowed": false
+  },
+  "created_at": "2026-06-26T19:21:37.873082+00:00",
+  "flythrough_visibility": {
+    "failed_frame_count": 0,
+    "frame_count": 72,
+    "max_fluid_occupancy": 0.6746006944444445,
+    "maximum_consecutive_low_visibility_frames": 0,
+    "min_fluid_occupancy": 0.18086805555555555,
+    "visibility_passed": true
+  },
+  "frame_mapping_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/manifests/TASK04_FRAME_MAPPING.csv",
+  "no_cfd_run": true,
+  "render_run_allowed": true,
+  "status": "success",
+  "surface_recipe_policy": {
+    "comparison_application": "raw_flat_facets fallback for all frames to preserve scale/caveats and avoid late-frame instability",
+    "diagnostic_geometry_policy": "raw Basilisk output_facets(f) remains the scientific reference",
+    "flythrough_application": "raw_flat_facets fallback on static frame 98 after late-frame weighted-normal instability",
+    "primary_sequence_application": "frames 0-57 used merged_weighted_normals; frames 58-100 used raw_flat_facets fallback after Blender weighted-normal segfaults",
+    "task03_selected_recipe": "merged_weighted_normals"
+  },
+  "task_id": "04_blender_material_camera_v3"
+}

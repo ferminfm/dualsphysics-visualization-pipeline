@@ -1,0 +1,72 @@
+{
+  "task_id": "03_smooth_render_surface_pipeline",
+  "status": "success",
+  "safe_to_continue": true,
+  "surface_pipeline_ready": true,
+  "render_surface_recipe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/SMOOTH_RENDER_SURFACE_RECIPE.json",
+  "exact_blocker": "",
+  "recommended_next_step": "Task 04 should use the render-only merged_weighted_normals recipe for presentation meshes, keep diagnostics on raw output_facets(f), and fall back to raw_flat_facets if weighted-normal rendering is unstable on any future frame.",
+  "retry_recommended": false,
+  "output_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline",
+  "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_REPORT.md",
+  "branch_name": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "repo_changed": false,
+  "commit_hash": "",
+  "local_head_sha": "281904de4e73c61a222a885d1441370c13a472de",
+  "solver_run_performed": false,
+  "solver_time_advancement_performed": false,
+  "render_run_performed": true,
+  "raw_outputs_committed": false,
+  "push_performed": false,
+  "public_ready": false,
+  "fit_ready": false,
+  "qa_passed": true,
+  "selected_recipe_id": "merged_weighted_normals",
+  "fallback_recipe_id": "raw_flat_facets",
+  "comparison_csv_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/metrics/SURFACE_SMOOTHING_COMPARISON.csv",
+  "comparison_json_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/metrics/SURFACE_SMOOTHING_COMPARISON.json",
+  "decision_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/SURFACE_SMOOTHING_DECISION.md",
+  "render_records_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/renders/render_records_all.json",
+  "contact_sheet_paths": [
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/official_round_frame_0025_variant_contact_sheet.jpg",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/official_round_frame_0050_variant_contact_sheet.jpg",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/official_round_frame_0098_variant_contact_sheet.jpg",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/rectangular_frame_0098_variant_contact_sheet.jpg"
+  ],
+  "metric_frame_count": 8,
+  "rendered_still_count": 20,
+  "aggregate_metric_results": {
+    "merged_weighted_normals": {
+      "safe_frames": 8,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.0,
+      "max_area_rel_drift": 0.0,
+      "max_abs_volume_proxy_rel_drift": 0.0,
+      "max_coordinate_component_count_delta_abs": 0,
+      "max_face_count_delta_abs": 0
+    },
+    "simple_subdivision_weighted_normals": {
+      "safe_frames": 0,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.0,
+      "max_area_rel_drift": 4.578210125348327e-8,
+      "max_abs_volume_proxy_rel_drift": 1.3994555969211495e-7,
+      "max_coordinate_component_count_delta_abs": 16,
+      "max_face_count_delta_abs": 116718
+    },
+    "limited_laplacian_smooth": {
+      "safe_frames": 0,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.002512774145077893,
+      "max_area_rel_drift": 0.2655255813226679,
+      "max_abs_volume_proxy_rel_drift": 0.2892427376920381,
+      "max_coordinate_component_count_delta_abs": 0,
+      "max_face_count_delta_abs": 0
+    }
+  },
+  "warnings": [
+    "Initial combined Blender metrics script segfaulted; final metrics were computed in normal Python from facet coordinates.",
+    "Long single-process Blender render loop segfaulted after partial output; filtered one-still and one-frame Blender reruns completed the visual assets."
+  ],
+  "completion_marker": "TASK_03_SURFACE_PIPELINE_WRITTEN: /home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_REPORT.md"
+}

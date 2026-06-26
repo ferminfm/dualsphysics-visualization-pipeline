@@ -2,13 +2,13 @@
   "asset_availability": {
     "artifact_count": 7,
     "blender_assets_ready": true,
-    "review_packet_repo_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review",
-    "scientific_media_ready": true,
+    "boundary_clearance_audit_ready": true,
+    "corrected_flythrough_v2": true,
     "corrected_primary_sequence_v2": true,
     "corrected_split_screen_v2": true,
-    "corrected_flythrough_v2": true,
-    "boundary_clearance_audit_ready": true,
-    "flythrough_visibility_qa_ready": true
+    "flythrough_visibility_qa_ready": true,
+    "review_packet_repo_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review",
+    "scientific_media_ready": true
   },
   "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
   "branch_note": "Historical review-branch name contains Poiseuille, but the selected rectangular long route is C1_rect_area_top_hat / rect_area_top_hat, not Poiseuille.",
@@ -19,9 +19,23 @@
     "not_public_ready": true,
     "not_validation": true
   },
+  "corrected_visual_assets": {
+    "boundary_clearance_audit": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/BOUNDARY_CLEARANCE_AUDIT.md",
+    "comparison_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/round_vs_rectangular_split_screen_v2.mp4",
+    "flythrough_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/final_complex_geometry_flythrough_v2.mp4",
+    "flythrough_visibility_qa": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/FLYTHROUGH_VISIBILITY_QA.md",
+    "primary_sequence_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/long_primary_route_blender_sequence_v2.mp4",
+    "visual_asset_manifest": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/metadata/VISUAL_ASSET_MANIFEST.json"
+  },
   "fit_ready": false,
   "generated_at_utc": "2026-06-25T23:28:57Z",
   "head_sha_at_status_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "hero_frame_selection": {
+    "scientifically_safe_hero_frame": 98,
+    "scientifically_safe_hero_route": "official_round_control",
+    "scientifically_safe_hero_time": 1.96,
+    "selection_basis": "highest complexity eligible official-round frame before any meaningful downstream or lateral boundary contact"
+  },
   "human_decisions_required": [
     "circular scientific value and portfolio lead route",
     "rectangular comparison inclusion and mandatory caveat wording",
@@ -29,9 +43,38 @@
     "visual corrections before public packaging",
     "stacked PR disposition"
   ],
+  "layer1_decision": {
+    "fit_ready": false,
+    "layer1_decision_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/LAYER1_DECISION.md",
+    "official_circular_internal_lead_candidate": true,
+    "poiseuille_series_note": "Poiseuille-series profiles were implemented/tested but were not selected by the bounded candidate gate.",
+    "poiseuille_series_selected": false,
+    "public_packaging_blocked": true,
+    "public_packaging_blockers_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/PUBLIC_PACKAGING_BLOCKERS.md",
+    "public_ready": false,
+    "rectangular_secondary_caveated_comparison_only": true,
+    "selected_rectangular_case": "C1_rect_area_top_hat",
+    "selected_rectangular_description": "2:1 rectangular top-hat imposed-inlet comparison",
+    "selected_rectangular_profile": "rect_area_top_hat",
+    "v2_flythrough_requires_direct_human_visual_inspection": true
+  },
+  "naming_correction_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
+  "poiseuille_series_selected": false,
+  "postprocess_publicprep_packet": {
+    "field_media_ready": true,
+    "fit_ready": false,
+    "generated_at_utc": "2026-06-26T19:48:09+00:00",
+    "lambda2_q_blocked": true,
+    "lead_route": "official_round_control",
+    "pressure_visualization_blocked": true,
+    "public_ready": false,
+    "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+    "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat imposed-inlet comparison"
+  },
   "public_ready": false,
   "remote_base_sha_at_status_write": "34fe347e5571c91dcbd35e640f39578feb80f481",
   "remote_target_sha_at_status_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "review_packet_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/",
   "route_definitions": {
     "official_round_control": {
       "Re": 5800,
@@ -64,6 +107,9 @@
       "profile": "rect_area_top_hat"
     }
   },
+  "selected_rectangular_case": "C1_rect_area_top_hat",
+  "selected_rectangular_description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
+  "selected_rectangular_profile": "rect_area_top_hat",
   "source_file_hashes": {
     "cases/basilisk/official_rectangular_pulsed_atomisation.c": {
       "sha256": "341e7d3ce32f2737d285a1aced2dfd9e9ad5ded89db2a2bbafa4406709039efc"
@@ -152,40 +198,5 @@
     },
     "selected_rectangular_case": "C1_rect_area_top_hat",
     "selected_rectangular_profile": "rect_area_top_hat"
-  },
-  "review_packet_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/",
-  "selected_rectangular_case": "C1_rect_area_top_hat",
-  "selected_rectangular_profile": "rect_area_top_hat",
-  "selected_rectangular_description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
-  "poiseuille_series_selected": false,
-  "naming_correction_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
-  "corrected_visual_assets": {
-    "primary_sequence_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/long_primary_route_blender_sequence_v2.mp4",
-    "comparison_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/round_vs_rectangular_split_screen_v2.mp4",
-    "flythrough_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/final_complex_geometry_flythrough_v2.mp4",
-    "boundary_clearance_audit": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/BOUNDARY_CLEARANCE_AUDIT.md",
-    "flythrough_visibility_qa": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/FLYTHROUGH_VISIBILITY_QA.md",
-    "visual_asset_manifest": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/metadata/VISUAL_ASSET_MANIFEST.json"
-  },
-  "hero_frame_selection": {
-    "scientifically_safe_hero_route": "official_round_control",
-    "scientifically_safe_hero_frame": 98,
-    "scientifically_safe_hero_time": 1.96,
-    "selection_basis": "highest complexity eligible official-round frame before any meaningful downstream or lateral boundary contact"
-  },
-  "layer1_decision": {
-    "official_circular_internal_lead_candidate": true,
-    "rectangular_secondary_caveated_comparison_only": true,
-    "selected_rectangular_case": "C1_rect_area_top_hat",
-    "selected_rectangular_profile": "rect_area_top_hat",
-    "selected_rectangular_description": "2:1 rectangular top-hat imposed-inlet comparison",
-    "poiseuille_series_selected": false,
-    "poiseuille_series_note": "Poiseuille-series profiles were implemented/tested but were not selected by the bounded candidate gate.",
-    "public_packaging_blocked": true,
-    "fit_ready": false,
-    "public_ready": false,
-    "layer1_decision_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/LAYER1_DECISION.md",
-    "public_packaging_blockers_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/PUBLIC_PACKAGING_BLOCKERS.md",
-    "v2_flythrough_requires_direct_human_visual_inspection": true
   }
 }

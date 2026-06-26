@@ -1,0 +1,64 @@
+{
+  "task_id": "01_physical_framing_claim_strategy",
+  "status": "success",
+  "safe_to_continue": true,
+  "physical_framing_ready": true,
+  "claim_matrix_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CLAIM_LANGUAGE_MATRIX.md",
+  "exact_blocker": "",
+  "recommended_next_step": "Proceed to Task 02 only with the conservative no-gravity, no-validation, no-public-readiness, and imposed-inlet rectangular-route boundaries preserved.",
+  "retry_recommended": false,
+  "output_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy",
+  "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CODEX_TASK_01_REPORT.md",
+  "physical_framing_note_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/PHYSICAL_FRAMING_NOTE.md",
+  "two_phase_interpretation_note_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/TWO_PHASE_INTERPRETATION_NOTE.md",
+  "industrial_relevance_note_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/INDUSTRIAL_RELEVANCE_NOTE.md",
+  "future_gravity_branch_spec_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/FUTURE_GRAVITY_BRANCH_SPEC.md",
+  "solver_run_allowed": false,
+  "solver_run_performed": false,
+  "render_run_allowed": false,
+  "render_run_performed": false,
+  "slash_command_orchestration_used": false,
+  "current_case": {
+    "phase_model": "Basilisk two-phase VOF with surface tension",
+    "reynolds_number": 5800,
+    "surface_tension_coefficient": 3e-05,
+    "density_ratio_liquid_to_ambient": 27.84,
+    "u0": 1.0,
+    "pulse_amplitude": 0.05,
+    "pulse_period": 0.1,
+    "gravity_active": false,
+    "final_time": 2.0,
+    "long_route_physical_frames": 101
+  },
+  "routes": {
+    "primary": {
+      "route": "official_round_control",
+      "profile_mode": "round_official_top_hat",
+      "classification": "official_round_benchmark_candidate_supported"
+    },
+    "comparison": {
+      "selected_case": "C1_rect_area_top_hat",
+      "profile_mode": "rect_area_top_hat",
+      "description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
+      "classification": "rectangular_candidate_resolution_sensitive",
+      "internal_nozzle_flow": false,
+      "poiseuille_selected": false
+    }
+  },
+  "readiness": {
+    "fit_ready": false,
+    "public_ready": false,
+    "publication_blocked_until_human_review": true
+  },
+  "branch_name": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "repo_changed": false,
+  "commit_hash": "",
+  "raw_outputs_committed": false,
+  "push_performed": false,
+  "public_ready": false,
+  "fit_ready": false,
+  "qa_passed": true,
+  "orchestrator_schema_normalized": true,
+  "orchestrator_schema_normalized_at": "2026-06-26T17:35:17.783372+00:00",
+  "orchestrator_schema_normalization_note": "Added common TASK_RESULT_SCHEMA fields omitted by the task agent; values are inferred from the report, clean git status, and task constraints."
+}

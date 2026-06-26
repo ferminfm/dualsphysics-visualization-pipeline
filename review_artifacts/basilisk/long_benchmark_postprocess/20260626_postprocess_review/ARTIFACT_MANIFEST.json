@@ -1,0 +1,539 @@
+{
+  "artifacts": [
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "video_proxy",
+      "note": "primary Blender v3 proxy",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v3.mp4",
+      "sha256": "da9e9e727f42d2ebbdec18d85d78e0491e3f5d8c1ac0e517230a98c132ce910d",
+      "size_bytes": 4788583,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/long_primary_route_blender_sequence_v3.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "video_proxy",
+      "note": "round/rectangular split-screen v3 proxy",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v3.mp4",
+      "sha256": "5d8b49eb2dc827eeb5b960236c395f4652479fe64843cf7eef8f00c54a50cdfb",
+      "size_bytes": 4715885,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/round_vs_rectangular_split_screen_v3.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "video_proxy",
+      "note": "final flythrough v3 proxy",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "sha256": "187d454ab15d8618ca5326520f4f45d07705a66355a3d155baecf3739ad2416a",
+      "size_bytes": 4722651,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/final_complex_geometry_flythrough_v3.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "video_proxy",
+      "note": "field visualization all-route diagnostic reel",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel.mp4",
+      "sha256": "07e6d1f3fad68ba30106b3dc1ca192bbee7f1439a797319051d006f6fd64293b",
+      "size_bytes": 578353,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media/task05_field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "video_proxy",
+      "note": "official round field diagnostic reel",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/official_round_control__field_visualization_reel.mp4",
+      "sha256": "926494f5b805341cb6b32f7a5b92d9d0b0a459eb1deec2adc4103e3352df1d8d",
+      "size_bytes": 314461,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media/official_round_control__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "video_proxy",
+      "note": "rectangular top-hat field diagnostic reel",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/rectangular_top_hat_comparison__field_visualization_reel.mp4",
+      "sha256": "e9612b03d6ab8ec0cf789506027e5128800f684a0c82b4ea861c65baf61f0ffc",
+      "size_bytes": 339671,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media/rectangular_top_hat_comparison__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "contact_sheet",
+      "note": "Task 04 Blender v3 contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg",
+      "sha256": "de1b187090776fbd5346281fe0763924b4c8c1c1b997a4edc15824d69d9dc788",
+      "size_bytes": 86564,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "contact_sheet",
+      "note": "Task 04 Blender v3 contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/long_primary_route_blender_sequence_v3_contact_sheet.jpg",
+      "sha256": "5fb2136990479520c210713b589b1e8aebd6a7e888f35674cd77560c1413b5cb",
+      "size_bytes": 85435,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/contact_sheets/long_primary_route_blender_sequence_v3_contact_sheet.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "contact_sheet",
+      "note": "Task 04 Blender v3 contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/round_vs_rectangular_split_screen_v3_contact_sheet.jpg",
+      "sha256": "73ea78d0dd921facbe028af12f28f1a7e0cde8baad066308d6d21c2f151bdfe0",
+      "size_bytes": 83449,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/contact_sheets/round_vs_rectangular_split_screen_v3_contact_sheet.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "contact_sheet",
+      "note": "Task 05 field media contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/official_round_control__task05_composite_contact_sheet.jpg",
+      "sha256": "34491e7e3a07479fed0a15a555dd485fcbfac021e92d2ad7a2f33398909a8f22",
+      "size_bytes": 82529,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets/official_round_control__task05_composite_contact_sheet.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "contact_sheet",
+      "note": "Task 05 field media contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/rectangular_top_hat_comparison__task05_composite_contact_sheet.jpg",
+      "sha256": "af459fa6f44af7b021e9423a4b52cc4489d1bd418af8bb1f3d92cd7bf846f922",
+      "size_bytes": 85811,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets/rectangular_top_hat_comparison__task05_composite_contact_sheet.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "contact_sheet",
+      "note": "Task 05 field media contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/task05_all_composite_contact_sheet.jpg",
+      "sha256": "735faddb5a4fd6663177fcc18b65d11b56e6bd50acecd2e56512398fb497d215",
+      "size_bytes": 165928,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets/task05_all_composite_contact_sheet.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_first.jpg",
+      "sha256": "70609b87950861295a5c9c5b39720a24a63d87c9610c513b9878bd8c20c12ac4",
+      "size_bytes": 99650,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/final_complex_geometry_flythrough_v3_first.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_last.jpg",
+      "sha256": "03b66c92344a2b190f4036dc757d9335d7658a5248395204e3ae40fcccc2b819",
+      "size_bytes": 116310,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/final_complex_geometry_flythrough_v3_last.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_middle.jpg",
+      "sha256": "0e73359cb30777952e34c01c029caea7a09a914bdb3c8fdb2a795d5ca4525cbc",
+      "size_bytes": 110910,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/final_complex_geometry_flythrough_v3_middle.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v3_first.jpg",
+      "sha256": "939512a389dad92ff61950a3f0e06e2ab38341b6345654772c976e1462581457",
+      "size_bytes": 45610,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/long_primary_route_blender_sequence_v3_first.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v3_last.jpg",
+      "sha256": "8053b06b38afcb38ec326e3c9255108a7725fb35896607e227b302152f06db51",
+      "size_bytes": 116079,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/long_primary_route_blender_sequence_v3_last.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v3_middle.jpg",
+      "sha256": "9f814df0388b4b7d3d73af666289f528a568c9661b173edc6172587cd6384aca",
+      "size_bytes": 75612,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/long_primary_route_blender_sequence_v3_middle.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v3_first.jpg",
+      "sha256": "6493526a18457c6d9c8c97557f26c804acba58585b741871874d513f549eab31",
+      "size_bytes": 44923,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/round_vs_rectangular_split_screen_v3_first.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v3_last.jpg",
+      "sha256": "0886eceab04a921dddb62946bb9539b5fbf69ef210843468c20a5ca08677e977",
+      "size_bytes": 106406,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/round_vs_rectangular_split_screen_v3_last.jpg"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "still",
+      "note": "Task 04 first/middle/last still",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v3_middle.jpg",
+      "sha256": "eba0ea231865d55c20189631f9b139a3340d12cb06e1a40909744ace03bfcf6a",
+      "size_bytes": 89086,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/stills/round_vs_rectangular_split_screen_v3_middle.jpg"
+    },
+    {
+      "claim_boundary": "Metadata only; public_ready=false; fit_ready=false.",
+      "kind": "ffprobe_metadata",
+      "note": "ffprobe metadata for long_primary_route_blender_sequence_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_long_primary_route_blender_sequence_v3.json",
+      "sha256": "69b693eee23cfa40ccb8d8dc3f151274c1db61d115b2fb1c9078d2776cb768f4",
+      "size_bytes": 2362,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "first still extracted from long_primary_route_blender_sequence_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v3_first.jpg",
+      "sha256": "633c338112e56b4a7fd3061f4da20ea202e1166b3e8819921bff7ea76b480a6c",
+      "size_bytes": 64662,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "middle still extracted from long_primary_route_blender_sequence_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v3_middle.jpg",
+      "sha256": "83998644f98f5cfcac7515681dea791f8d0160e1307c3649192d24312c6071d2",
+      "size_bytes": 125913,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "last still extracted from long_primary_route_blender_sequence_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v3_last.jpg",
+      "sha256": "ac5660d263dc7d801b68118472d8b7ae541358a76d350a50dc8e0ad26f8711a4",
+      "size_bytes": 189978,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v3.mp4"
+    },
+    {
+      "claim_boundary": "Metadata only; public_ready=false; fit_ready=false.",
+      "kind": "ffprobe_metadata",
+      "note": "ffprobe metadata for round_vs_rectangular_split_screen_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_round_vs_rectangular_split_screen_v3.json",
+      "sha256": "540efeffc2e756dae9b3902c053d06648312221c0033ceca00ea276af3472f75",
+      "size_bytes": 2360,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "first still extracted from round_vs_rectangular_split_screen_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v3_first.jpg",
+      "sha256": "0f301cf59d790af7d97ab265ad220cdb01378f15fc5d05b1dbabb2fcc5f441df",
+      "size_bytes": 66227,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "middle still extracted from round_vs_rectangular_split_screen_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v3_middle.jpg",
+      "sha256": "7416e7bab47c3ae959cb037e252466f79d75877407df22a4f5f9f96dfc7cadab",
+      "size_bytes": 139259,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "last still extracted from round_vs_rectangular_split_screen_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v3_last.jpg",
+      "sha256": "e8fd5d2d5196b1f6c8d61a8758062f7d6ccc2a6424be6538d747eb1fc2754452",
+      "size_bytes": 154232,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v3.mp4"
+    },
+    {
+      "claim_boundary": "Metadata only; public_ready=false; fit_ready=false.",
+      "kind": "ffprobe_metadata",
+      "note": "ffprobe metadata for final_complex_geometry_flythrough_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_final_complex_geometry_flythrough_v3.json",
+      "sha256": "c7b4a5de9fcc1b52cc28306c82d14e13836c9a5318b10ed43bb8a389038e53ad",
+      "size_bytes": 2358,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "first still extracted from final_complex_geometry_flythrough_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_first.jpg",
+      "sha256": "cccf6058d2cff210104a51fe62aa759aff9f91bbcbcb7d507c3cd70456390b93",
+      "size_bytes": 195490,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "middle still extracted from final_complex_geometry_flythrough_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_middle.jpg",
+      "sha256": "e73c5bd8f7824dc84e1827c87a3a3c785aa5a0e2c83d36dccf1abc4783efc676",
+      "size_bytes": 206802,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "last still extracted from final_complex_geometry_flythrough_v3.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_last.jpg",
+      "sha256": "b590c405ef37875db77c873bd55ae61ac15ea0901b05a4e0c2ba8ec931c328f5",
+      "size_bytes": 200892,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4"
+    },
+    {
+      "claim_boundary": "Metadata only; public_ready=false; fit_ready=false.",
+      "kind": "ffprobe_metadata",
+      "note": "ffprobe metadata for task05_field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_task05_field_visualization_reel.json",
+      "sha256": "0656c61138574e27da01cd40c840ee6f46476bc9a376fa7bcc5a67af3bba5c19",
+      "size_bytes": 2357,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "first still extracted from task05_field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_first.jpg",
+      "sha256": "5039269cef95a58381a9c31727e9caa21c50e30921724e90b79a65d997b20adf",
+      "size_bytes": 163758,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "middle still extracted from task05_field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_middle.jpg",
+      "sha256": "a96879fe26a5a7d0b7433e9fa02b4962cb79de5fc668354a10598e6c57d9a7c3",
+      "size_bytes": 171618,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Metadata only; public_ready=false; fit_ready=false.",
+      "kind": "ffprobe_metadata",
+      "note": "ffprobe metadata for official_round_control__field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_official_round_control__field_visualization_reel.json",
+      "sha256": "07cc3e4d69df630403bbf0e7912dba04c03e1023e6c0737cf97d846ff61bdf97",
+      "size_bytes": 2375,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/official_round_control__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "first still extracted from official_round_control__field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_first.jpg",
+      "sha256": "401815ca0e7f65abffbca21545a5665f586f2c92e5e2d7636e98e1455f13bf44",
+      "size_bytes": 163756,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/official_round_control__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "middle still extracted from official_round_control__field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_middle.jpg",
+      "sha256": "c86f9eedc41f1d1e30414acc3117022c565fcbc6e302e0a35721d48f04e5f47c",
+      "size_bytes": 206727,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/official_round_control__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Metadata only; public_ready=false; fit_ready=false.",
+      "kind": "ffprobe_metadata",
+      "note": "ffprobe metadata for rectangular_top_hat_comparison__field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_rectangular_top_hat_comparison__field_visualization_reel.json",
+      "sha256": "a2c0fc1944845c6a5627a5ae04acdc1d0129ed7752a3a52ed92993297409b0e4",
+      "size_bytes": 2383,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/rectangular_top_hat_comparison__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "first still extracted from rectangular_top_hat_comparison__field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_first.jpg",
+      "sha256": "4dc6e10ea4630e282b6a5e10008d4258daf58426e91f82cafb92511a1ff28dc0",
+      "size_bytes": 171471,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/rectangular_top_hat_comparison__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Diagnostic still; public_ready=false; fit_ready=false.",
+      "kind": "still",
+      "note": "middle still extracted from rectangular_top_hat_comparison__field_visualization_reel.mp4",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_middle.jpg",
+      "sha256": "f057c83fd346ffb570d8947364d9c56210fd0a932271c33dcd51aa7ca5ee438f",
+      "size_bytes": 215717,
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/rectangular_top_hat_comparison__field_visualization_reel.mp4"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "claim evidence",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK01_CLAIM_LANGUAGE_MATRIX.md",
+      "sha256": "78814f994c052dd622ee93674bbb54cfdaeee6a420b1b5022147fee304ece487",
+      "size_bytes": 4201,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CLAIM_LANGUAGE_MATRIX.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "framing evidence",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK01_PHYSICAL_FRAMING_NOTE.md",
+      "sha256": "74133758a8becd44905e192fba70429cc993578da75024457730fb0369626fca",
+      "size_bytes": 5338,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/PHYSICAL_FRAMING_NOTE.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "field availability audit",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK02_FIELD_AVAILABILITY_AUDIT.md",
+      "sha256": "88fe2eca981092a3dc0bc55e8258c2f4d4bb05507a661fe20ed90fd36f483a7f",
+      "size_bytes": 1717,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/FIELD_AVAILABILITY_AUDIT.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "field feasibility decision",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK02_FIELD_VISUALIZATION_FEASIBILITY_DECISION.md",
+      "sha256": "6b741a3062eff65da56035343cebd7165f41071a503909b5f8e60ada26d3980b",
+      "size_bytes": 1057,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/FIELD_VISUALIZATION_FEASIBILITY_DECISION.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "surface smoothing decision",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK03_SURFACE_SMOOTHING_DECISION.md",
+      "sha256": "9f77884f307752de9368a0b01fc08301b9d1f509e416df94f0b56157e925cc4e",
+      "size_bytes": 2713,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/SURFACE_SMOOTHING_DECISION.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "visual gate",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK04_VISUAL_GATE.md",
+      "sha256": "04c2a5c82f9b699ed47c072f6f2abf6d05545ca995436f83618fe9dd9b6b07c2",
+      "size_bytes": 1769,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/TASK04_VISUAL_GATE.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "field visualization method",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK05_FIELD_VISUALIZATION_METHOD_NOTE.md",
+      "sha256": "234cd707763973851ee72e702e4658ef7e2448d52e8c421cca6b80d65bfccead",
+      "size_bytes": 743,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/FIELD_VISUALIZATION_METHOD_NOTE.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "pressure blocker",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK05_PRESSURE_VISUALIZATION_BLOCKED.md",
+      "sha256": "577f7f5ea6b46bb89cd89c26917eebb00f265913f93baeeeca253cfa078a4c58",
+      "size_bytes": 428,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/PRESSURE_VISUALIZATION_BLOCKED.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "site draft",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK06_SITE_PAGE_DRAFT.md",
+      "sha256": "a633a8231e8f9f6cdc8dc30001713353ff8c6f49f36ad7f6db13c7b87ccfde79",
+      "size_bytes": 1561,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/SITE_PAGE_DRAFT.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "video draft",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK06_VIDEO_DESCRIPTION_DRAFT.md",
+      "sha256": "9fbc74e026591ef6250257703d8a4f942bff40cd9471744e4a31336d9ebc301e",
+      "size_bytes": 1019,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/VIDEO_DESCRIPTION_DRAFT.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "LinkedIn draft",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK06_LINKEDIN_DRAFT.md",
+      "sha256": "c3d7ed8318916767825569e9b505f99e87861c3b11a225e713abca279dede96f",
+      "size_bytes": 805,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/LINKEDIN_DRAFT.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "release blockers",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK06_RELEASE_BLOCKERS.md",
+      "sha256": "078e8d582c89a466b08b8d72343740a660ac72e1c391ce2eadd0a675fa6a41d6",
+      "size_bytes": 749,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/RELEASE_BLOCKERS.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "evidence",
+      "note": "claim checklist",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/TASK06_CLAIM_REVIEW_CHECKLIST.md",
+      "sha256": "968d3854fa5097a985f989fb88a253bc199f23dfc661359559a0539a7269ae21",
+      "size_bytes": 757,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/CLAIM_REVIEW_CHECKLIST.md"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "metadata",
+      "note": "Task 04 asset manifest",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/TASK04_ASSET_MANIFEST.json",
+      "sha256": "7623875477afebaf58b44ffcd5a87a999269c5c7c5049aa5dc17bbc7a131cd45",
+      "size_bytes": 6569,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/TASK04_ASSET_MANIFEST.json"
+    },
+    {
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "kind": "metadata",
+      "note": "Task 05 field media manifest",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/TASK05_FIELD_MEDIA_MANIFEST.json",
+      "sha256": "b2b7bac3e7185d78c656be0029207bd5333c575df092c4c34f68d9119671ef97",
+      "size_bytes": 34490,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/TASK05_FIELD_MEDIA_MANIFEST.json"
+    },
+    {
+      "claim_boundary": "Internal review inventory; public_ready=false; fit_ready=false.",
+      "kind": "inventory",
+      "note": "Task result inventory",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/TASK_RESULT_INVENTORY.json",
+      "sha256": "2f4622cb0fd31bff928bafc6e239e24ce469846d21fa2905e077f79ac74d275e",
+      "size_bytes": 6003,
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch"
+    }
+  ],
+  "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "fit_ready": false,
+  "generated_at_utc": "2026-06-26T19:48:09+00:00",
+  "lambda2_q_status": "blocked_no_validated_gradient_tensor_export",
+  "packet_purpose": "Layer-1 private/internal review packet for the 20260626 long-benchmark postprocess/public-prep batch.",
+  "poiseuille_series_selected": false,
+  "pressure_visualization_status": "blocked_zero_range_restored_pressure_exports",
+  "public_ready": false,
+  "rectangular_internal_nozzle_flow_resolved": false,
+  "review_packet_repo_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+  "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat, 2:1 rectangular top-hat imposed-inlet comparison",
+  "selected_lead_route": "official_round_control",
+  "source_batch_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch"
+}

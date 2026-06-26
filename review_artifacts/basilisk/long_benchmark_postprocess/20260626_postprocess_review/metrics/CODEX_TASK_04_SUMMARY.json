@@ -1,0 +1,20 @@
+{
+  "asset_manifest_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/TASK04_ASSET_MANIFEST.json",
+  "blender_v3_ready": true,
+  "commit_hash": "",
+  "comparison_v3_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/round_vs_rectangular_split_screen_v3.mp4",
+  "exact_blocker": "",
+  "fit_ready": false,
+  "flythrough_v3_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/final_complex_geometry_flythrough_v3.mp4",
+  "no_cfd_run": true,
+  "primary_sequence_v3_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/long_primary_route_blender_sequence_v3.mp4",
+  "public_ready": false,
+  "recommended_next_step": "Proceed to Task 05 field-visualization media with Task 02 field availability caveats.",
+  "repo_changed": false,
+  "retry_recommended": false,
+  "safe_to_continue": true,
+  "status": "success",
+  "task_id": "04_blender_material_camera_v3",
+  "visual_gate_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/TASK04_VISUAL_GATE.md",
+  "weighted_normal_fallback_note": "Task03 merged_weighted_normals used for primary frames 0-57; raw_flat_facets fallback used for late primary frames and other v3 assets after Blender segfaults."
+}

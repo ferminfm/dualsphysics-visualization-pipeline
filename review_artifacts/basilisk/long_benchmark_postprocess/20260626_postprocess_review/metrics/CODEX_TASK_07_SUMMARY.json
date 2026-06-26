@@ -1,0 +1,31 @@
+{
+  "task_id": "07_final_evidence_gate_layer1_sync",
+  "status": "success",
+  "safe_to_continue": true,
+  "review_packet_repo_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review",
+  "layer1_review_ready": true,
+  "fit_ready": false,
+  "public_ready": false,
+  "prior_task_statuses": {
+    "01_physical_framing_claim_strategy": "success",
+    "02_field_export_diagnostic_extraction": "partial_success",
+    "03_smooth_render_surface_pipeline": "success",
+    "04_blender_material_camera_v3": "success",
+    "05_field_visualization_media": "partial_success",
+    "06_internal_package_draft": "success"
+  },
+  "controlled_partial_success_tasks": [
+    "02_field_export_diagnostic_extraction",
+    "05_field_visualization_media"
+  ],
+  "artifact_count": 10,
+  "base_sha_before_task07_commit": "281904de4e73c61a222a885d1441370c13a472de",
+  "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "push_performed": false,
+  "exact_blocker": "",
+  "recommended_next_step": "Layer 2 should run final QA, commit locally, and push only the review branch for Layer-1 inspection.",
+  "retry_recommended": false,
+  "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/07_final_evidence_gate_layer1_sync/CODEX_TASK_07_REPORT.md",
+  "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/07_final_evidence_gate_layer1_sync/CODEX_TASK_07_SUMMARY.json",
+  "completion_marker": "TASK_07_FINAL_SYNC_WRITTEN: /home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/07_final_evidence_gate_layer1_sync/CODEX_TASK_07_REPORT.md"
+}

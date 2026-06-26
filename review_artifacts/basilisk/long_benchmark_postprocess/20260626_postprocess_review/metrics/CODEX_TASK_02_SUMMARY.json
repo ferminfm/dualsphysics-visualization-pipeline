@@ -1,0 +1,42 @@
+{
+  "task_id": "02_field_export_diagnostic_extraction",
+  "status": "partial_success",
+  "safe_to_continue": true,
+  "fields_available": {
+    "phase": true,
+    "velocity": true,
+    "speed": true,
+    "vorticity_magnitude": true,
+    "pressure": false,
+    "lambda2_or_q_like": false
+  },
+  "field_visualization_possible": {
+    "phase": true,
+    "velocity": true,
+    "speed": true,
+    "vorticity_magnitude": true,
+    "pressure": false,
+    "lambda2_or_q_like": false
+  },
+  "exact_blocker": "Pressure visualization blocked: restored p has zero range in all selected saved-checkpoint exports. Lambda2/Q-like fields blocked pending a separately validated adaptive-octree gradient export.",
+  "recommended_next_step": "Task 05 may consume phase, velocity, speed, and vorticity-magnitude CSVs for internal diagnostic panels; it must not create pressure, lambda2, or Q-like media unless a later validated export provides nonzero/valid fields.",
+  "retry_recommended": false,
+  "output_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction",
+  "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/CODEX_TASK_02_REPORT.md",
+  "branch_name": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "repo_changed": false,
+  "commit_hash": "",
+  "solver_run_performed": false,
+  "solver_time_advancement_performed": false,
+  "render_run_performed": false,
+  "raw_outputs_committed": false,
+  "push_performed": false,
+  "public_ready": false,
+  "fit_ready": false,
+  "qa_passed": true,
+  "export_count": 10,
+  "field_exports_manifest_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/field_exports_manifest.json",
+  "field_extraction_plan_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/FIELD_EXTRACTION_PLAN.json",
+  "availability_audit_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/FIELD_AVAILABILITY_AUDIT.md",
+  "feasibility_decision_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/FIELD_VISUALIZATION_FEASIBILITY_DECISION.md"
+}
