@@ -7,8 +7,10 @@
     "public_ready": false,
     "rectangular_is_imposed_inlet_boundary": true
   },
-  "comparison_route": "rectangular_long_modified_benchmark_resolution_sensitive",
+  "comparison_route": "rectangular_top_hat_resolution_sensitive",
+  "fit_ready": false,
   "generated_at_utc": "2026-06-25T23:28:57Z",
+  "naming_correction_note": "Poiseuille-series profiles were implemented and tested, but the selected long rectangular route is C1_rect_area_top_hat / rect_area_top_hat.",
   "primary_media_route": "official_round_control",
   "profile_validation": {
     "geometry": {
@@ -35,6 +37,7 @@
       "wall": 1e-10
     }
   },
+  "public_ready": false,
   "rectangular": {
     "checkpoint_chain_valid": true,
     "classification": "rectangular_candidate_resolution_sensitive",

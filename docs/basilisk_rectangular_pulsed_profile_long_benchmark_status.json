@@ -2,10 +2,16 @@
   "asset_availability": {
     "artifact_count": 7,
     "blender_assets_ready": true,
-    "review_packet_repo_path": "review_artifacts/basilisk/rectangular_poisseuille_atomisation/20260625_long_showcase_review",
-    "scientific_media_ready": true
+    "review_packet_repo_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review",
+    "scientific_media_ready": true,
+    "corrected_primary_sequence_v2": true,
+    "corrected_split_screen_v2": true,
+    "corrected_flythrough_v2": true,
+    "boundary_clearance_audit_ready": true,
+    "flythrough_visibility_qa_ready": true
   },
   "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "branch_note": "Historical review-branch name contains Poiseuille, but the selected rectangular long route is C1_rect_area_top_hat / rect_area_top_hat, not Poiseuille.",
   "claim_boundary": {
     "component_counts_are_thresholded_diagnostics": true,
     "not_fit_ready": true,
@@ -37,8 +43,10 @@
       "sigma": 3e-05,
       "u0": 1
     },
-    "rectangular_long_modified_benchmark": {
+    "rectangular_top_hat_imposed_inlet": {
       "aperture": "2:1 rectangle with area equal to official circular aperture",
+      "case": "C1_rect_area_top_hat",
+      "description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
       "geometry": {
         "A0": 0.02181661564992912,
         "H": 0.10444284477629169,
@@ -51,6 +59,8 @@
       },
       "imposed_inlet_boundary": true,
       "internal_nozzle_flow_resolved": false,
+      "poiseuille_series_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
+      "poiseuille_series_selected": false,
       "profile": "rect_area_top_hat"
     }
   },
@@ -75,7 +85,7 @@
     }
   },
   "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
-  "status": "layer1_internal_review_packet_prepared_pending_layer2_push",
+  "status": "layer1_internal_review_packet_visual_correction_v2_ready",
   "task_results": {
     "claim_boundary": {
       "component_counts_are_thresholded_diagnostics": true,
@@ -85,8 +95,9 @@
       "public_ready": false,
       "rectangular_is_imposed_inlet_boundary": true
     },
-    "comparison_route": "rectangular_long_modified_benchmark_resolution_sensitive",
+    "comparison_route": "rectangular_top_hat_resolution_sensitive",
     "generated_at_utc": "2026-06-25T23:28:57Z",
+    "poiseuille_series_selected": false,
     "primary_media_route": "official_round_control",
     "profile_validation": {
       "geometry": {
@@ -138,6 +149,28 @@
       "morphology_classification": "persistent_credible_detached_topology",
       "physical_frames": 101,
       "topology_change_onset_time": 0.48
-    }
+    },
+    "selected_rectangular_case": "C1_rect_area_top_hat",
+    "selected_rectangular_profile": "rect_area_top_hat"
+  },
+  "review_packet_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/",
+  "selected_rectangular_case": "C1_rect_area_top_hat",
+  "selected_rectangular_profile": "rect_area_top_hat",
+  "selected_rectangular_description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
+  "poiseuille_series_selected": false,
+  "naming_correction_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
+  "corrected_visual_assets": {
+    "primary_sequence_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/long_primary_route_blender_sequence_v2.mp4",
+    "comparison_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/round_vs_rectangular_split_screen_v2.mp4",
+    "flythrough_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/final_complex_geometry_flythrough_v2.mp4",
+    "boundary_clearance_audit": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/BOUNDARY_CLEARANCE_AUDIT.md",
+    "flythrough_visibility_qa": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/FLYTHROUGH_VISIBILITY_QA.md",
+    "visual_asset_manifest": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/metadata/VISUAL_ASSET_MANIFEST.json"
+  },
+  "hero_frame_selection": {
+    "scientifically_safe_hero_route": "official_round_control",
+    "scientifically_safe_hero_frame": 98,
+    "scientifically_safe_hero_time": 1.96,
+    "selection_basis": "highest complexity eligible official-round frame before any meaningful downstream or lateral boundary contact"
   }
 }

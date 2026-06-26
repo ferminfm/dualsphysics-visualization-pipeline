@@ -27,7 +27,7 @@ CAVEAT_TEXT = (
     "Internal scientific review only; solver-derived VOF facets; not validation; "
     "public_ready=false; fit_ready=false"
 )
-RECTANGULAR_TEXT = "2:1 rectangular imposed inlet profile; internal nozzle flow not resolved"
+RECTANGULAR_TEXT = "2:1 rectangular top-hat imposed inlet; internal nozzle flow not resolved"
 ROUND_TEXT = "Official Basilisk circular pulsed-jet control"
 
 
@@ -72,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--primary-route-id", default="official_round_control")
     parser.add_argument("--comparison-manifest", type=Path)
     parser.add_argument("--comparison-surface-root", type=Path)
-    parser.add_argument("--comparison-route-id", default="rectangular_long_modified_benchmark")
+    parser.add_argument("--comparison-route-id", default="rectangular_top_hat_imposed_inlet")
     parser.add_argument("--route-manifest", type=Path)
     parser.add_argument("--media-manifest", type=Path)
     parser.add_argument("--output-root", type=Path, required=True)
@@ -94,6 +94,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--frame-mapping-out", type=Path)
     parser.add_argument("--overlay-title", default="")
     parser.add_argument("--persistent-caveat", default=CAVEAT_TEXT)
+    parser.add_argument("--hero-surface-index", type=int, default=-1)
+    parser.add_argument("--open-studio", action="store_true")
+    parser.add_argument("--corrected-style", action="store_true")
+    parser.add_argument("--mask-resolution-x", type=int, default=320)
+    parser.add_argument("--mask-resolution-y", type=int, default=180)
+    parser.add_argument("--mask-output-root", type=Path)
     return parser.parse_args(_argv())
 
 
@@ -298,11 +304,11 @@ def add_box(
     return obj
 
 
-def add_floor_and_walls(bounds: Bounds, y_expand: float = 1.0) -> None:
+def add_floor_and_walls(bounds: Bounds, y_expand: float = 1.0, include_walls: bool = True) -> None:
     center = bounds.center
     span = bounds.span
-    floor_mat = make_principled_material("dark_burnished_floor", (0.16, 0.17, 0.16, 1.0), 0.66)
-    wall_mat = make_principled_material("neutral_test_cell_walls", (0.22, 0.235, 0.23, 1.0), 0.80)
+    floor_mat = make_principled_material("dark_burnished_floor", (0.105, 0.112, 0.112, 1.0), 0.72)
+    wall_mat = make_principled_material("neutral_test_cell_walls", (0.18, 0.19, 0.19, 1.0), 0.84)
     floor_z = bounds.mins.z - 0.16 * span
     add_box(
         "floor_reference",
@@ -310,6 +316,8 @@ def add_floor_and_walls(bounds: Bounds, y_expand: float = 1.0) -> None:
         (span * 1.45, span * 0.95 * y_expand, span * 0.025),
         floor_mat,
     )
+    if not include_walls:
+        return
     add_box(
         "back_wall_reference",
         (center.x + 0.12 * span, bounds.maxs.y + 0.32 * span * y_expand, center.z + 0.18 * span),
@@ -415,7 +423,7 @@ def add_camera(bounds: Bounds, preset: str, frame_index: int = 0, frame_total: i
     elif preset == "flythrough":
         t = frame_index / max(frame_total - 1, 1)
         theta = math.radians(218.0 - 126.0 * t)
-        radius = span * (1.82 - 0.18 * math.sin(t * math.pi))
+        radius = span * (1.26 - 0.10 * math.sin(t * math.pi))
         stream = span * (-0.12 + 0.30 * t)
         height = span * (0.52 + 0.10 * math.sin(t * math.pi * 1.35))
         location = Vector((
@@ -447,8 +455,8 @@ def add_camera_overlay(camera: bpy.types.Object, title: str, lines: list[str]) -
     distance = 1.65
     half_width = distance * math.tan(camera.data.angle_x * 0.5)
     half_height = distance * math.tan(camera.data.angle_y * 0.5)
-    panel_center = (-half_width * 0.36, half_height * 0.52, -distance)
-    panel_scale = (half_width * 0.98, half_height * 0.24, 0.002)
+    panel_center = (-half_width * 0.43, half_height * 0.62, -distance)
+    panel_scale = (half_width * 0.84, half_height * 0.18, 0.002)
     bpy.ops.mesh.primitive_cube_add(size=1.0)
     panel = bpy.context.object
     panel.name = "camera_space_overlay_panel"
@@ -470,8 +478,8 @@ def add_camera_overlay(camera: bpy.types.Object, title: str, lines: list[str]) -
     curve.body = body
     curve.align_x = "LEFT"
     curve.align_y = "CENTER"
-    curve.size = half_height * 0.038
-    curve.space_line = 0.93
+    curve.size = half_height * 0.034
+    curve.space_line = 0.91
     text_obj = bpy.data.objects.new("camera_space_overlay_text", curve)
     text_obj.parent = camera
     text_obj.location = (panel_center[0] - panel_scale[0] * 0.88, panel_center[1], -distance + 0.012)
@@ -496,7 +504,7 @@ def configure_cycles(args: argparse.Namespace) -> dict[str, object]:
     scene.view_settings.look = "Medium High Contrast"
     scene.view_settings.exposure = 0.0
     scene.view_settings.gamma = 1.0
-    scene.world.color = (0.020, 0.023, 0.026)
+    scene.world.color = (0.012, 0.014, 0.016)
 
     selected = "Cycles CPU"
     errors: list[str] = []
@@ -538,13 +546,149 @@ def configure_cycles(args: argparse.Namespace) -> dict[str, object]:
     }
 
 
-def setup_scene(bounds: Bounds, y_expand: float = 1.0) -> None:
-    add_floor_and_walls(bounds, y_expand=y_expand)
+def setup_scene(bounds: Bounds, y_expand: float = 1.0, include_walls: bool = True) -> None:
+    add_floor_and_walls(bounds, y_expand=y_expand, include_walls=include_walls)
     add_lights(bounds)
 
 
 def water_material(name: str, color: tuple[float, float, float, float]) -> bpy.types.Material:
     return make_principled_material(name, color, roughness=0.035, transmission=0.58, ior=1.333)
+
+
+def fluid_mask_material() -> bpy.types.Material:
+    return make_emission_material("fluid_object_id_mask_white", (1.0, 1.0, 1.0, 1.0))
+
+
+def measure_mask(path: Path, width: int, height: int) -> dict[str, object]:
+    image = bpy.data.images.load(str(path), check_existing=False)
+    pixels = list(image.pixels)
+    xs: list[int] = []
+    ys: list[int] = []
+    for yy in range(height):
+        for xx in range(width):
+            base = 4 * (yy * width + xx)
+            # The mask pass still receives color-management/background output in
+            # Blender PNGs, so count only the white object-ID emission material.
+            if max(pixels[base], pixels[base + 1], pixels[base + 2]) > 0.80:
+                xs.append(xx)
+                ys.append(yy)
+    bpy.data.images.remove(image)
+    count = len(xs)
+    total = width * height
+    if not count:
+        return {
+            "fluid_pixel_count": 0,
+            "fluid_occupancy": 0.0,
+            "bbox_norm": [],
+            "bbox_intersects_central_80_percent": False,
+            "occupancy_between_5_and_70_percent": False,
+            "low_visibility_below_10_percent": True,
+        }
+    bbox = [min(xs) / width, max(xs) / width, min(ys) / height, max(ys) / height]
+    occupancy = count / total
+    intersects_central = bbox[1] >= 0.10 and bbox[0] <= 0.90 and bbox[3] >= 0.10 and bbox[2] <= 0.90
+    return {
+        "fluid_pixel_count": count,
+        "fluid_occupancy": occupancy,
+        "bbox_norm": [round(value, 5) for value in bbox],
+        "bbox_intersects_central_80_percent": intersects_central,
+        "occupancy_between_5_and_70_percent": 0.05 <= occupancy <= 0.70,
+        "low_visibility_below_10_percent": occupancy < 0.10,
+    }
+
+
+def render_fluid_mask(
+    output: Path,
+    fluid_objects: list[bpy.types.Object],
+    width: int,
+    height: int,
+) -> dict[str, object]:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    scene = bpy.context.scene
+    original = {
+        "filepath": scene.render.filepath,
+        "resolution_x": scene.render.resolution_x,
+        "resolution_y": scene.render.resolution_y,
+        "samples": scene.cycles.samples,
+        "world_color": tuple(scene.world.color),
+        "view_transform": scene.view_settings.view_transform,
+        "look": scene.view_settings.look,
+        "exposure": scene.view_settings.exposure,
+        "gamma": scene.view_settings.gamma,
+    }
+    original_materials = {obj.name: list(obj.data.materials) for obj in fluid_objects}
+    original_hidden = {obj.name: obj.hide_render for obj in bpy.context.scene.objects}
+    mask_material = fluid_mask_material()
+    try:
+        for obj in bpy.context.scene.objects:
+            obj.hide_render = obj not in fluid_objects
+        for obj in fluid_objects:
+            obj.data.materials.clear()
+            obj.data.materials.append(mask_material)
+            obj.hide_render = False
+        scene.render.resolution_x = width
+        scene.render.resolution_y = height
+        scene.cycles.samples = 1
+        scene.world.color = (0.0, 0.0, 0.0)
+        scene.view_settings.view_transform = "Standard"
+        scene.view_settings.look = "None"
+        scene.view_settings.exposure = 0.0
+        scene.view_settings.gamma = 1.0
+        scene.render.filepath = str(output)
+        bpy.ops.render.render(write_still=True)
+        return measure_mask(output, width, height)
+    finally:
+        for obj in bpy.context.scene.objects:
+            if obj.name in original_hidden:
+                obj.hide_render = original_hidden[obj.name]
+        for obj in fluid_objects:
+            obj.data.materials.clear()
+            for material in original_materials.get(obj.name, []):
+                obj.data.materials.append(material)
+        scene.render.filepath = original["filepath"]
+        scene.render.resolution_x = original["resolution_x"]
+        scene.render.resolution_y = original["resolution_y"]
+        scene.cycles.samples = original["samples"]
+        scene.world.color = original["world_color"]
+        scene.view_settings.view_transform = original["view_transform"]
+        scene.view_settings.look = original["look"]
+        scene.view_settings.exposure = original["exposure"]
+        scene.view_settings.gamma = original["gamma"]
+
+
+def raycast_fluid_visibility(camera: bpy.types.Object, fluid: bpy.types.Object, sample_count: int = 48) -> dict[str, object]:
+    verts = [fluid.matrix_world @ vertex.co for vertex in fluid.data.vertices]
+    if not verts:
+        return {"sampled_points": 0, "wall_or_floor_first_hit_count": 0, "fluid_first_hit_count": 0}
+    step = max(1, len(verts) // sample_count)
+    sampled = verts[::step][:sample_count]
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    wall_hits = 0
+    fluid_hits = 0
+    other_hits = 0
+    for point in sampled:
+        direction = point - camera.location
+        if direction.length <= 1e-9:
+            other_hits += 1
+            continue
+        hit, _, _, _, hit_obj, _ = bpy.context.scene.ray_cast(
+            depsgraph, camera.location, direction.normalized(), distance=direction.length + 1e-6
+        )
+        if not hit or hit_obj is None:
+            other_hits += 1
+        elif hit_obj == fluid or hit_obj.name == fluid.name:
+            fluid_hits += 1
+        elif "wall" in hit_obj.name.lower() or "floor" in hit_obj.name.lower():
+            wall_hits += 1
+        else:
+            other_hits += 1
+    return {
+        "sampled_points": len(sampled),
+        "wall_or_floor_first_hit_count": wall_hits,
+        "fluid_first_hit_count": fluid_hits,
+        "other_first_hit_count": other_hits,
+        "wall_or_floor_first_hit": wall_hits > 0,
+    }
 
 
 def render_still(path: Path) -> float:
@@ -561,7 +705,7 @@ def output_path(output_root: Path, mode: str, index: int) -> Path:
 
 def route_label(route_id: str) -> str:
     if "rectangular" in route_id:
-        return "2:1 rectangular imposed-inlet benchmark"
+        return "2:1 rectangular top-hat imposed-inlet comparison"
     return "Official circular control"
 
 
@@ -603,7 +747,8 @@ def render_sequence(args: argparse.Namespace, frames: list[SurfaceFrame], device
             continue
         clear_scene()
         verts, faces, meta = parse_facets(frame.path)
-        water = water_material("clear_water_official_round", (0.32, 0.66, 0.94, 1.0))
+        water_color = (0.28, 0.74, 0.98, 1.0) if "rectangular" not in args.primary_route_id else (0.95, 0.58, 0.24, 1.0)
+        water = water_material("clear_water_primary_route", water_color)
         add_mesh_object("vof_surface_primary", verts, faces, water)
         setup_scene(sequence_bounds)
         add_inlet_for_route(args.primary_route_id, inlet_bounds)
@@ -666,11 +811,11 @@ def render_comparison(
         camera = add_camera(combined, "sequence")
         add_camera_overlay(
             camera,
-            "Round control vs rectangular imposed-inlet comparison",
+            "Official circular control vs rectangular top-hat imposed inlet",
             [
                 f"exact physical-time pair; t={left.time:.3f}; frame {left.index:04d}",
-                "left: official circular control; right: 2:1 rectangular imposed inlet",
-                "rectangular route is resolution-sensitive; internal nozzle flow not resolved",
+                "left: official circular control; right: 2:1 rectangular top-hat imposed inlet",
+                "rectangular velocity is imposed at the inlet plane; internal nozzle flow is not resolved",
             ],
         )
         seconds = render_still(out)
@@ -715,11 +860,18 @@ def projected_visibility(camera: bpy.types.Object, objects: list[bpy.types.Objec
 def render_flythrough(args: argparse.Namespace, frames: list[SurfaceFrame], device: dict[str, object]) -> dict[str, object]:
     sequence_bounds, per_frame_bounds = scan_sequence_bounds(frames)
     inlet_bounds = per_frame_bounds[frames[0].index]
-    final = frames[-1]
-    verts, faces, meta = parse_facets(final.path)
+    if args.hero_surface_index >= 0:
+        selected = next((frame for frame in frames if frame.index == args.hero_surface_index), None)
+        if selected is None:
+            raise SystemExit(f"ERROR: hero surface index {args.hero_surface_index} not present in manifest")
+    else:
+        selected = frames[-1]
+    verts, faces, meta = parse_facets(selected.path)
     records: list[dict[str, object]] = []
     visibility: list[dict[str, object]] = []
     frame_total = args.flythrough_frames
+    low_visibility_run = 0
+    max_low_visibility_run = 0
     for render_index in range(frame_total):
         out = output_path(args.output_root, "flythrough", render_index)
         if args.start_at_first_missing and out.exists() and out.stat().st_size > 0:
@@ -727,29 +879,59 @@ def render_flythrough(args: argparse.Namespace, frames: list[SurfaceFrame], devi
         clear_scene()
         water = water_material("final_complex_clear_water", (0.34, 0.68, 0.95, 1.0))
         obj = add_mesh_object("vof_surface_final_complex_static", verts, faces, water)
-        setup_scene(sequence_bounds)
+        setup_scene(sequence_bounds, include_walls=not args.open_studio)
         add_inlet_for_route(args.primary_route_id, inlet_bounds)
         camera = add_camera(sequence_bounds, "flythrough", render_index, frame_total)
         add_camera_overlay(
             camera,
-            "Final complex geometry flythrough",
+            "Safe-frame complex geometry flythrough",
             [
-                f"static solver frame {final.index:04d}; t={final.time:.3f}; cinematic camera path",
+                f"static solver frame {selected.index:04d}; t={selected.time:.3f}; cinematic camera path",
                 ROUND_TEXT if "rectangular" not in args.primary_route_id else RECTANGULAR_TEXT,
                 "camera remains external; no probe or extra solver states implied",
             ],
         )
         check = projected_visibility(camera, [obj])
+        mask_path = (args.mask_output_root or (args.output_root / "masks")) / f"flythrough_mask_{render_index:04d}.png"
+        mask = render_fluid_mask(mask_path, [obj], args.mask_resolution_x, args.mask_resolution_y)
+        raycast = raycast_fluid_visibility(camera, obj)
         check["render_frame"] = render_index
+        check["mask_path"] = str(mask_path)
+        check.update(mask)
+        check.update(raycast)
+        check["visibility_frame_passed"] = (
+            bool(check["occupancy_between_5_and_70_percent"])
+            and bool(check["bbox_intersects_central_80_percent"])
+            and not bool(check["wall_or_floor_first_hit"])
+        )
+        if check["low_visibility_below_10_percent"]:
+            low_visibility_run += 1
+        else:
+            low_visibility_run = 0
+        max_low_visibility_run = max(max_low_visibility_run, low_visibility_run)
         visibility.append(check)
         seconds = render_still(out)
-        records.append(frame_record(render_index, final, out, seconds))
-        print(f"RENDERED_FLYTHROUGH_FRAME={render_index} SOURCE={final.path} VISIBILITY={check['partly_in_frame']}")
-    result = shot_manifest(args, "flythrough", [final], records, device)
-    result["static_source_frame"] = final.source_frame_id
+        records.append(frame_record(render_index, selected, out, seconds))
+        print(
+            "RENDERED_FLYTHROUGH_FRAME="
+            f"{render_index} SOURCE={selected.path} OCCUPANCY={check['fluid_occupancy']:.4f} "
+            f"PASS={check['visibility_frame_passed']}"
+        )
+    result = shot_manifest(args, "flythrough", [selected], records, device)
+    result["static_source_frame"] = selected.source_frame_id
+    result["static_source_time"] = selected.time
+    result["static_source_index"] = selected.index
     result["camera_path"] = "curved external orbit/approach with streamwise travel and final hero composition"
     result["visibility_checks"] = visibility
-    result["visibility_passed"] = all(item["partly_in_frame"] and not item["fills_entire_frame"] for item in visibility)
+    result["visibility_passed"] = all(item["visibility_frame_passed"] for item in visibility) and max_low_visibility_run <= 5
+    result["maximum_consecutive_low_visibility_frames"] = max_low_visibility_run
+    result["visibility_thresholds"] = {
+        "fluid_occupancy_min": 0.05,
+        "fluid_occupancy_max": 0.70,
+        "central_frame_region": [0.10, 0.90, 0.10, 0.90],
+        "maximum_consecutive_frames_below_10_percent_occupancy": 5,
+        "wall_or_floor_first_hit_allowed": False,
+    }
     result["raycast_checked"] = True
     result["facet_metadata"] = meta
     return result

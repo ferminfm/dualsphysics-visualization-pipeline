@@ -1,0 +1,15 @@
+{
+  "status": "pass",
+  "visibility_passed": true,
+  "frame_count": 96,
+  "min_fluid_occupancy": 0.09706597222222223,
+  "max_fluid_occupancy": 0.18223958333333334,
+  "maximum_consecutive_low_visibility_frames": 2,
+  "failed_frame_count": 0,
+  "wall_or_floor_first_hit_frame_count": 0,
+  "static_source_index": 98,
+  "static_source_time": 1.96,
+  "raycast_checked": true,
+  "public_ready": false,
+  "fit_ready": false
+}
