@@ -1,7 +1,7 @@
 
 # Basilisk Rectangular Pulsed-Profile Long Benchmark Status
 
-Status: `layer1_internal_review_packet_under_visual_correction`
+Status: `layer1_decision_recorded_public_packaging_blocked`
 
 This document summarizes the 2026-06-25 long benchmark batch for internal scientific review. It is not public release copy. Keep `fit_ready=false` and `public_ready=false`.
 
@@ -43,11 +43,20 @@ Task 05 selected `official_round_control` as the primary media route. The rectan
 
 ## Human Decisions Required
 
-1. Confirm whether the official circular route can be the portfolio lead.
-2. Confirm whether the rectangular imposed-inlet comparison is scientifically useful enough to show.
+Layer-1 decision recorded in `review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/LAYER1_DECISION.md`:
+
+1. The official circular route is accepted as the internal visual/scientific lead candidate.
+2. The rectangular route may be shown only as a secondary caveated comparison.
+3. The selected rectangular route is `C1_rect_area_top_hat` / `rect_area_top_hat`, a 2:1 rectangular top-hat imposed-inlet comparison.
+4. Poiseuille-series profiles were implemented/tested but were not selected.
+5. Public packaging remains blocked until direct human visual review and a separate public-packaging task pass.
+
+Remaining decisions:
+
+1. Review v2 videos directly for public visual suitability.
+2. Review public wording and final site asset selection.
 3. Decide whether a dedicated rectangular resolution study is needed before stronger claims.
-4. Review overlays, contrast, framing, and caveat readability before any public packaging.
-5. Decide whether the stacked PR should remain draft, be split, or proceed after review.
+4. Decide whether the stacked PR should remain draft, be split, or proceed after review.
 
 ## Claim Boundary
 

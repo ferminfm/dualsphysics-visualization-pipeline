@@ -11,7 +11,8 @@ This packet is a compact GitHub-visible review packet for the 2026-06-25 Basilis
 4. `videos_proxy/final_complex_geometry_flythrough_v2.mp4` for the corrected safe-frame flythrough using official-round frame 98 at `t=1.96`.
 5. `evidence/BOUNDARY_CLEARANCE_AUDIT.md` and `evidence/FLYTHROUGH_VISIBILITY_QA.md` before judging hero-frame or flythrough suitability.
 6. `videos_proxy/official_round_full_length_native.mp4` and `videos_proxy/rectangular_profile_full_length_native.mp4` for the native VOF scientific references.
-7. `metrics/selected_metrics_and_decisions.json`, `evidence/SCIENTIFIC_DECISION_MATRIX.md`, and `evidence/CLAIM_BOUNDARY.md` before making publication decisions.
+7. `evidence/LAYER1_DECISION.md` and `PUBLIC_PACKAGING_BLOCKERS.md` before making any public-packaging decision.
+8. `metrics/selected_metrics_and_decisions.json`, `evidence/SCIENTIFIC_DECISION_MATRIX.md`, and `evidence/CLAIM_BOUNDARY.md` before making publication decisions.
 
 ## Current Scientific Result
 
@@ -30,8 +31,8 @@ The rectangular route imposes a velocity profile at the inlet plane. It is not i
 
 ## Recommended Layer-1 Decisions
 
-1. Decide whether the official circular control can remain the primary portfolio lead after visual review.
-2. Decide whether the rectangular imposed-inlet comparison should be shown at all, and if so, what caveat text is mandatory.
+1. Treat the official circular control as the internal visual/scientific lead candidate.
+2. Treat the rectangular imposed-inlet route only as a secondary caveated comparison.
 3. Decide whether the resolution-sensitive rectangular result needs a dedicated later resolution study before any stronger claim.
 4. Decide whether the stacked PR should stay draft, be split, or be prepared for merge after review.
-5. Keep publication blocked until a separate public packaging task passes.
+5. Keep publication blocked until direct human visual review and a separate public packaging task pass.

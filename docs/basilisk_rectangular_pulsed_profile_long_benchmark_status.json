@@ -85,7 +85,7 @@
     }
   },
   "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
-  "status": "layer1_internal_review_packet_visual_correction_v2_ready",
+  "status": "layer1_decision_recorded_public_packaging_blocked",
   "task_results": {
     "claim_boundary": {
       "component_counts_are_thresholded_diagnostics": true,
@@ -172,5 +172,20 @@
     "scientifically_safe_hero_frame": 98,
     "scientifically_safe_hero_time": 1.96,
     "selection_basis": "highest complexity eligible official-round frame before any meaningful downstream or lateral boundary contact"
+  },
+  "layer1_decision": {
+    "official_circular_internal_lead_candidate": true,
+    "rectangular_secondary_caveated_comparison_only": true,
+    "selected_rectangular_case": "C1_rect_area_top_hat",
+    "selected_rectangular_profile": "rect_area_top_hat",
+    "selected_rectangular_description": "2:1 rectangular top-hat imposed-inlet comparison",
+    "poiseuille_series_selected": false,
+    "poiseuille_series_note": "Poiseuille-series profiles were implemented/tested but were not selected by the bounded candidate gate.",
+    "public_packaging_blocked": true,
+    "fit_ready": false,
+    "public_ready": false,
+    "layer1_decision_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/LAYER1_DECISION.md",
+    "public_packaging_blockers_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/PUBLIC_PACKAGING_BLOCKERS.md",
+    "v2_flythrough_requires_direct_human_visual_inspection": true
   }
 }
