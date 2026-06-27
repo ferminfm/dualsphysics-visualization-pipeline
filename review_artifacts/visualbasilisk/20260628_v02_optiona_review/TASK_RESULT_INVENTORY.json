@@ -1,0 +1,40 @@
+{
+  "tasks": [
+    {
+      "task_id": "01_optiona_render_bridge",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/01_optiona_render_bridge/CODEX_TASK_01_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/01_optiona_render_bridge/CODEX_TASK_01_REPORT.md",
+      "commit_hash": "e2097305146d4e04ed1d763240bd62d171b1a90d",
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to Task 02 and create a compact review packet with tiny synthetic render proof."
+    },
+    {
+      "task_id": "02_bridge_review_packet",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/02_bridge_review_packet/CODEX_TASK_02_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/02_bridge_review_packet/CODEX_TASK_02_REPORT.md",
+      "commit_hash": "95ca332bf78ee22c8f858c5c392de215dc75fca7",
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to Task 03 and align release/docs wording with the implemented render-blender path."
+    },
+    {
+      "task_id": "03_docs_release_hardening",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/03_docs_release_hardening/CODEX_TASK_03_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/03_docs_release_hardening/CODEX_TASK_03_REPORT.md",
+      "commit_hash": "0b77d784f294e33849dba544922c429351d5baac",
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to Task 04 profile-page draft; avoid site repo edits if branch context is unsafe."
+    },
+    {
+      "task_id": "04_profile_page_draft",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/04_profile_page_draft/CODEX_TASK_04_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v02-optiona-batch/04_profile_page_draft/CODEX_TASK_04_REPORT.md",
+      "commit_hash": "55c4bbab19354ad1d5ec28f2d0b7695071abbba6",
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to Task 05 final audit and evidence handoff."
+    }
+  ]
+}

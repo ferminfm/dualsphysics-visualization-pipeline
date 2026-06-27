@@ -1,0 +1,49 @@
+{
+  "packet_id": "visualbasilisk_v02_optiona_final_evidence",
+  "created_utc": "2026-06-27T20:15:07.412656+00:00",
+  "visualbasilisk_branch": "review/v02-optiona-minimal-render-20260628",
+  "visualbasilisk_sha": "0b77d784f294e33849dba544922c429351d5baac",
+  "site_branch": "review/visualbasilisk-v02-profile-draft-20260628",
+  "site_sha": "55c4bbab19354ad1d5ec28f2d0b7695071abbba6",
+  "evidence_branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "fit_ready": false,
+  "public_ready": false,
+  "artifacts": [
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v02_optiona_review/LAYER1_HANDOFF.md",
+      "size_bytes": 1326,
+      "sha256": "d72f0ee541962aa64291a53f3c4eeeff5aba579c9405cf17266fb2624b4086af",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v02_optiona_review/LAYER1_REVIEW_PROMPT.md",
+      "size_bytes": 1096,
+      "sha256": "8ba8bfd9a8877d7dac348ef6cf2577aa3aa9050567f6581945d0b13fbfd200b7",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v02_optiona_review/NEXT_DECISION_CHECKLIST.md",
+      "size_bytes": 607,
+      "sha256": "342ad380dbfd6752415d093df37d5ca5d5a26c8474ed5e3239e6c481036e2b83",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v02_optiona_review/SITE_DRAFT_STATUS.md",
+      "size_bytes": 474,
+      "sha256": "1467b91aa48e2409da3d935f4713edb2f268bdc52979f988faf7b0d9858e3822",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v02_optiona_review/TASK_RESULT_INVENTORY.json",
+      "size_bytes": 2354,
+      "sha256": "15ea1d01a382d56debe5ddc627a663828593ca856ba8fe6e4250e591ca3321d2",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v02_optiona_review/VISUALBASILISK_REPO_STATUS.md",
+      "size_bytes": 768,
+      "sha256": "2fba98080c743f453c01cf4abd49f3fea38440d7131a6ecbc12b5fb519cb8828",
+      "kind": "text_or_json"
+    }
+  ]
+}
