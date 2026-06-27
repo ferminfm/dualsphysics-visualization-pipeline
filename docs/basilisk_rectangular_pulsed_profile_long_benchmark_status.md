@@ -100,3 +100,16 @@ Layer-1 V3.1 decision: `review_artifacts/basilisk/long_benchmark_postprocess/202
 - Gravity branch deferred.
 - Public packaging remains blocked.
 - `fit_ready=false`; `public_ready=false`.
+
+## 2026-06-27 Public-Packaging Prep Packet
+
+A modest internal packaging-prep packet was added at `review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/`.
+
+- Purpose: prepare an internal candidate package and public-repo extraction plan without publishing or deploying.
+- Framing: technical/research workflow sample, not recruiter-targeted marketing.
+- Lead route: official circular control.
+- Secondary route: `C1_rect_area_top_hat` / `rect_area_top_hat`, a 2:1 rectangular top-hat imposed-inlet comparison only.
+- Recommended future bridge repo: `basilisk-blender-bridge`.
+- Pressure visualization remains unavailable from current outputs; future pressure work requires a dedicated pressure-export branch.
+- Public packaging remains blocked pending separate human-approved public copy/media/site work.
+- `fit_ready=false`; `public_ready=false`.

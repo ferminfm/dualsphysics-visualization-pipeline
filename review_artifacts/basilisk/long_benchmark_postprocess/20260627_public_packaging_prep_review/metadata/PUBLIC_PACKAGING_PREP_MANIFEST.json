@@ -1,0 +1,97 @@
+{
+  "status": "internal_packaging_prep_candidate",
+  "generated_at_utc": "2026-06-27T13:10:48.006868+00:00",
+  "source_v31_packet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+  "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/",
+  "fit_ready": false,
+  "public_ready": false,
+  "recommended_bridge_repo_name": "basilisk-blender-bridge",
+  "linked_existing_proxies": [
+    "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+    "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+    "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+    "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4"
+  ],
+  "files": [
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/FINAL_ASSET_MANIFEST.json",
+      "size_bytes": 1610,
+      "sha256": "c12ee4a00baa101d5159a60f2b3207053f8770afb4ffb8d283af43a93989e375"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/FINAL_INTERNAL_ASSET_SELECTION.md",
+      "size_bytes": 1931,
+      "sha256": "582c5ad0150009b5d188b35cfd11a7cdf2b7191adf67fda274bc23f820bcd0bf"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/README_LAYER1_REVIEW.md",
+      "size_bytes": 1952,
+      "sha256": "3d0c179efb18446d59c02e7f6d3d5daf0be936fc8e8506a6dea92a78336a1543"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/bridge_repo/BASILISK_BLENDER_BRIDGE_REPO_PROPOSAL.md",
+      "size_bytes": 1572,
+      "sha256": "bdb24d223d2d4a7474637092240e768e3ab7ba8a245b94eec1c38090861967b2"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/bridge_repo/CANDIDATE_PUBLIC_REPO_STRUCTURE.md",
+      "size_bytes": 964,
+      "sha256": "703cc33bb51661d44d20be07ccead83108bd42c8d32b68ad40e8791f6454d2da"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/bridge_repo/PUBLIC_REPO_EXTRACTION_PLAN.md",
+      "size_bytes": 1440,
+      "sha256": "e9d94042703752970102d6fbedf37280ac845035e11864333308409e48bfa484"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/drafts/CLAIM_SAFE_SHORT_DESCRIPTIONS.md",
+      "size_bytes": 962,
+      "sha256": "5240821955ab2275152fa71d23aec95298238311be250ff0d419be9af00c6571"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/drafts/GITHUB_REPO_README_DRAFT_INTERNAL_REVIEW.md",
+      "size_bytes": 1365,
+      "sha256": "480de73481d258c8a1612e50c3e0268e7aca04d7f63b09b32d9a50e4a869367a"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/drafts/PUBLIC_PAGE_DRAFT_INTERNAL_REVIEW.md",
+      "size_bytes": 1876,
+      "sha256": "575b2c086592c966f7660d2f2650c1f655dd9fa3e7e1c63fe7a27fe66934e0d1"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/drafts/VIDEO_CAPTION_DRAFTS_INTERNAL_REVIEW.md",
+      "size_bytes": 1175,
+      "sha256": "38cf65abcf7f9e250b6db88fbd513c1c4429e4eaab1b21cc950405a9447e6694"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/evidence/FUTURE_PRESSURE_EXPORT_BRANCH_SPEC.md",
+      "size_bytes": 1375,
+      "sha256": "f65e4e68bf9987f690d35f90b6ee0a2fcd2df0a9d09e2a7f5987774595e5c280"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/evidence/OVERLAY_BOUNDS_AUDIT.md",
+      "size_bytes": 1951,
+      "sha256": "6de92df63e49f5b262572bb3089dea62491a0d15a649aec94c2e622fe44e4099"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/evidence/OVERLAY_CORRECTION_PLAN.md",
+      "size_bytes": 1139,
+      "sha256": "65ce69d950237bdf8c063792878d6bd100ba1d29c46805b7a81e87c351f52ad1"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/evidence/OVERLAY_WORDING_AUDIT.md",
+      "size_bytes": 1025,
+      "sha256": "38e6bff753337d835bde0e63504e6d2fcd0f05adcc64ae05e47f5e0aa2166d28"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/evidence/PRESSURE_AVAILABILITY_FINAL_ANALYSIS.md",
+      "size_bytes": 1678,
+      "sha256": "e361438b3c996b2294e8bc9c3c6427374a53c062a3242d0d86572bc2737bc73b"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/metadata/PUBLIC_PACKAGING_PREP_MANIFEST.json",
+      "size_bytes": 4881,
+      "sha256": "94b6f6a6354e2092c3131c71a4519048b1579dbf132e3a21d15d49fc8693c400"
+    }
+  ]
+}

@@ -144,7 +144,7 @@
     }
   },
   "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
-  "status": "v31_layer1_decision_recorded_public_packaging_blocked",
+  "status": "public_packaging_prep_packet_added_public_packaging_blocked",
   "task_results": {
     "claim_boundary": {
       "component_counts_are_thresholded_diagnostics": true,
@@ -223,6 +223,17 @@
     "pressure_panels_removed": true,
     "q_lambda2_blocked_pending_validated_gradient_tensor_export": true,
     "gravity_branch_deferred": true,
+    "public_packaging_blocked": true,
+    "fit_ready": false,
+    "public_ready": false
+  },
+  "public_packaging_prep": {
+    "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/",
+    "lead_route": "official_round_control",
+    "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat imposed-inlet comparison",
+    "recommended_bridge_repo_name": "basilisk-blender-bridge",
+    "pressure_available": false,
+    "future_pressure_export_needed": true,
     "public_packaging_blocked": true,
     "fit_ready": false,
     "public_ready": false
