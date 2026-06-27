@@ -1,7 +1,7 @@
 
 # Basilisk Rectangular Pulsed-Profile Long Benchmark Status
 
-Status: `layer1_decision_recorded_public_packaging_blocked`
+Status: `v31_layer1_decision_recorded_public_packaging_blocked`
 
 This document summarizes the 2026-06-25 long benchmark batch for internal scientific review. It is not public release copy. Keep `fit_ready=false` and `public_ready=false`.
 
@@ -85,4 +85,18 @@ The postprocess review packet was updated in place with V3.1 internal-review pro
 - V3.1 field reel without pressure panel: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4`.
 - Retained flythrough: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4`.
 - Pressure visualization remains blocked: restored `p` has zero range, so no pressure heatmap or blank pressure panel is included.
+- `fit_ready=false`; `public_ready=false`.
+
+## 2026-06-27 Layer-1 V3.1 Decision
+
+Layer-1 V3.1 decision: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md`.
+
+- Official circular route accepted as internal visual lead.
+- Rectangular top-hat route accepted only as a secondary caveated imposed-inlet comparison.
+- V3.1 primary, split-screen, and no-pressure field reels accepted for internal review.
+- `merged_smooth_normals` accepted as the full-sequence render default.
+- Pressure visualization remains blocked and pressure panels remain removed.
+- Q/lambda2 remains blocked pending validated gradient-tensor export.
+- Gravity branch deferred.
+- Public packaging remains blocked.
 - `fit_ready=false`; `public_ready=false`.

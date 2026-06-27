@@ -80,7 +80,8 @@
       "pressure_panel_removed": true,
       "pressure_visualization_blocked": "restored p has zero range",
       "fit_ready": false,
-      "public_ready": false
+      "public_ready": false,
+      "layer1_v31_decision_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md"
     }
   },
   "public_ready": false,
@@ -143,7 +144,7 @@
     }
   },
   "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
-  "status": "v31_visual_field_cleanup_internal_review_packet_updated",
+  "status": "v31_layer1_decision_recorded_public_packaging_blocked",
   "task_results": {
     "claim_boundary": {
       "component_counts_are_thresholded_diagnostics": true,
@@ -210,5 +211,20 @@
     },
     "selected_rectangular_case": "C1_rect_area_top_hat",
     "selected_rectangular_profile": "rect_area_top_hat"
+  },
+  "layer1_v31_decision": {
+    "reviewed_head": "e16c7e97c37c7012cd9a6dd32cdd98b6144a1bf6",
+    "decision_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md",
+    "official_circular_internal_visual_lead": true,
+    "rectangular_top_hat_secondary_caveated_imposed_inlet_comparison_only": true,
+    "v31_primary_split_field_reels_internal_review_accepted": true,
+    "surface_recipe_default": "merged_smooth_normals",
+    "pressure_visualization_blocked": true,
+    "pressure_panels_removed": true,
+    "q_lambda2_blocked_pending_validated_gradient_tensor_export": true,
+    "gravity_branch_deferred": true,
+    "public_packaging_blocked": true,
+    "fit_ready": false,
+    "public_ready": false
   }
 }

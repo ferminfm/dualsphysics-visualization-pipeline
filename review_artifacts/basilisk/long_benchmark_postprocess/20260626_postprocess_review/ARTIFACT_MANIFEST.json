@@ -782,6 +782,17 @@
       "claim_boundary": "Diagnostic still only; public_ready=false; fit_ready=false.",
       "public_ready": false,
       "fit_ready": false
+    },
+    {
+      "kind": "decision_note",
+      "note": "Layer-1 V3.1 decision: internal visual lead accepted, public packaging blocked",
+      "source_local_path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md",
+      "repo_relative_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md",
+      "size_bytes": 1454,
+      "sha256": "528a18c42906ac60583e1ca715094b7163b222a903a8a60118b4e75ca444a046",
+      "claim_boundary": "Layer-1 private/internal review; public_ready=false; fit_ready=false; no validation or true atomisation claim.",
+      "public_ready": false,
+      "fit_ready": false
     }
   ],
   "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
@@ -806,5 +817,12 @@
     "fit_ready": false,
     "public_ready": false,
     "superseded_pressure_placeholder_file_count_removed": 19
+  },
+  "v31_layer1_decision": {
+    "decision_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md",
+    "reviewed_head": "e16c7e97c37c7012cd9a6dd32cdd98b6144a1bf6",
+    "public_packaging_blocked": true,
+    "fit_ready": false,
+    "public_ready": false
   }
 }
