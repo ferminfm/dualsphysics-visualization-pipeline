@@ -69,7 +69,19 @@
     "pressure_visualization_blocked": true,
     "public_ready": false,
     "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
-    "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat imposed-inlet comparison"
+    "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat imposed-inlet comparison",
+    "v31_cleanup": {
+      "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+      "surface_recipe_default": "merged_smooth_normals",
+      "primary_sequence_v31": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "split_screen_v31": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "field_reel_v31_no_pressure": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "flythrough_retained": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "pressure_panel_removed": true,
+      "pressure_visualization_blocked": "restored p has zero range",
+      "fit_ready": false,
+      "public_ready": false
+    }
   },
   "public_ready": false,
   "remote_base_sha_at_status_write": "34fe347e5571c91dcbd35e640f39578feb80f481",
@@ -131,7 +143,7 @@
     }
   },
   "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
-  "status": "layer1_decision_recorded_public_packaging_blocked",
+  "status": "v31_visual_field_cleanup_internal_review_packet_updated",
   "task_results": {
     "claim_boundary": {
       "component_counts_are_thresholded_diagnostics": true,

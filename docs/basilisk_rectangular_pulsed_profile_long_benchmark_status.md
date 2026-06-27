@@ -72,3 +72,17 @@ A follow-up postprocess/public-prep review packet was added at `review_artifacts
 - Pressure visualization is blocked by zero-range restored pressure exports.
 - Lambda2/Q-like visualization is blocked pending a validated gradient-tensor export.
 - `fit_ready=false`; `public_ready=false`.
+
+## 2026-06-27 V3.1 Visual and Field-Panel Cleanup
+
+The postprocess review packet was updated in place with V3.1 internal-review proxies.
+
+- Full-sequence surface recipe default: `merged_smooth_normals`.
+- `merged_weighted_normals` is not the full-sequence default because Task 04 observed late-frame Blender instability; it remains optional for stills/short clips only after frame tests pass.
+- `limited_laplacian_smooth` and subdivision remain rejected as defaults because they alter geometry/topology diagnostics.
+- V3.1 primary sequence: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4`.
+- V3.1 split-screen comparison: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4`.
+- V3.1 field reel without pressure panel: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4`.
+- Retained flythrough: `review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4`.
+- Pressure visualization remains blocked: restored `p` has zero range, so no pressure heatmap or blank pressure panel is included.
+- `fit_ready=false`; `public_ready=false`.

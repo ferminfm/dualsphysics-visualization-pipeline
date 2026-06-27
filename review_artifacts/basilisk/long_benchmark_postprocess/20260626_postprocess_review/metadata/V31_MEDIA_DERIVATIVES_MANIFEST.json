@@ -1,0 +1,150 @@
+{
+  "videos": [
+    {
+      "name": "long_primary_route_blender_sequence_v31.mp4",
+      "size_bytes": 2461438,
+      "sha256": "875ef850649d529d542e2c9e9989d34c87b34d4450fb5a198ee3502ad7b809f0",
+      "duration": 8.416667,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "stills": [
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/long_primary_route_blender_sequence_v31_first.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/long_primary_route_blender_sequence_v31_middle.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/long_primary_route_blender_sequence_v31_last.jpg"
+      ],
+      "contact_sheet": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/contact_sheets/long_primary_route_blender_sequence_v31_contact_sheet.jpg",
+      "ffprobe": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/metadata/ffprobe_long_primary_route_blender_sequence_v31.json",
+      "repo_stills": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v31_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v31_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v31_last.jpg"
+      ],
+      "repo_contact_sheet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/long_primary_route_blender_sequence_v31_contact_sheet.jpg",
+      "repo_ffprobe": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_long_primary_route_blender_sequence_v31.json"
+    },
+    {
+      "name": "rectangular_top_hat_sequence_v31.mp4",
+      "size_bytes": 2151394,
+      "sha256": "bcb6ab3118d1457055e617f34efe94308055a80425b233f39e86c9093ea15e87",
+      "duration": 8.416667,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "stills": [
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/rectangular_top_hat_sequence_v31_first.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/rectangular_top_hat_sequence_v31_middle.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/rectangular_top_hat_sequence_v31_last.jpg"
+      ],
+      "contact_sheet": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/contact_sheets/rectangular_top_hat_sequence_v31_contact_sheet.jpg",
+      "ffprobe": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/metadata/ffprobe_rectangular_top_hat_sequence_v31.json",
+      "repo_stills": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_sequence_v31_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_sequence_v31_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_sequence_v31_last.jpg"
+      ],
+      "repo_contact_sheet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/rectangular_top_hat_sequence_v31_contact_sheet.jpg",
+      "repo_ffprobe": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_rectangular_top_hat_sequence_v31.json"
+    },
+    {
+      "name": "round_vs_rectangular_split_screen_v31.mp4",
+      "size_bytes": 1517627,
+      "sha256": "0344c1b1d79fba3929cba26238694115c64e2f8e16d54fda66e395a90c40dc53",
+      "duration": 8.416667,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "stills": [
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/round_vs_rectangular_split_screen_v31_first.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/round_vs_rectangular_split_screen_v31_middle.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/round_vs_rectangular_split_screen_v31_last.jpg"
+      ],
+      "contact_sheet": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/contact_sheets/round_vs_rectangular_split_screen_v31_contact_sheet.jpg",
+      "ffprobe": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/metadata/ffprobe_round_vs_rectangular_split_screen_v31.json",
+      "repo_stills": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v31_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v31_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v31_last.jpg"
+      ],
+      "repo_contact_sheet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/round_vs_rectangular_split_screen_v31_contact_sheet.jpg",
+      "repo_ffprobe": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_round_vs_rectangular_split_screen_v31.json"
+    },
+    {
+      "name": "task05_field_visualization_reel_v31_no_pressure.mp4",
+      "size_bytes": 343876,
+      "sha256": "bf4ae00e8819cbb5e07402603507af7e3d7164b7adbee095674c8d6c18e93fa5",
+      "duration": 10.0,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "stills": [
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/task05_field_visualization_reel_v31_no_pressure_first.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/task05_field_visualization_reel_v31_no_pressure_middle.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/task05_field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "contact_sheet": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/contact_sheets/task05_field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "ffprobe": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/metadata/ffprobe_task05_field_visualization_reel_v31_no_pressure.json",
+      "repo_stills": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_v31_no_pressure_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_v31_no_pressure_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "repo_contact_sheet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/task05_field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "repo_ffprobe": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_task05_field_visualization_reel_v31_no_pressure.json"
+    },
+    {
+      "name": "official_round_control__field_visualization_reel_v31_no_pressure.mp4",
+      "size_bytes": 184659,
+      "sha256": "2cd563cf5f81ce12eb4e8fbe94c8d91a49e9c494dcd88e17ff3aa3236a7cb60d",
+      "duration": 5.0,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "stills": [
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/official_round_control__field_visualization_reel_v31_no_pressure_first.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/official_round_control__field_visualization_reel_v31_no_pressure_middle.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/official_round_control__field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "contact_sheet": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/contact_sheets/official_round_control__field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "ffprobe": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/metadata/ffprobe_official_round_control__field_visualization_reel_v31_no_pressure.json",
+      "repo_stills": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_v31_no_pressure_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_v31_no_pressure_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "repo_contact_sheet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/official_round_control__field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "repo_ffprobe": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_official_round_control__field_visualization_reel_v31_no_pressure.json"
+    },
+    {
+      "name": "rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure.mp4",
+      "size_bytes": 203979,
+      "sha256": "e13e88dc498d2ab662a8589264f71207e12d762d88badd0314854860d3af9e2c",
+      "duration": 5.0,
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "pix_fmt": "yuv420p",
+      "stills": [
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_first.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_middle.jpg",
+        "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "contact_sheet": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/contact_sheets/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "ffprobe": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/metadata/ffprobe_rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure.json",
+      "repo_stills": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "repo_contact_sheet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "repo_ffprobe": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure.json"
+    }
+  ],
+  "fit_ready": false,
+  "public_ready": false
+}
