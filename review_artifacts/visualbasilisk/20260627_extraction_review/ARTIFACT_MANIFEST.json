@@ -1,0 +1,54 @@
+{
+  "packet_id": "visualbasilisk_extraction_review_20260627",
+  "created_utc": "2026-06-27T17:06:35.965359+00:00",
+  "evidence_repo_branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "visualbasilisk_repo": "https://github.com/ferminfm/visualbasilisk",
+  "visualbasilisk_private": true,
+  "visualbasilisk_head": "227d91ec9c81ed07accea5cba4f1479d1ae2a546",
+  "public_ready": false,
+  "fit_ready": false,
+  "artifacts": [
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/HUMAN_DECISION_CHECKLIST.md",
+      "size_bytes": 572,
+      "sha256": "45aea9df49bf98a3705a4d77750a51875f7688c07ff0dd41206d93da411fbdf1",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/LAYER1_HANDOFF.md",
+      "size_bytes": 2135,
+      "sha256": "9e407f3e03f59d617d9275e60093e18a7d6d985ec2ca94eabba59d85e3176fb7",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/README_LAYER1_REVIEW.md",
+      "size_bytes": 999,
+      "sha256": "13af03161e92ece57ac928f27c85c10fc0cbf51bdf2cf654ab92e35119e2a87c",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/TASK_RESULT_INVENTORY.json",
+      "size_bytes": 4546,
+      "sha256": "1ca8575baaec9e561e1b5b309e1a192ab2aac5dd1b1a4f2574d6ae8189d2d107",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/VISUALBASILISK_REPO_STATUS.md",
+      "size_bytes": 2489,
+      "sha256": "8f8abb4c4965f14147fce246b514b48e5bceb63fe6fe6ad68d984f1171b6eb96",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/evidence/CLAIM_BOUNDARY.md",
+      "size_bytes": 535,
+      "sha256": "259ed2117880c0e0ceda8203b97436941c9b50ed72e0bde313a807b97e6a1b67",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260627_extraction_review/evidence/TEST_SUMMARY.md",
+      "size_bytes": 388,
+      "sha256": "9daac13d913fa360598fcaf431eb3b11d5f2d15bb5106ae53eae616e96a4dd5d",
+      "kind": "text_or_json"
+    }
+  ]
+}
