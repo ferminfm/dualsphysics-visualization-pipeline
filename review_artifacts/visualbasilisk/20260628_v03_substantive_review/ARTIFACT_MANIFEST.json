@@ -1,33 +1,152 @@
 {
   "packet": "visualbasilisk_v03_substantive_review",
-  "source_execution_root": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/04_render_variants_visual_qa",
-  "public_ready": false,
+  "status": "internal_review_handoff_ready",
   "fit_ready": false,
-  "artifact_count": 4,
+  "public_ready": false,
   "items": [
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/DECISION_TREE.md",
+      "size_bytes": 693,
+      "sha256": "8b635c62936d4196f37dea80d8dd23a9826b1b8ed6e87786180667721b2b4afb",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/LAYER1_HANDOFF.md",
+      "size_bytes": 1277,
+      "sha256": "d2f502ad29b6d1697ce4d97579748852f4a255aba72587a7b405c453261fa0f4",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/LAYER1_REVIEW_PROMPT.md",
+      "size_bytes": 1290,
+      "sha256": "3a8b0dcf2bb96aa7e09d0bb2174f05dab1b36da6e9f55d2c35490ccb96ad9e0d",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/NEXT_DECISION_CHECKLIST.md",
+      "size_bytes": 605,
+      "sha256": "eeaf0f09ebee98598a86210e36b4adbee1083faf65095442c5e7da09476b63af",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/OPEN_QUESTIONS.md",
+      "size_bytes": 479,
+      "sha256": "00407814e66b8f744cab23641da805171011154a3fab152ec22e6983fcdb4902",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/README_LAYER1_REVIEW.md",
+      "size_bytes": 791,
+      "sha256": "790c5f59b0fbd4b12acf31f713ae6f05b83d70c44020be64110b1169cee27757",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/REVIEW_ORDER.md",
+      "size_bytes": 424,
+      "sha256": "9e31864037ffd1bb27eebddac45062fcf14a0d32392e3ed1ea89ab2a93e1630b",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/SITE_DRAFT_STATUS.md",
+      "size_bytes": 445,
+      "sha256": "47bbed3ece7ed294226e47bb233b1c0642f3ac9a530a89c124ede82b69338128",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/TASK_RESULT_INVENTORY.json",
+      "size_bytes": 6313,
+      "sha256": "b94cebe781d269a50192b485d7bfd9d2793127796432f4913900204788ad4c49",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/VISUALBASILISK_REPO_STATUS.md",
+      "size_bytes": 825,
+      "sha256": "a280c1c64abb8ed126e68382d5f8cff42e0a6052ab5877a3109f0d98f5587b9f",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/WHAT_CHANGED_SINCE_V02.md",
+      "size_bytes": 611,
+      "sha256": "df1b66703d4bdaf9a65232a41f60bb69f9797618a51aa993360144e542345f54",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
     {
       "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/contact_sheets/arc_orbit_blue_contact_sheet.png",
       "size_bytes": 35766,
       "sha256": "ceec7f0e15aaee8966677fc44809c775a94454fe3d75ded700e1008e9dae56fa",
-      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
     },
     {
       "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/contact_sheets/render_variant_gallery_contact_sheet.png",
       "size_bytes": 89351,
       "sha256": "dd17433050975604b191614ec098260a0be3cf26f9348b6dfd4d2ab9805fae16",
-      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/evidence/REAL_FIXTURE_FEASIBILITY_DECISION.md",
+      "size_bytes": 1445,
+      "sha256": "4050818ac9df9482f9db3bf96700ff885ccb8d6ad091664dda551f03054133a6",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/evidence/RENDER_RECIPE_RECOMMENDATION.md",
+      "size_bytes": 745,
+      "sha256": "62c1aa64117fdbd08623ec366548640febccb1fc670eda6f3ef3aad0255d1473",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/evidence/VISUAL_QA_NOTES.md",
+      "size_bytes": 429,
+      "sha256": "e4d008aeae031086576022e5a51106af9793080fec379b4944a7d77281da1aa4",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
     },
     {
       "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/metadata/ffprobe_arc_orbit_blue_two_frame_proxy.json",
       "size_bytes": 2817,
       "sha256": "57c26b4950af73820c2c40c773b624ba21d961469cf760118ae7b3e2bb530469",
-      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
     },
     {
       "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/videos_proxy/arc_orbit_blue_two_frame_proxy.mp4",
       "size_bytes": 3266,
       "sha256": "147babfeeaf7ea88693d09b4a0a9ab7972d0ef9267d930a498f5cdf554a6c6e4",
-      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "internal review artifact; not validation, fit readiness, public readiness, or CFD evidence unless explicitly marked synthetic visual QA"
     }
   ]
 }
