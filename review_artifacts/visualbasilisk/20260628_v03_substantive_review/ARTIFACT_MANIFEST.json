@@ -1,0 +1,33 @@
+{
+  "packet": "visualbasilisk_v03_substantive_review",
+  "source_execution_root": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/04_render_variants_visual_qa",
+  "public_ready": false,
+  "fit_ready": false,
+  "artifact_count": 4,
+  "items": [
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/contact_sheets/arc_orbit_blue_contact_sheet.png",
+      "size_bytes": 35766,
+      "sha256": "ceec7f0e15aaee8966677fc44809c775a94454fe3d75ded700e1008e9dae56fa",
+      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/contact_sheets/render_variant_gallery_contact_sheet.png",
+      "size_bytes": 89351,
+      "sha256": "dd17433050975604b191614ec098260a0be3cf26f9348b6dfd4d2ab9805fae16",
+      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/metadata/ffprobe_arc_orbit_blue_two_frame_proxy.json",
+      "size_bytes": 2817,
+      "sha256": "57c26b4950af73820c2c40c773b624ba21d961469cf760118ae7b3e2bb530469",
+      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/videos_proxy/arc_orbit_blue_two_frame_proxy.mp4",
+      "size_bytes": 3266,
+      "sha256": "147babfeeaf7ea88693d09b4a0a9ab7972d0ef9267d930a498f5cdf554a6c6e4",
+      "claim_boundary": "synthetic fixture render QA only; not CFD evidence, validation, fit readiness, or public readiness"
+    }
+  ]
+}
