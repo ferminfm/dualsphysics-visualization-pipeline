@@ -1,0 +1,16 @@
+{
+  "status": "tasks_01_07_complete_site_draft_pending",
+  "branch": "review/basilisk-jet-portfolio-20260702",
+  "sha": "735ec62a0ccd9e18fcce4b32a9eadc5491884fc7",
+  "review_packet_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/",
+  "fit_ready": false,
+  "public_ready": false,
+  "round_route_lead": true,
+  "rectangular_case": "C1_rect_area_top_hat",
+  "rectangular_profile": "rect_area_top_hat",
+  "pressure_available": false,
+  "pressure_valid_nonzero": false,
+  "scalar_media_ready": true,
+  "cinematic_assets_ready": true,
+  "narrative_ready": true
+}

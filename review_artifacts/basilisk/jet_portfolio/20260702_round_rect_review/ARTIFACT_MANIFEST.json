@@ -1,0 +1,152 @@
+{
+  "created_at": "2026-07-04T03:15:15.917274+00:00",
+  "source_packet": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+  "assets": [
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "exists": true,
+      "size": 2461438,
+      "sha256": "875ef850649d529d542e2c9e9989d34c87b34d4450fb5a198ee3502ad7b809f0",
+      "asset_id": "lead_sequence",
+      "label": "Official circular lead sequence, V3.1",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "claim_boundary": "internal review asset; not validation; not production CFD; public_ready=false",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "exists": true,
+      "size": 1517627,
+      "sha256": "0344c1b1d79fba3929cba26238694115c64e2f8e16d54fda66e395a90c40dc53",
+      "asset_id": "split_screen",
+      "label": "Round vs 2:1 rectangular top-hat split-screen, V3.1",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "claim_boundary": "internal review asset; not validation; not production CFD; public_ready=false",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "exists": true,
+      "size": 343876,
+      "sha256": "bf4ae00e8819cbb5e07402603507af7e3d7164b7adbee095674c8d6c18e93fa5",
+      "asset_id": "field_reel",
+      "label": "No-pressure scalar diagnostic reel",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "claim_boundary": "internal review asset; not validation; not production CFD; public_ready=false",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "exists": true,
+      "size": 4722651,
+      "sha256": "187d454ab15d8618ca5326520f4f45d07705a66355a3d155baecf3739ad2416a",
+      "asset_id": "flythrough",
+      "label": "Complex geometry flythrough retained from V3",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "claim_boundary": "internal review asset; not validation; not production CFD; public_ready=false",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/long_primary_route_blender_sequence_v31_contact_sheet.jpg",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/long_primary_route_blender_sequence_v31_contact_sheet.jpg",
+      "exists": true,
+      "size": 159775,
+      "sha256": "468dc52e4ecf2cee0bbd726b18a496139b7a54aa7722a49cb4fbfa012ba7b3b1",
+      "asset_id": "lead_contact_sheet",
+      "label": "lead contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/long_primary_route_blender_sequence_v31_contact_sheet.jpg",
+      "claim_boundary": "contact sheet for internal review",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/round_vs_rectangular_split_screen_v31_contact_sheet.jpg",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/round_vs_rectangular_split_screen_v31_contact_sheet.jpg",
+      "exists": true,
+      "size": 199171,
+      "sha256": "c9a6239f02a7d18ebb147c6fac333823b45530b6bf1de697199fa1a43210361d",
+      "asset_id": "split_contact_sheet",
+      "label": "split contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/round_vs_rectangular_split_screen_v31_contact_sheet.jpg",
+      "claim_boundary": "contact sheet for internal review",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/task05_field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/task05_field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "exists": true,
+      "size": 235218,
+      "sha256": "d7352021af28485212d35935d7e2a0ecbefd6b2428385d6ac85f7f693864b191",
+      "asset_id": "field_contact_sheet",
+      "label": "field contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/task05_field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "claim_boundary": "contact sheet for internal review",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg",
+      "exists": true,
+      "size": 86564,
+      "sha256": "de1b187090776fbd5346281fe0763924b4c8c1c1b997a4edc15824d69d9dc788",
+      "asset_id": "flythrough_contact_sheet",
+      "label": "flythrough contact sheet",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg",
+      "claim_boundary": "contact sheet for internal review",
+      "fit_ready": false,
+      "public_ready": false
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_long_primary_route_blender_sequence_v31.json",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_long_primary_route_blender_sequence_v31.json",
+      "exists": true,
+      "size": 2304,
+      "sha256": "651d32938763ea451ca5fd9e4bef5bee9c66d0aa7141412f2273ad10adb44ba4",
+      "asset_id": "lead_sequence_ffprobe",
+      "label": "ffprobe metadata",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_long_primary_route_blender_sequence_v31.json"
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_round_vs_rectangular_split_screen_v31.json",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_round_vs_rectangular_split_screen_v31.json",
+      "exists": true,
+      "size": 2228,
+      "sha256": "90c2048b3da985bda4d45b3b666705a8711bf155e3f5f08d5aaec37abb1f7326",
+      "asset_id": "split_screen_ffprobe",
+      "label": "ffprobe metadata",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_round_vs_rectangular_split_screen_v31.json"
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_task05_field_visualization_reel_v31_no_pressure.json",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_task05_field_visualization_reel_v31_no_pressure.json",
+      "exists": true,
+      "size": 2237,
+      "sha256": "ae4366a01734971b6149eb6219c491bffcbac65975d09dbf018594fd66f1fef8",
+      "asset_id": "field_reel_ffprobe",
+      "label": "ffprobe metadata",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_task05_field_visualization_reel_v31_no_pressure.json"
+    },
+    {
+      "source": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_final_complex_geometry_flythrough_v3.json",
+      "path": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio/review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_final_complex_geometry_flythrough_v3.json",
+      "exists": true,
+      "size": 2358,
+      "sha256": "c7b4a5de9fcc1b52cc28306c82d14e13836c9a5318b10ed43bb8a389038e53ad",
+      "asset_id": "flythrough_ffprobe",
+      "label": "ffprobe metadata",
+      "repo_relative_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/metadata/ffprobe_final_complex_geometry_flythrough_v3.json"
+    }
+  ],
+  "fit_ready": false,
+  "public_ready": false
+}
