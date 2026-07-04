@@ -162,5 +162,10 @@
   ],
   "site_branch": "review/basilisk-jet-portfolio-site-20260702",
   "site_sha": "062a815c2ca8001177e40b5ab94f10ca5c76d476",
-  "evidence_branch": "review/basilisk-jet-portfolio-20260702"
+  "evidence_branch": "review/basilisk-jet-portfolio-20260702",
+  "site_preview_files": [
+    "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/MEDIA_SELECTION_FOR_SITE.md"
+  ],
+  "site_preview_media_policy": "contact_sheets_only_no_mp4_embeds",
+  "site_preview_public_ready": false
 }
