@@ -1,8 +1,11 @@
 {
-  "status": "tasks_01_07_complete_site_draft_pending",
-  "branch": "review/basilisk-jet-portfolio-20260702",
-  "sha": "735ec62a0ccd9e18fcce4b32a9eadc5491884fc7",
+  "status": "tasks_01_09_prepared_push_pending",
+  "evidence_branch": "review/basilisk-jet-portfolio-20260702",
+  "evidence_sha_before_task09_commit": "6ee90df1c18ec3b69c6dd412f927f0712264fe7a",
+  "site_branch": "review/basilisk-jet-portfolio-site-20260702",
+  "site_sha": "062a815c2ca8001177e40b5ab94f10ca5c76d476",
   "review_packet_path": "review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/",
+  "site_route": "/projects/basilisk-jet-benchmark",
   "fit_ready": false,
   "public_ready": false,
   "round_route_lead": true,
@@ -12,5 +15,6 @@
   "pressure_valid_nonzero": false,
   "scalar_media_ready": true,
   "cinematic_assets_ready": true,
-  "narrative_ready": true
+  "site_draft_ready": true,
+  "deployed": false
 }

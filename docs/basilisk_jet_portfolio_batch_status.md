@@ -1,12 +1,18 @@
 # Basilisk Jet Portfolio Batch Status
 
-Status: Tasks 01-07 complete; Task 08 site draft pending.
+Status: Tasks 01-09 prepared; final push pending when this status file is committed.
 Evidence branch: `review/basilisk-jet-portfolio-20260702`
-Local SHA when documents were generated: `735ec62a0ccd9e18fcce4b32a9eadc5491884fc7`
+Site branch: `review/basilisk-jet-portfolio-site-20260702`
 
 ## Review Packet
 
 `review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/`
+
+## Site Draft
+
+- Branch: `review/basilisk-jet-portfolio-site-20260702`
+- Route: `/projects/basilisk-jet-benchmark`
+- Deployment: not performed.
 
 ## Route Decisions
 
@@ -28,4 +34,4 @@ Local SHA when documents were generated: `735ec62a0ccd9e18fcce4b32a9eadc5491884f
 
 ## Next Step
 
-Create a non-deployed site draft on `review/basilisk-jet-portfolio-site-20260702`, then run final audit and Layer-1 handoff.
+Layer 1 should inspect the review packet and site draft, then decide whether to open/merge/deploy through a separate publication task or request more media work.

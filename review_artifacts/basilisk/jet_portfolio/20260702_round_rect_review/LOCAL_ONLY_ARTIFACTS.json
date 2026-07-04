@@ -1,0 +1,20 @@
+{
+  "local_only_artifacts": [
+    {
+      "path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch",
+      "reason": "prior CFD, native media, surfaces, and run diagnostics; too large/private for new packet"
+    },
+    {
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch",
+      "reason": "prior field extraction and postprocess outputs; raw/local generated evidence"
+    },
+    {
+      "path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup",
+      "reason": "V3.1 correction outputs and local reports"
+    },
+    {
+      "path": "/home/franco/stack-validation/20260702-basilisk-jet-portfolio-batch",
+      "reason": "current task reports, copied local media, and master JSON results"
+    }
+  ]
+}
