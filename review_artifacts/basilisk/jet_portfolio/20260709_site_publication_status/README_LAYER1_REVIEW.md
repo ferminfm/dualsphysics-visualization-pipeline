@@ -32,6 +32,12 @@ The compact media and scientific-review packet remains:
 
 `review_artifacts/basilisk/jet_portfolio/20260702_round_rect_review/`
 
+Closure notes for the current publication state:
+
+- `PUBLIC_CLOSURE_NOTE.md`
+- `DEFERRED_ROADMAP_STATUS.md`
+- `OPTIONAL_COPY_POLISH_QUEUE.md`
+
 The publication batch outputs remain local under:
 
 `/home/franco/stack-validation/20260709-basilisk-jet-site-publication-batch/`
