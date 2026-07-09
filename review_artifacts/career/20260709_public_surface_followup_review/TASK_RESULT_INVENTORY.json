@@ -1,0 +1,105 @@
+{
+  "packet_id": "career_public_surface_followup_review_20260709",
+  "status": "ready_for_layer1_review",
+  "created_at": "2026-07-09T19:41:46.001409+00:00",
+  "site_pr": {
+    "url": "https://github.com/ferminfm/personal-ai-scientific-computing-site/pull/8",
+    "state": "OPEN",
+    "draft": true,
+    "mergeable": "MERGEABLE",
+    "branch": "review/google-alignerr-appeal-site-20260709",
+    "head_sha": "b99418bf94df5820db469f3e8580d8ac6b32500c",
+    "base": "main",
+    "deployed": false,
+    "merged": false
+  },
+  "evidence_branch": {
+    "name": "review/google-alignerr-appeal-evidence-20260709",
+    "sha_before_final_packet": "cb9126abb98beb2dd45ad24375c334fc1fe5649d"
+  },
+  "tasks": [
+    {
+      "task_id": "task-01-public-surface-followup-gate",
+      "status": "success",
+      "classification": "site_pr_and_metadata_followup_complete",
+      "commits": [
+        "0a8256c6bb79e21b1be6995a8b7d1311244cddc7"
+      ],
+      "next_recommended_action": "Proceed to Task 02 and add a modest non-deployed scientific AI evaluation / CFD evidence review site surface.",
+      "blockers": [],
+      "risks": [
+        "Site PR is draft and not deployed; human review required before merge/deploy.",
+        "Profile review packet is local-only and should not be published without review."
+      ]
+    },
+    {
+      "task_id": "task-02-scientific-ai-evaluation-site-draft",
+      "status": "success",
+      "classification": "site_page_draft_added",
+      "commits": [
+        "b99418bf94df5820db469f3e8580d8ac6b32500c"
+      ],
+      "next_recommended_action": "Proceed to Task 03 and create the public-safe CFD evaluator sample packet in the evidence repo.",
+      "blockers": [],
+      "risks": [
+        "Draft PR remains unmerged and undeployed; human review required before publication."
+      ]
+    },
+    {
+      "task_id": "task-03-cfd-evaluator-sample-packet",
+      "status": "success",
+      "classification": "public_safe_cfd_evaluator_sample_packet_created",
+      "commits": [
+        "b1f671b370c98f47d8c6167d1a2c49f5bef2b5f4"
+      ],
+      "next_recommended_action": "Proceed to Task 04 and create the role-specific copy pack with the same claim boundaries.",
+      "blockers": [],
+      "risks": [
+        "Human review is required before public linking or use in applications.",
+        "Samples are illustrative evaluator examples, not proprietary assessment material or answer keys."
+      ]
+    },
+    {
+      "task_id": "task-04-role-specific-copy-pack",
+      "status": "success",
+      "classification": "internal_review_role_copy_pack_created",
+      "commits": [
+        "cb9126abb98beb2dd45ad24375c334fc1fe5649d"
+      ],
+      "next_recommended_action": "Proceed to Task 05 and create the GitHub profile pinning plan.",
+      "blockers": [],
+      "risks": [
+        "All copy remains internal-review-only until human approval.",
+        "Application-note templates require tailoring to a real posting before use."
+      ]
+    },
+    {
+      "task_id": "task-05-github-profile-pinning-plan",
+      "status": "success",
+      "classification": "github_profile_plan_written_no_public_profile_repo_created",
+      "commits": [],
+      "next_recommended_action": "Proceed to Task 06 and assemble the final Layer 1 handoff packet.",
+      "blockers": [],
+      "risks": [
+        "Public profile repository creation is a public action and was not performed.",
+        "Human review required before using the profile README draft."
+      ]
+    }
+  ],
+  "artifacts_in_this_packet": [
+    "LAYER1_HANDOFF.md",
+    "LAYER1_REVIEW_PROMPT.md",
+    "TASK_RESULT_INVENTORY.json",
+    "NEXT_DECISION_CHECKLIST.md",
+    "PUBLIC_SURFACE_DECISION_MATRIX.md"
+  ],
+  "global_boundaries": {
+    "deployed": false,
+    "merged": false,
+    "applications_submitted": false,
+    "outreach_sent": false,
+    "repo_visibility_changed": false,
+    "employment_or_platform_acceptance_claims": false,
+    "validation_or_production_cfd_claims": false
+  }
+}
