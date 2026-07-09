@@ -34,6 +34,7 @@ The compact media and scientific-review packet remains:
 
 Closure notes for the current publication state:
 
+- `FINAL_LAYER1_HANDOFF.md`
 - `PUBLIC_CLOSURE_NOTE.md`
 - `DEFERRED_ROADMAP_STATUS.md`
 - `OPTIONAL_COPY_POLISH_QUEUE.md`
