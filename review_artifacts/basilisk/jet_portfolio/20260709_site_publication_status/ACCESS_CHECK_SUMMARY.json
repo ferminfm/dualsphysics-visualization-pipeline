@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "production_alias": "https://personal-ai-scientific-computing-si.vercel.app",
+  "projects_url": "https://personal-ai-scientific-computing-si.vercel.app/projects",
+  "route_url": "https://personal-ai-scientific-computing-si.vercel.app/projects/basilisk-jet-benchmark",
+  "visualbasilisk_route_url": "https://personal-ai-scientific-computing-si.vercel.app/projects/visualbasilisk",
+  "projects_http_status": 200,
+  "route_http_status": 200,
+  "visualbasilisk_http_status": 200,
+  "anonymous_access_confirmed": true,
+  "sso_block_detected": false,
+  "stale_preview_wording_found": false,
+  "prohibited_wording_found": false,
+  "claim_boundary_wording_present": true,
+  "checked_at_utc": "2026-07-09T11:58:24Z"
+}
