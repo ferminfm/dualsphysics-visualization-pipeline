@@ -1,0 +1,54 @@
+{
+  "created_at": "2026-07-09T18:20:42.287214+00:00",
+  "tasks": [
+    {
+      "task_id": "01_role_market_evidence_audit",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/01_role_market_evidence_audit/CODEX_TASK01_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 02 portfolio evidence map and gap analysis."
+    },
+    {
+      "task_id": "02_portfolio_evidence_map_gap_analysis",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/02_portfolio_evidence_map_gap_analysis/CODEX_TASK02_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 03 Google Cloud AI / DeepMind-style packet."
+    },
+    {
+      "task_id": "03_google_deepmind_cloud_ai_packet",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/03_google_deepmind_cloud_ai_packet/CODEX_TASK03_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 04 Alignerr CFD evaluator packet."
+    },
+    {
+      "task_id": "04_alignerr_cfd_evaluator_packet",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/04_alignerr_cfd_evaluator_packet/CODEX_TASK04_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 05 site/profile restructure draft."
+    },
+    {
+      "task_id": "05_site_profile_restructure_draft",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/05_site_profile_restructure_draft/CODEX_TASK05_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 06 GitHub/repo hygiene and link audit; optionally open a draft PR for the site branch after Layer 1 review."
+    },
+    {
+      "task_id": "06_github_repo_hygiene_link_audit",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/06_github_repo_hygiene_link_audit/CODEX_TASK06_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 07 copy drafts; later consider repo description updates and a site draft PR after Layer 1 review."
+    },
+    {
+      "task_id": "07_resume_linkedin_application_copy",
+      "status": "success",
+      "summary_path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/CODEX_TASK07_SUMMARY.json",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 08 final review packet and Layer-1 handoff."
+    }
+  ]
+}

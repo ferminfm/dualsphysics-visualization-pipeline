@@ -1,0 +1,53 @@
+{
+  "created_at": "2026-07-09T18:12:22.836520+00:00",
+  "sources": [
+    {
+      "id": "google_deepmind_careers",
+      "title": "Careers at Google DeepMind",
+      "url": "https://deepmind.google/careers/",
+      "retrieved": "2026-07-10",
+      "type": "official",
+      "notes": "Defines mission, AI-for-science emphasis, roles including Research Engineer, Software Engineer, Research Scientist, Technical Program Manager, and interview process."
+    },
+    {
+      "id": "google_deepmind_science",
+      "title": "Science - Google DeepMind",
+      "url": "https://deepmind.google/science/",
+      "retrieved": "2026-07-10",
+      "type": "official",
+      "notes": "Frames AI-for-science around hypothesis generation/testing, multidisciplinary science domains, AlphaFold, WeatherNext, AlphaEvolve, Co-Scientist, and systematic accelerated discovery."
+    },
+    {
+      "id": "google_ai_principles",
+      "title": "Google AI Principles",
+      "url": "https://ai.google/principles/",
+      "retrieved": "2026-07-10",
+      "type": "official",
+      "notes": "States bold/responsible AI, rigorous scientific method, AI for scientific discovery, human oversight, testing, monitoring, privacy/security, and collaborative progress."
+    },
+    {
+      "id": "google_cloud_ai_training",
+      "title": "Google Cloud Machine Learning and AI Courses",
+      "url": "https://cloud.google.com/learn/training/machinelearning-ai",
+      "retrieved": "2026-07-10",
+      "type": "official",
+      "notes": "Highlights Vertex AI, BigQuery, TensorFlow, MLOps for generative AI, productionize/optimize/maintain ML systems, and skill paths for ML engineers and developers."
+    },
+    {
+      "id": "alignerr_home",
+      "title": "Alignerr - Powered by Labelbox",
+      "url": "https://www.alignerr.com/",
+      "retrieved": "2026-07-10",
+      "type": "official",
+      "notes": "Describes remote expert network for training AI; hiring PhDs, researchers, subject matter experts, experienced professionals across disciplines; examples include data quality/review/rating work."
+    },
+    {
+      "id": "local_portfolio_artifacts",
+      "title": "Local portfolio and evidence repositories",
+      "url": "local:/home/franco/Documents/GitHub",
+      "retrieved": "2026-07-10",
+      "type": "local evidence",
+      "notes": "VisualBasilisk, Basilisk jet benchmark page, DualSPHysics/OpenFOAM/ideal jet pages, and scientific/evidence repo documents were used for role-fit mapping only; no new claims invented."
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "created_at": "2026-07-09T18:20:42.289609+00:00",
+  "files": [
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/LAYER1_REVIEW_PROMPT.md",
+      "bytes": 942,
+      "sha256": "78dae37ced6b890f8cd3598de6e52f65b05d2adee244ac3ae9ef0f6dbc02713f"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/NEXT_DECISION_CHECKLIST.md",
+      "bytes": 775,
+      "sha256": "abcefb069e6f9a6da7ee98e764ce5b3637943f79d82299103a87ee651bb757e9"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/README_LAYER1_REVIEW.md",
+      "bytes": 1864,
+      "sha256": "9dadb5c817a47478e1f37b3528859edf083e57f03cb14ddb68527ca50b19602e"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/TASK_INVENTORY.json",
+      "bytes": 2802,
+      "sha256": "c88fb24c181f17f3c6f31217b9977e9d5967a8de2b8aa7868192013deb9cb748"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/01_role_market_evidence_audit/ASSUMPTIONS_AND_UNKNOWNS.md",
+      "bytes": 1378,
+      "sha256": "046342d6dae157fbaffba6a3591d23f222238c58d2354d354b5b6d3f33adf4a2"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/01_role_market_evidence_audit/CODEX_TASK01_REPORT.md",
+      "bytes": 1893,
+      "sha256": "c55c8abfdf990eced5b2c45663d8f08df81dade66271267a1408e983a3185d17"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/01_role_market_evidence_audit/CODEX_TASK01_SUMMARY.json",
+      "bytes": 284,
+      "sha256": "5b037d87b00a8e4848c07e6c7ca5aa537215a52d4f36d46913b63e0ef297f007"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/01_role_market_evidence_audit/SOURCE_LOG.json",
+      "bytes": 2511,
+      "sha256": "5f9bd4f59d190027f70417d9dfccc48a25d1b2c7a97960b67e710a4256247f12"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/01_role_market_evidence_audit/TARGET_ROLE_MATRIX.md",
+      "bytes": 4150,
+      "sha256": "b44d567b42a8b1500dd58bd28a3055ec856d04d67d957274c72bd9cc101e13f3"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/02_portfolio_evidence_map_gap_analysis/CODEX_TASK02_REPORT.md",
+      "bytes": 1235,
+      "sha256": "875f852e91581891850b6cc04890c0b2154a54ae0188528a71c1c9b7d7dd633b"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/02_portfolio_evidence_map_gap_analysis/CODEX_TASK02_SUMMARY.json",
+      "bytes": 267,
+      "sha256": "8ea1af1394234d2c20264425f4ef1a6eb91103b56208f4d4bea1b61755eb997a"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/02_portfolio_evidence_map_gap_analysis/FAST_FIX_BACKLOG.md",
+      "bytes": 1194,
+      "sha256": "cbe4df154a9aa4dd67dc0e60119318850105bf2879942369a79662a088583575"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/02_portfolio_evidence_map_gap_analysis/PORTFOLIO_EVIDENCE_MAP.md",
+      "bytes": 4223,
+      "sha256": "f4253531230eca9e993e0340dde0f041f1b03736cc07b83df70bc17adb1562de"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/02_portfolio_evidence_map_gap_analysis/ROLE_GAP_ANALYSIS.md",
+      "bytes": 1552,
+      "sha256": "57e600308df61fdb68ff98180a954e77e1ca9fe34a5df8b7d3f1087f12383d81"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/03_google_deepmind_cloud_ai_packet/CODEX_TASK03_REPORT.md",
+      "bytes": 905,
+      "sha256": "ded020acfce6c5e888212279726b80744c100349561c2a55a106d4f9b3ddd9e1"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/03_google_deepmind_cloud_ai_packet/CODEX_TASK03_SUMMARY.json",
+      "bytes": 266,
+      "sha256": "ba6982418d01c130a456ba719407d8adc14cc39aaae560ed22cc1cccdea2baed"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/03_google_deepmind_cloud_ai_packet/GOOGLE_CLOUD_AI_TALKING_POINTS.md",
+      "bytes": 2177,
+      "sha256": "a40ef595641c42d0d805780ebf55feeffd6062680f183b84c22afa831e90b5b5"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/03_google_deepmind_cloud_ai_packet/GOOGLE_DEEPMIND_ROLE_PACKET.md",
+      "bytes": 3796,
+      "sha256": "f3992808f94a91709eb23c3244b87da46d39d2cc9bf3f2a7226d5d04a664fa7a"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/03_google_deepmind_cloud_ai_packet/PROJECT_ORDERING_RECOMMENDATION.md",
+      "bytes": 1308,
+      "sha256": "22d1bcb3e0dccfa547cd423fa640ca3df79869e58d9cf939ce51fcda8c6b7326"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/04_alignerr_cfd_evaluator_packet/ALIGNERR_CFD_EVALUATOR_PACKET.md",
+      "bytes": 1741,
+      "sha256": "f62fa9abbb0b9603f0a347a6e1ed7e07f8de3c1fbb31c023eca244f69f1f65a0"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/04_alignerr_cfd_evaluator_packet/CFD_EVALUATION_RUBRIC_BANK.md",
+      "bytes": 2675,
+      "sha256": "756787c4cdfddd70d4d97fc77a44e1921665253e596076008088339bfa3a444c"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/04_alignerr_cfd_evaluator_packet/CFD_SAMPLE_REVIEW_PROMPTS.md",
+      "bytes": 3405,
+      "sha256": "5aa41ecb846e67a456932b97f1c5f272557f05eec9b0a82a9556cfdc1a3ace87"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/04_alignerr_cfd_evaluator_packet/CODEX_TASK04_REPORT.md",
+      "bytes": 825,
+      "sha256": "f2a47121f8087267ab61b1ba1365bbb460217babb0dd6db1aec2b04562f02815"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/04_alignerr_cfd_evaluator_packet/CODEX_TASK04_SUMMARY.json",
+      "bytes": 256,
+      "sha256": "b52018802b3da27b958a395a63869b9b773c88e14949ae8e9f6548bf0edd2c18"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/05_site_profile_restructure_draft/CODEX_TASK05_REPORT.md",
+      "bytes": 1069,
+      "sha256": "c5ed644644a77851175ae297e2ceaf8ae34b1b424d29bac1d0a00ef53d546e46"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/05_site_profile_restructure_draft/CODEX_TASK05_SUMMARY.json",
+      "bytes": 451,
+      "sha256": "5f1b925e4a62ea7345718ecff5f27f371d6f05ae63f376df6c017243f19a2d54"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/05_site_profile_restructure_draft/SITE_RESTRUCTURE_DECISION.md",
+      "bytes": 896,
+      "sha256": "00b417b1a00cf987847066e8d8dfc4d42c4af2e5c262bcb8701376bc8202ff50"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/06_github_repo_hygiene_link_audit/CODEX_TASK06_REPORT.md",
+      "bytes": 969,
+      "sha256": "284f175c90fcdb6fb8697dc82c06c607db3db34698cec0e55a01463e109b531b"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/06_github_repo_hygiene_link_audit/CODEX_TASK06_SUMMARY.json",
+      "bytes": 331,
+      "sha256": "4c873505ac1e07faa961efdb20341f46796e673d3827f349dfb961ac7b9e081c"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/06_github_repo_hygiene_link_audit/GITHUB_LINK_AUDIT.md",
+      "bytes": 1993,
+      "sha256": "889134412aca01baf3ce31f14850ff20923e9fe009af8cd96962f77e5c96c507"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/06_github_repo_hygiene_link_audit/PINNED_REPO_RECOMMENDATIONS.md",
+      "bytes": 1264,
+      "sha256": "9805a4c20f18b5fbde5dd5ec6d4a81f2cdfb6a3876a3eb03446354a6c9795e52"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/06_github_repo_hygiene_link_audit/PROFILE_README_DRAFT.md",
+      "bytes": 1510,
+      "sha256": "e923e121b7010dc82311d1d2ccf741a3680a06f2bba294470f154b9f62f879a2"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/CODEX_TASK07_REPORT.md",
+      "bytes": 921,
+      "sha256": "0cdec7db23659234dc0c64c3368d09a0d1ed1f795bcf9127dc7d927082f7b16f"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/CODEX_TASK07_SUMMARY.json",
+      "bytes": 281,
+      "sha256": "6d46d7ad5ab23c2cbeb7a5907a842f878344631c6a54f7bb3d71349236824973"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/LINKEDIN_GITHUB_PROFILE_DRAFTS.md",
+      "bytes": 1570,
+      "sha256": "249c5b717dbc03babcb80bd18d905afc4ef3a60d62ecabb282bb2910e05850a0"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/OUTREACH_NOTE_DRAFTS.md",
+      "bytes": 1757,
+      "sha256": "aea3d8b1a508451ce9253c87eb95e0ad220e8fc4b57613dbc0dafe44bc49c8d1"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/RESUME_BULLET_BANK.md",
+      "bytes": 2959,
+      "sha256": "bbd8dc669a33a59ed688466f05ec9c9faac3fd21a852f3464d78bb771b44c649"
+    },
+    {
+      "path": "review_artifacts/career/20260709_google_alignerr_appeal_review/task_outputs/07_resume_linkedin_application_copy/ROLE_SPECIFIC_ONE_PAGERS.md",
+      "bytes": 2280,
+      "sha256": "50b2a730460efa05650a9557ec1d433a80a3239945f633b59bb87cb79bee9eba"
+    }
+  ]
+}

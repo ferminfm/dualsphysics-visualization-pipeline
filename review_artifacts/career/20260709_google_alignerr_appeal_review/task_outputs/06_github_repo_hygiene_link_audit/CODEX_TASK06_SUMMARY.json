@@ -1,0 +1,9 @@
+{
+  "task_id": "06_github_repo_hygiene_link_audit",
+  "status": "success",
+  "links_checked": 8,
+  "repo_recommendations_count": 6,
+  "profile_draft_ready": true,
+  "exact_blocker": "",
+  "recommended_next_step": "Proceed to Task 07 copy drafts; later consider repo description updates and a site draft PR after Layer 1 review."
+}
