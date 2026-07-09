@@ -1,0 +1,73 @@
+{
+  "packet_id": "cfd_evaluator_sample_pack_20260709",
+  "status": "public_safe_review_candidate",
+  "source_type": "self_authored_generic_examples",
+  "proprietary_or_live_assessment_material": false,
+  "application_submission_material": false,
+  "public_use_requires_human_review": true,
+  "claim_boundaries": {
+    "validation_claim_allowed": false,
+    "production_cfd_claim_allowed": false,
+    "atomisation_prediction_claim_allowed": false,
+    "platform_acceptance_claim_allowed": false,
+    "employment_claim_allowed": false
+  },
+  "rubric_dimensions": [
+    "physics_correctness",
+    "boundary_and_initial_conditions",
+    "nondimensional_and_scaling_logic",
+    "numerical_method_and_resolution_evidence",
+    "visualization_data_support",
+    "scope_and_overclaim_control",
+    "actionability"
+  ],
+  "samples": [
+    {
+      "sample_id": "vof_connected_waviness_breakup_review",
+      "title": "Connected VOF waviness is not breakup",
+      "verdict": "fail_as_written",
+      "intended_use": "Demonstrate morphology and overclaim review.",
+      "public_safe": true,
+      "requires_private_context": false
+    },
+    {
+      "sample_id": "zero_range_pressure_heatmap_review",
+      "title": "Pressure heatmaps from zero-range restored pressure",
+      "verdict": "fail",
+      "intended_use": "Demonstrate missing-field and visualization-evidence review.",
+      "public_safe": true,
+      "requires_private_context": false
+    },
+    {
+      "sample_id": "internal_nozzle_vs_imposed_inlet_review",
+      "title": "Pressure-driven internal nozzle versus imposed-inlet comparison",
+      "verdict": "fail",
+      "intended_use": "Demonstrate boundary-condition and interpretation review.",
+      "public_safe": true,
+      "requires_private_context": false
+    },
+    {
+      "sample_id": "misaligned_convergence_review",
+      "title": "Convergence claim from misaligned station/time data",
+      "verdict": "warn_or_fail",
+      "intended_use": "Demonstrate convergence-gate and re-extraction reasoning.",
+      "public_safe": true,
+      "requires_private_context": false
+    },
+    {
+      "sample_id": "two_dimensional_visualization_validation_review",
+      "title": "2D or single-phase visualization is not 3D spray validation",
+      "verdict": "fail",
+      "intended_use": "Demonstrate dimensionality and validation-boundary review.",
+      "public_safe": true,
+      "requires_private_context": false
+    }
+  ],
+  "recommended_public_label": "Self-authored CFD evaluator samples for physics, numerics, visualization evidence, and claim-boundary review.",
+  "files": [
+    "README.md",
+    "CFD_EVALUATOR_SAMPLE_PACK.md",
+    "SAMPLE_MANIFEST.json",
+    "PUBLIC_USE_BOUNDARY.md"
+  ]
+}
