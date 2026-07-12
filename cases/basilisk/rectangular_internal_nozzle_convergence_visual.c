@@ -20,6 +20,12 @@
  * raw station/interface export schema from rectangular_internal_nozzle_raw_export.c.
  * It adds checkpoint dumps, native Basilisk VOF frames, true output_facets()
  * surface files, and deterministic manifests for bounded smoke/restart review.
+ *
+ * In quarter mode, bottom (y = 0) and back (z = 0) are reflection planes:
+ * normal velocity is zero and tangential velocity, pressure, and volume
+ * fraction have zero normal derivative.  These are not periodic boundaries.
+ * Quarter-domain facets may be mirrored only for render/diagnostic use; the
+ * four copies are not independent full-domain physics.
  */
 
 scalar un[];
@@ -533,6 +539,25 @@ p[back] = neumann(0.);
 pf[back] = neumann(0.);
 f[back] = neumann(0.);
 
+/* The opposite transverse faces are far-field zero-gradient boundaries.  In
+   full mode bottom/back use the same far-field treatment; in quarter mode
+   they are replaced by the reflection conditions above.  Do not replace the
+   reflection planes with periodic() calls: opposite radial faces are not a
+   translationally repeating unit cell. */
+u.n[top] = neumann(0.);
+u.t[top] = neumann(0.);
+u.r[top] = neumann(0.);
+p[top] = neumann(0.);
+pf[top] = neumann(0.);
+f[top] = neumann(0.);
+
+u.n[front] = neumann(0.);
+u.t[front] = neumann(0.);
+u.r[front] = neumann(0.);
+p[front] = neumann(0.);
+pf[front] = neumann(0.);
+f[front] = neumann(0.);
+
 static int in_refine_band (double xp, double yp, double zp) {
   double refine_band = plenum_scale*Wrect;
   if (xp > exit_x() + external_Dh*Dhrect)
@@ -558,13 +583,24 @@ static int interface_flag_value (double ff) {
 static double symmetry_leakage_now (void) {
   if (!domain_quarter)
     return 0.;
+  /* Measure the actual reflection parity residual using the boundary ghost
+     values. Sampling |u_normal| at the first interior cell is not a boundary
+     leakage measure: an odd normal-velocity field can be nonzero away from
+     the plane while still satisfying u_normal = 0 exactly on it. */
+  boundary ({u});
   double leak = 0.;
-  foreach(reduction(max:leak)) {
+  foreach_boundary(bottom, reduction(max:leak)) {
     if (cs[] > 1e-8) {
-      if (y < 1.5*Delta)
-        leak = max(leak, fabs(u.y[]));
-      if (z < 1.5*Delta)
-        leak = max(leak, fabs(u.z[]));
+      leak = max(leak, fabs(u.y[] + u.y[0,-1,0]));
+      leak = max(leak, fabs(u.x[] - u.x[0,-1,0]));
+      leak = max(leak, fabs(u.z[] - u.z[0,-1,0]));
+    }
+  }
+  foreach_boundary(back, reduction(max:leak)) {
+    if (cs[] > 1e-8) {
+      leak = max(leak, fabs(u.z[] + u.z[0,0,-1]));
+      leak = max(leak, fabs(u.x[] - u.x[0,0,-1]));
+      leak = max(leak, fabs(u.y[] - u.y[0,0,-1]));
     }
   }
   return leak;
@@ -1256,6 +1292,9 @@ event end (t = end_time) {
           "  \"selected_case\": \"W2_longer_duration\",\n"
           "  \"pressure_driven_preserved\": true,\n"
           "  \"exit_velocity_imposed\": false,\n"
+          "  \"transverse_periodic_boundaries\": false,\n"
+          "  \"boundary_model\": \"%s\",\n"
+          "  \"mirrored_quadrants_render_only\": %s,\n"
           "  \"maxlevel\": %d,\n"
           "  \"end_time\": %.12g,\n"
           "  \"diagnostic_dt\": %.12g,\n"
@@ -1277,7 +1316,10 @@ event end (t = end_time) {
           "  },\n"
           "  \"claim_boundary\": \"internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false\"\n"
           "}\n",
-          case_id, domain_label(), maxlevel, t, diagnostic_dt, visual_dt, checkpoint_dt,
+          case_id, domain_label(),
+          domain_quarter ? "reflection_planes_y0_z0" : "full_domain_far_field",
+          domain_quarter ? "true" : "false",
+          maxlevel, t, diagnostic_dt, visual_dt, checkpoint_dt,
           Wrect, Hrect, Dhrect, A0, exit_x());
   fclose(fp);
 }
