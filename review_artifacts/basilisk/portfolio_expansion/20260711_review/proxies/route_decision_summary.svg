@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Task 06 scientific route decisions</title>
+  <desc id="desc">Four cards classify the official circular route as keep, rectangular top-hat as keep secondary, the tested quarter route as close, and the internal nozzle as hold with a gated extension after cadence repair.</desc>
+  <rect width="1280" height="720" fill="#0f172a"/>
+  <text x="64" y="70" fill="#f8fafc" font-family="sans-serif" font-size="38" font-weight="700">Scientific route decisions</text>
+  <text x="64" y="108" fill="#94a3b8" font-family="sans-serif" font-size="20">Task 06 internal review · no CFD rerun · fit_ready=false · public_ready=false</text>
+  <g font-family="sans-serif">
+    <rect x="64" y="150" width="552" height="210" rx="18" fill="#132e2a" stroke="#34d399" stroke-width="3"/>
+    <text x="96" y="198" fill="#a7f3d0" font-size="22" font-weight="700">KEEP · OFFICIAL CIRCULAR</text>
+    <text x="96" y="238" fill="#f8fafc" font-size="25">Lead benchmark visualization</text>
+    <text x="96" y="276" fill="#cbd5e1" font-size="18">Existing V3.1 surface + no-pressure scalars</text>
+    <text x="96" y="310" fill="#fca5a5" font-size="18">Not validation or production CFD</text>
+
+    <rect x="664" y="150" width="552" height="210" rx="18" fill="#172554" stroke="#60a5fa" stroke-width="3"/>
+    <text x="696" y="198" fill="#bfdbfe" font-size="22" font-weight="700">KEEP · RECTANGULAR SECONDARY</text>
+    <text x="696" y="238" fill="#f8fafc" font-size="25">2:1 top-hat imposed inlet</text>
+    <text x="696" y="276" fill="#cbd5e1" font-size="18">Useful geometry comparison only</text>
+    <text x="696" y="310" fill="#fca5a5" font-size="18">Not Poiseuille or internal-nozzle flow</text>
+
+    <rect x="64" y="400" width="552" height="230" rx="18" fill="#3b1d22" stroke="#fb7185" stroke-width="3"/>
+    <text x="96" y="448" fill="#fecdd3" font-size="22" font-weight="700">CLOSE · TESTED QUARTER ROUTE</text>
+    <text x="96" y="488" fill="#f8fafc" font-size="25">Quantitative acceleration no-go</text>
+    <text x="96" y="526" fill="#cbd5e1" font-size="18">Exit-flow error 0.4471 &gt; 0.30 gate</text>
+    <text x="96" y="560" fill="#cbd5e1" font-size="18">Archive labeled mirrored diagnostic only</text>
+    <text x="96" y="594" fill="#fca5a5" font-size="18">Mirroring is not full-domain physics</text>
+
+    <rect x="664" y="400" width="552" height="230" rx="18" fill="#352913" stroke="#fbbf24" stroke-width="3"/>
+    <text x="696" y="448" fill="#fde68a" font-size="22" font-weight="700">HOLD · INTERNAL NOZZLE L7</text>
+    <text x="696" y="488" fill="#f8fafc" font-size="25">Gated extension after cadence repair</text>
+    <text x="696" y="526" fill="#cbd5e1" font-size="18">Uninterrupted scalar/geometry/pressure valid</text>
+    <text x="696" y="560" fill="#cbd5e1" font-size="18">No exact-time restored-field comparison</text>
+    <text x="696" y="594" fill="#fca5a5" font-size="18">Connected waviness; no breakup evidence</text>
+  </g>
+  <text x="64" y="684" fill="#64748b" font-family="sans-serif" font-size="17">Source: terminal Task 03 verification_failed and Task 05 partial results · 2026-07-13</text>
+</svg>

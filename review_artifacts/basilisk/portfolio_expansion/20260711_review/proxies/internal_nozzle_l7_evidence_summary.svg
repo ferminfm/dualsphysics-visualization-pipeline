@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Uninterrupted internal-nozzle L7 evidence summary</title>
+  <desc id="desc">A pressure-range line plot over seven times from zero through 0.03 and summary metrics for the uninterrupted full-domain L7 reference. A warning states that restored fields have no exact-time comparison and the connected morphology is not atomisation.</desc>
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="60" y="64" fill="#0f172a" font-family="sans-serif" font-size="36" font-weight="700">Internal-nozzle L7 · uninterrupted reference</text>
+  <text x="60" y="101" fill="#475569" font-family="sans-serif" font-size="19">Runtime post-projection pressure, outlet-zero gauge · gravity disabled · full domain</text>
+  <rect x="60" y="140" width="760" height="430" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="92" y="182" fill="#0f172a" font-family="sans-serif" font-size="23" font-weight="700">Pressure range across seven field exports</text>
+  <line x1="120" y1="450" x2="770" y2="450" stroke="#64748b" stroke-width="2"/>
+  <line x1="120" y1="200" x2="120" y2="450" stroke="#64748b" stroke-width="2"/>
+  <g fill="#64748b" font-family="sans-serif" font-size="16">
+    <text x="70" y="455">350</text><text x="70" y="330">355</text><text x="70" y="205">360</text>
+    <text x="108" y="480">0</text><text x="300" y="480">0.01</text><text x="510" y="480">0.02</text><text x="718" y="480">0.03</text>
+    <text x="352" y="522" fill="#334155">simulation time</text>
+  </g>
+  <polyline fill="none" stroke="#2563eb" stroke-width="5" points="120,185 228,407 337,388 445,368 553,356 662,344 770,332"/>
+  <g fill="#2563eb" stroke="#ffffff" stroke-width="3">
+    <circle cx="120" cy="185" r="8"/><circle cx="228" cy="407" r="8"/><circle cx="337" cy="388" r="8"/><circle cx="445" cy="368" r="8"/><circle cx="553" cy="356" r="8"/><circle cx="662" cy="344" r="8"/><circle cx="770" cy="332" r="8"/>
+  </g>
+  <text x="135" y="215" fill="#1d4ed8" font-family="sans-serif" font-size="16">360.600</text>
+  <text x="675" y="320" fill="#1d4ed8" font-family="sans-serif" font-size="16">354.707</text>
+  <rect x="860" y="140" width="360" height="430" rx="14" fill="#0f172a"/>
+  <g font-family="sans-serif">
+    <text x="892" y="187" fill="#f8fafc" font-size="23" font-weight="700">Final frame · t=0.03</text>
+    <text x="892" y="232" fill="#94a3b8" font-size="17">p min / max</text>
+    <text x="892" y="260" fill="#f8fafc" font-size="21">−3.274 / 351.433</text>
+    <text x="892" y="304" fill="#94a3b8" font-size="17">mean exit velocity</text>
+    <text x="892" y="332" fill="#f8fafc" font-size="21">1.005296</text>
+    <text x="892" y="376" fill="#94a3b8" font-size="17">exit flow</text>
+    <text x="892" y="404" fill="#f8fafc" font-size="21">0.0381218781</text>
+    <text x="892" y="448" fill="#94a3b8" font-size="17">interface growth</text>
+    <text x="892" y="476" fill="#f8fafc" font-size="21">1.016585</text>
+    <text x="892" y="520" fill="#94a3b8" font-size="17">credible detached proxies</text>
+    <text x="892" y="548" fill="#f8fafc" font-size="21">0</text>
+  </g>
+  <rect x="60" y="602" width="1160" height="78" rx="12" fill="#fff7ed" stroke="#fb923c" stroke-width="2"/>
+  <text x="88" y="635" fill="#9a3412" font-family="sans-serif" font-size="19" font-weight="700">Claim boundary</text>
+  <text x="88" y="662" fill="#7c2d12" font-family="sans-serif" font-size="17">Uninterrupted reference only · no exact-time restored-field comparison · connected waviness, not atomisation or breakup · fit_ready=false</text>
+</svg>
