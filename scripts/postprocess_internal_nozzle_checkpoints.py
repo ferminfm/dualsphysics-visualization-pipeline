@@ -96,11 +96,18 @@ def compare_runs(reference: Path, restart: Path, tolerance: float) -> dict[str, 
     }
 
 
+def checkpoint_path(run_dir: Path, value: str) -> Path:
+    path = Path(value)
+    if path.is_absolute() or path.exists():
+        return path
+    return run_dir / "checkpoints" / path.name
+
+
 def validate_run_dir(run_dir: Path) -> dict[str, object]:
     visual = read_csv(run_dir / "visual_frame_manifest.csv")
     surfaces = read_csv(run_dir / "surface_manifest.csv")
     checkpoints = read_csv(run_dir / "checkpoint_index.csv")
-    checkpoint_files = [Path(row["filename"]) for row in checkpoints if row.get("filename")]
+    checkpoint_files = [checkpoint_path(run_dir, row["filename"]) for row in checkpoints if row.get("filename")]
     surface_files = [run_dir / row["filename"] for row in surfaces if row.get("filename")]
     return {
         "run_dir": str(run_dir),

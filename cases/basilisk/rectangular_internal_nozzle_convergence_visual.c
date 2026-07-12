@@ -33,6 +33,7 @@ int wrote_summary = 0;
 int stable_flag = 1;
 int domain_quarter = 0;
 int enable_raw_export = 1;
+int enable_field_export = 1;
 int enable_native_frames = 1;
 int enable_facet_export = 1;
 int auto_restore = 0;
@@ -40,6 +41,7 @@ int restore_requested = 0;
 int restored_ok = 0;
 int visual_frame_index = 0;
 int raw_frame_index = 0;
+int field_frame_index = 0;
 int checkpoint_index = 0;
 int surface_frame_index = 0;
 
@@ -52,6 +54,7 @@ double perturb_period = 0.03;
 double target_u = 1.0;
 double end_time = 0.18;
 double diagnostic_dt = 0.03;
+double field_dt = 0.03;
 double visual_dt = 0.005;
 double checkpoint_dt = 0.03;
 double dt_cap = 2e-4;
@@ -69,6 +72,7 @@ double credible_volume_threshold = 1e-6;
 double station_half_dh = 0.15;
 double transverse_scale = 0.75;
 double restore_time = -1.;
+double next_field_export_time = 0.;
 
 char case_id[128] = "W2_visual_pipeline";
 char output_dir[512] = ".";
@@ -78,6 +82,7 @@ char camera_preset[64] = "science_iso";
 char frames_dir[640] = "";
 char surfaces_dir[640] = "";
 char checkpoints_dir[640] = "";
+char fields_dir[640] = "";
 char sanitized_case_id[128] = "W2_visual_pipeline";
 
 double max_active_front = 0.;
@@ -94,6 +99,9 @@ double final_liquid_volume = 0.;
 double initial_liquid_volume = -1.;
 double final_liquid_volume_error = 0.;
 double max_symmetry_leakage = 0.;
+double min_runtime_pressure_range = HUGE;
+double max_runtime_pressure_range = 0.;
+int zero_range_pressure_frames = 0;
 
 static double clamp01_local (double a) {
   return a < 0. ? 0. : (a > 1. ? 1. : a);
@@ -198,10 +206,12 @@ static void ensure_output_dirs (void) {
   snprintf(frames_dir, sizeof(frames_dir), "%s/native_frames", output_dir);
   snprintf(surfaces_dir, sizeof(surfaces_dir), "%s/vof_surfaces", output_dir);
   snprintf(checkpoints_dir, sizeof(checkpoints_dir), "%s/checkpoints", output_dir);
+  snprintf(fields_dir, sizeof(fields_dir), "%s/fields", output_dir);
   ensure_dir(output_dir);
   ensure_dir(frames_dir);
   ensure_dir(surfaces_dir);
   ensure_dir(checkpoints_dir);
+  ensure_dir(fields_dir);
 }
 
 static void write_header_if_missing (const char *path, const char *header) {
@@ -358,6 +368,9 @@ static void recover_indices_for_restore (void) {
   output_path(path, sizeof(path), "surface_manifest.csv");
   int surface_max = max_frame_from_csv(path, 2);
   surface_frame_index = surface_max >= 0 ? surface_max + 1 : 0;
+  output_path(path, sizeof(path), "field_frame_manifest.csv");
+  int field_max = max_frame_from_csv(path, 2);
+  field_frame_index = field_max >= 0 ? field_max + 1 : 0;
   output_path(path, sizeof(path), "checkpoint_index.csv");
   int checkpoint_max = max_frame_from_csv(path, 2);
   checkpoint_index = checkpoint_max >= 0 ? checkpoint_max + 1 : 0;
@@ -370,7 +383,7 @@ static void print_usage (const char *prog) {
           "Restartable native-VOF/checkpoint/facet pipeline for the pressure-driven W2 internal-nozzle case.\n"
           "\n"
           "Required smoke-style example:\n"
-          "  %s --case-id smoke_full --domain full --maxlevel 5 --pressure 351.48 --end-time 0.015 --external-dh 3.0 --output-dir OUTPUT --diagnostic-dt 0.005 --visual-dt 0.005 --checkpoint-dt 0.005 --raw-export 1 --native-frames 1 --facet-export 1 --max-steps 1000\n"
+          "  %s --case-id smoke_full --domain full --maxlevel 5 --pressure 351.48 --end-time 0.015 --external-dh 3.0 --output-dir OUTPUT --diagnostic-dt 0.005 --field-dt 0.005 --visual-dt 0.005 --checkpoint-dt 0.005 --raw-export 1 --field-export 1 --native-frames 1 --facet-export 1 --max-steps 1000\n"
           "\n"
           "Options:\n"
           "  --case-id STR              case identifier used in manifests and filenames\n"
@@ -383,9 +396,11 @@ static void print_usage (const char *prog) {
           "  --external-dh FLOAT        external domain length in Dh\n"
           "  --output-dir PATH          output directory, created if needed\n"
           "  --diagnostic-dt FLOAT      raw diagnostic cadence\n"
+          "  --field-dt FLOAT           post-projection field-export cadence\n"
           "  --visual-dt FLOAT          native frame/facet cadence\n"
           "  --checkpoint-dt FLOAT      checkpoint cadence\n"
           "  --raw-export 0|1           enable raw station/interface CSV export\n"
+          "  --field-export 0|1         enable post-projection phase/u/vorticity/p CSV export\n"
           "  --native-frames 0|1        enable native Basilisk VOF PPM frames\n"
           "  --facet-export 0|1         enable true Basilisk output_facets export\n"
           "  --restore PATH             restore from a specific checkpoint dump\n"
@@ -455,12 +470,16 @@ static void parse_args (int argc, char **argv) {
       copy_string(output_dir, sizeof(output_dir), require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--diagnostic-dt"))
       diagnostic_dt = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--field-dt"))
+      field_dt = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--visual-dt"))
       visual_dt = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--checkpoint-dt"))
       checkpoint_dt = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--raw-export"))
       enable_raw_export = parse_bool_arg(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--field-export"))
+      enable_field_export = parse_bool_arg(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--native-frames"))
       enable_native_frames = parse_bool_arg(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--facet-export"))
@@ -924,6 +943,100 @@ static void rewrite_checkpoint_manifest (void) {
   atomic_rename(tmp, manifest);
 }
 
+static void write_field_export_contract (void) {
+  char path[1024], tmp[1024];
+  output_path(path, sizeof(path), "field_export_contract.json");
+  output_path(tmp, sizeof(tmp), "field_export_contract.json.tmp");
+  FILE *fp = fopen(tmp, "w");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot write %s\n", tmp);
+    exit(2);
+  }
+  fprintf(fp,
+          "{\n"
+          "  \"schema\": \"internal_nozzle_post_projection_fields_v1\",\n"
+          "  \"selected_case\": \"W2_longer_duration\",\n"
+          "  \"pressure_provenance\": \"runtime_cell_centered_p_after_centered_projection\",\n"
+          "  \"event_provenance\": \"post_projection_fields_i_plus_plus_last_after_centered_projection\",\n"
+          "  \"pressure_gauge_context\": \"Dirichlet p=pressure_value at left and p=0 at right; values are outlet-gauge-relative\",\n"
+          "  \"gravity_enabled\": false,\n"
+          "  \"fields\": [\"phase_fraction\", \"velocity_x\", \"velocity_y\", \"velocity_z\", \"velocity_magnitude\", \"vorticity_magnitude\", \"pressure\", \"embedded_fluid_fraction\"],\n"
+          "  \"coordinate_convention\": \"x_streamwise_y_width_z_height_origin_nozzle_inlet\",\n"
+          "  \"frame_naming\": \"field_tTTTTTT.TTTTTT_iIIIIIII_fFFFF.csv\",\n"
+          "  \"station_frame_join\": \"case_id+t+i; frame_index is local to each manifest\",\n"
+          "  \"instrumentation_changes_solver_state\": false\n"
+          "}\n");
+  fclose(fp);
+  atomic_rename(tmp, path);
+}
+
+static void write_post_projection_fields (int iter_value) {
+  char leaf[256], path[1024], rel[768], source_frame[96];
+  snprintf(leaf, sizeof(leaf), "field_t%013.6f_i%07d_f%04d.csv",
+           t, iter_value, field_frame_index);
+  subdir_path(path, sizeof(path), fields_dir, leaf);
+  snprintf(rel, sizeof(rel), "fields/%s", leaf);
+  snprintf(source_frame, sizeof(source_frame), "t%013.6f_i%07d", t, iter_value);
+
+  FILE *fp = fopen(path, "w");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot write %s\n", path);
+    exit(2);
+  }
+  fprintf(fp, "case_id,source_frame_id,field_frame_index,t,i,x,y,z,f,ux,uy,uz,velocity_magnitude,vorticity_magnitude,p,cs,level,Delta,region_flag,pressure_provenance,event_provenance,gravity_enabled\n");
+
+  double pmin = HUGE, pmax = -HUGE, fmin = HUGE, fmax = -HUGE;
+  double umin = HUGE, umax = -HUGE, omin = HUGE, omax = -HUGE;
+  int sample_count = 0;
+  double transverse = transverse_scale*plenum_scale*Wrect;
+  foreach(serial) {
+    int transverse_ok = domain_quarter ? (y <= transverse && z <= transverse) :
+      (fabs(y) <= transverse && fabs(z) <= transverse);
+    if (cs[] > 1e-8 && x <= exit_x() + external_Dh*Dhrect && transverse_ok) {
+      double ux = u.x[], uy = u.y[], uz = u.z[];
+      double omx = (u.z[0,1,0] - u.z[0,-1,0] - u.y[0,0,1] + u.y[0,0,-1])/(2.*Delta);
+      double omy = (u.x[0,0,1] - u.x[0,0,-1] - u.z[1,0,0] + u.z[-1,0,0])/(2.*Delta);
+      double omz = (u.y[1,0,0] - u.y[-1,0,0] - u.x[0,1,0] + u.x[0,-1,0])/(2.*Delta);
+      double umag = sqrt(sq(ux) + sq(uy) + sq(uz));
+      double omag = sqrt(sq(omx) + sq(omy) + sq(omz));
+      pmin = min(pmin, p[]); pmax = max(pmax, p[]);
+      fmin = min(fmin, f[]); fmax = max(fmax, f[]);
+      umin = min(umin, umag); umax = max(umax, umag);
+      omin = min(omin, omag); omax = max(omax, omag);
+      fprintf(fp, "%s,%s,%d,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%d,runtime_cell_centered_p_after_centered_projection,post_projection_fields_i_plus_plus_last_after_centered_projection,0\n",
+              case_id, source_frame, field_frame_index, t, iter_value, x, y, z,
+              f[], ux, uy, uz, umag, omag, p[], cs[], level, Delta, region_flag(x));
+      sample_count++;
+    }
+  }
+  fclose(fp);
+
+  double prange = sample_count > 0 ? pmax - pmin : 0.;
+  int pressure_nonzero = sample_count > 0 && isfinite(prange) && prange > 1e-12;
+  if (sample_count > 0) {
+    min_runtime_pressure_range = min(min_runtime_pressure_range, prange);
+    max_runtime_pressure_range = max(max_runtime_pressure_range, prange);
+  }
+  if (!pressure_nonzero)
+    zero_range_pressure_frames++;
+
+  char manifest[1024];
+  output_path(manifest, sizeof(manifest), "field_frame_manifest.csv");
+  FILE *mf = fopen(manifest, "a");
+  if (!mf) {
+    fprintf(stderr, "ERROR cannot append %s\n", manifest);
+    exit(2);
+  }
+  fprintf(mf, "%s,%s,%d,%.12g,%d,%s,%d,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,runtime_cell_centered_p_after_centered_projection,post_projection_fields_i_plus_plus_last_after_centered_projection,outlet_dirichlet_zero_gauge,0\n",
+          case_id, domain_label(), field_frame_index, t, iter_value, rel, sample_count,
+          sample_count > 0 ? pmin : 0., sample_count > 0 ? pmax : 0., prange,
+          pressure_nonzero, sample_count > 0 ? fmin : 0., sample_count > 0 ? fmax : 0.,
+          sample_count > 0 ? umin : 0., sample_count > 0 ? umax : 0.,
+          sample_count > 0 ? omin : 0., sample_count > 0 ? omax : 0.);
+  fclose(mf);
+  field_frame_index++;
+}
+
 static void initialize_output_files (void) {
   char path[1024];
   output_path(path, sizeof(path), "raw_frame_summary.csv");
@@ -944,6 +1057,9 @@ static void initialize_output_files (void) {
   write_header_if_missing(path, "case_id,domain_mode,surface_index,t,i,filename,facet_cell_count,nozzle_exit_x,Dh,maxlevel,source_frame_id\n");
   output_path(path, sizeof(path), "checkpoint_index.csv");
   write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint\n");
+  output_path(path, sizeof(path), "field_frame_manifest.csv");
+  write_header_if_missing(path, "case_id,domain_mode,field_frame_index,t,i,filename,sample_count,p_min,p_max,p_range,pressure_nonzero,f_min,f_max,velocity_magnitude_min,velocity_magnitude_max,vorticity_magnitude_min,vorticity_magnitude_max,pressure_provenance,event_provenance,pressure_gauge_context,gravity_enabled\n");
+  write_field_export_contract();
   rewrite_visual_manifest();
   rewrite_surface_manifest();
   rewrite_checkpoint_manifest();
@@ -1055,6 +1171,14 @@ static void write_checkpoint_dump (int iter_value) {
 int main (int argc, char **argv) {
   parse_args(argc, argv);
   base_pressure_value = pressure_value;
+  if (enable_field_export && field_dt <= 0.) {
+    fprintf(stderr, "ERROR --field-dt must be positive when field export is enabled\n");
+    return 2;
+  }
+  if (enable_field_export && fabs(field_dt - diagnostic_dt) > 1e-12) {
+    fprintf(stderr, "ERROR --field-dt must equal --diagnostic-dt for matched field/station cadence\n");
+    return 2;
+  }
 
   A0 = pi*sq(official_r);
   D0 = 2.*official_r;
@@ -1106,6 +1230,7 @@ event init (t = 0) {
     recover_metrics_from_existing_raw();
     double indexed_time = checkpoint_time_from_index(restore_path);
     restore_time = indexed_time >= 0. ? indexed_time : t;
+    next_field_export_time = restore_time + field_dt;
     fprintf(stderr, "restored checkpoint %s at t %.12g i %d next_visual %d next_raw %d next_surface %d next_checkpoint %d\n",
             restored_from, restore_time, i, visual_frame_index, raw_frame_index, surface_frame_index, checkpoint_index);
     return 0;
@@ -1131,6 +1256,23 @@ event pressure_update (i++) {
     pressure_value = base_pressure_value*(1. + perturb_amp*sin(2.*pi*t/perturb_period));
   else
     pressure_value = base_pressure_value;
+}
+
+/*
+ * centered.h registers projection(i++,last) before this event. Keeping this
+ * export in the same last-event group and declaring it later makes p[] the
+ * runtime cell-centered pressure produced by that completed projection.
+ * The event is read-only with respect to solver fields.
+ */
+event post_projection_fields (i++, last) {
+  if (!enable_field_export || field_dt <= 0.)
+    return 0;
+  if (restored_ok && t <= restore_time + 1e-12)
+    return 0;
+  if (t + 1e-12 < next_field_export_time)
+    return 0;
+  write_post_projection_fields(i);
+  next_field_export_time = t + field_dt;
 }
 
 event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
@@ -1256,13 +1398,16 @@ event end (t = end_time) {
           "  \"selected_case\": \"W2_longer_duration\",\n"
           "  \"pressure_driven_preserved\": true,\n"
           "  \"exit_velocity_imposed\": false,\n"
+          "  \"gravity_enabled\": false,\n"
           "  \"maxlevel\": %d,\n"
           "  \"end_time\": %.12g,\n"
           "  \"diagnostic_dt\": %.12g,\n"
+          "  \"field_dt\": %.12g,\n"
           "  \"visual_dt\": %.12g,\n"
           "  \"checkpoint_dt\": %.12g,\n"
           "  \"geometry\": {\"W\": %.12g, \"H\": %.12g, \"Dh\": %.12g, \"A0\": %.12g, \"nozzle_exit_x\": %.12g},\n"
-          "  \"export_modes\": [\"station_slab_raw_export\", \"interface_cloud_export\", \"component_diagnostics_export\", \"profile_exit_export\", \"native_vof_frames\", \"output_facets_surfaces\", \"checkpoint_dumps\"],\n"
+          "  \"export_modes\": [\"post_projection_runtime_fields\", \"station_slab_raw_export\", \"interface_cloud_export\", \"component_diagnostics_export\", \"profile_exit_export\", \"native_vof_frames\", \"output_facets_surfaces\", \"checkpoint_dumps\"],\n"
+          "  \"pressure_export\": {\"provenance\": \"runtime_cell_centered_p_after_centered_projection\", \"gauge_context\": \"outlet_dirichlet_zero_gauge\", \"min_frame_range\": %.12g, \"max_frame_range\": %.12g, \"zero_range_frames\": %d},\n"
           "  \"files\": {\n"
           "    \"case_summary\": \"visual_pipeline_case_summary.csv\",\n"
           "    \"frame_summary\": \"raw_frame_summary.csv\",\n"
@@ -1271,13 +1416,17 @@ event end (t = end_time) {
           "    \"component_summary\": \"raw_component_summary.csv\",\n"
           "    \"profile_exit_cells\": \"raw_profile_exit_cells.csv\",\n"
           "    \"reduced_cross_sections\": \"raw_reduced_cross_section_metrics.csv\",\n"
+          "    \"field_contract\": \"field_export_contract.json\",\n"
+          "    \"field_manifest\": \"field_frame_manifest.csv\",\n"
           "    \"visual_manifest\": \"visual_frame_manifest.json\",\n"
           "    \"surface_manifest\": \"surface_manifest.json\",\n"
           "    \"checkpoint_manifest\": \"checkpoint_manifest.json\"\n"
           "  },\n"
           "  \"claim_boundary\": \"internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false\"\n"
           "}\n",
-          case_id, domain_label(), maxlevel, t, diagnostic_dt, visual_dt, checkpoint_dt,
-          Wrect, Hrect, Dhrect, A0, exit_x());
+          case_id, domain_label(), maxlevel, t, diagnostic_dt, field_dt, visual_dt, checkpoint_dt,
+          Wrect, Hrect, Dhrect, A0, exit_x(),
+          min_runtime_pressure_range < HUGE ? min_runtime_pressure_range : 0.,
+          max_runtime_pressure_range, zero_range_pressure_frames);
   fclose(fp);
 }
