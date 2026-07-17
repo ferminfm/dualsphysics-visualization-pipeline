@@ -333,37 +333,6 @@ static void write_schedule_contract (void) {
 #include "internal_nozzle_nonmutation_probe.h"
 #include "internal_nozzle_checkpoint_v4.h"
 
-/* Establish a process-independent checkpoint boundary state. Generic dumps
- * omit ghost cells and face fields; applying this operation both immediately
- * before a canonical dump and immediately after restore makes the boundary
- * representation part of the declared restart algorithm. */
-static void canonicalize_restart_solver_state (void) {
-  InternalNozzleProbeSnapshot before = internal_nozzle_probe_capture();
-  boundary({f, u, p, pf, g});
-  InternalNozzleProbeSnapshot after = internal_nozzle_probe_capture();
-  internal_nozzle_probe_compare
-    (&before, &after, "candidate_boundary_cells", "candidate_added",
-     "canonicalize_restart_solver_state:boundary_f_u_p_pf_g");
-  before = internal_nozzle_probe_capture();
-  boundary((scalar *){uf});
-  after = internal_nozzle_probe_capture();
-  internal_nozzle_probe_compare
-    (&before, &after, "candidate_boundary_uf", "candidate_added",
-     "canonicalize_restart_solver_state:boundary_uf");
-  before = internal_nozzle_probe_capture();
-  boundary((scalar *){fs});
-  after = internal_nozzle_probe_capture();
-  internal_nozzle_probe_compare
-    (&before, &after, "candidate_boundary_fs", "candidate_added",
-     "canonicalize_restart_solver_state:boundary_fs");
-  before = internal_nozzle_probe_capture();
-  boundary((scalar *){a});
-  after = internal_nozzle_probe_capture();
-  internal_nozzle_probe_compare
-    (&before, &after, "candidate_boundary_a", "candidate_added",
-     "canonicalize_restart_solver_state:boundary_a");
-}
-
 static void ensure_dir (const char *path) {
   if (mkdir(path, 0775) != 0 && errno != EEXIST) {
     fprintf(stderr, "ERROR cannot create directory %s: %s\n", path, strerror(errno));
@@ -1929,26 +1898,6 @@ static void write_checkpoint_dump (int iter_value) {
   internal_nozzle_probe_compare
     (&operation_before, &operation_after, "candidate_aggregate_snapshot_before",
      "candidate_added", "internal_nozzle_invariant_snapshot_v4");
-  operation_before = internal_nozzle_probe_capture();
-  canonicalize_restart_solver_state();
-  operation_after = internal_nozzle_probe_capture();
-  internal_nozzle_probe_compare
-    (&operation_before, &operation_after, "candidate_canonicalization",
-     "candidate_added", "canonicalize_restart_solver_state");
-  operation_before = internal_nozzle_probe_capture();
-  InternalNozzleInvariantSnapshotV4 after =
-    internal_nozzle_invariant_snapshot_v4();
-  operation_after = internal_nozzle_probe_capture();
-  internal_nozzle_probe_compare
-    (&operation_before, &operation_after, "candidate_aggregate_snapshot_after",
-     "candidate_added", "internal_nozzle_invariant_snapshot_v4");
-  if (before.active_physical_hash != after.active_physical_hash ||
-      before.actual_face_hash != after.actual_face_hash ||
-      before.active_physical_count != after.active_physical_count ||
-      before.actual_face_count != after.actual_face_count) {
-    fprintf(stderr, "ERROR checkpoint canonicalization changed active cells or actual faces\n");
-    exit(2);
-  }
   char closure_state[1200];
   snprintf(closure_state, sizeof(closure_state),
            "%s.prediction-closure-v4", path);
@@ -1965,6 +1914,20 @@ static void write_checkpoint_dump (int iter_value) {
   internal_nozzle_probe_compare
     (&operation_before, &operation_after, "native_dump", "pre_existing",
      "dump:file_path");
+  operation_before = internal_nozzle_probe_capture();
+  InternalNozzleInvariantSnapshotV4 after =
+    internal_nozzle_invariant_snapshot_v4();
+  operation_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&operation_before, &operation_after, "candidate_aggregate_snapshot_after",
+     "candidate_added", "internal_nozzle_invariant_snapshot_v4");
+  if (before.active_physical_hash != after.active_physical_hash ||
+      before.actual_face_hash != after.actual_face_hash ||
+      before.active_physical_count != after.active_physical_count ||
+      before.actual_face_count != after.actual_face_count) {
+    fprintf(stderr, "ERROR checkpoint persistence writer changed active cells or actual faces\n");
+    exit(2);
+  }
   if (!file_exists_nonzero(path)) {
     fprintf(stderr, "ERROR checkpoint dump is missing or empty: %s\n", path);
     stable_flag = 0;
