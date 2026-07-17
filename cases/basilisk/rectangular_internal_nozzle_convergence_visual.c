@@ -329,6 +329,8 @@ static void write_schedule_contract (void) {
   atomic_rename(tmp, path);
 }
 
+#define INTERNAL_NOZZLE_PROBE_VARIANT "frozen_candidate"
+#include "internal_nozzle_nonmutation_probe.h"
 #include "internal_nozzle_checkpoint_v4.h"
 
 /* Establish a process-independent checkpoint boundary state. Generic dumps
@@ -336,10 +338,30 @@ static void write_schedule_contract (void) {
  * before a canonical dump and immediately after restore makes the boundary
  * representation part of the declared restart algorithm. */
 static void canonicalize_restart_solver_state (void) {
+  InternalNozzleProbeSnapshot before = internal_nozzle_probe_capture();
   boundary({f, u, p, pf, g});
+  InternalNozzleProbeSnapshot after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&before, &after, "candidate_boundary_cells", "candidate_added",
+     "canonicalize_restart_solver_state:boundary_f_u_p_pf_g");
+  before = internal_nozzle_probe_capture();
   boundary((scalar *){uf});
+  after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&before, &after, "candidate_boundary_uf", "candidate_added",
+     "canonicalize_restart_solver_state:boundary_uf");
+  before = internal_nozzle_probe_capture();
   boundary((scalar *){fs});
+  after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&before, &after, "candidate_boundary_fs", "candidate_added",
+     "canonicalize_restart_solver_state:boundary_fs");
+  before = internal_nozzle_probe_capture();
   boundary((scalar *){a});
+  after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&before, &after, "candidate_boundary_a", "candidate_added",
+     "canonicalize_restart_solver_state:boundary_a");
 }
 
 static void ensure_dir (const char *path) {
@@ -1893,16 +1915,33 @@ static void write_surface_facets (int iter_value) {
 
 static void write_checkpoint_dump (int iter_value) {
   char leaf[256], path[1024], parent[512] = "fresh";
+  internal_nozzle_probe_mark
+    ("checkpoint_event_entry", "candidate_modified", "write_checkpoint_dump");
   if (restored_ok && restored_from[0])
     copy_string(parent, sizeof(parent), restored_from);
   snprintf(leaf, sizeof(leaf), "%s_%s_t%09.6f_i%07d_l%d.dump",
            sanitized_case_id, domain_label(), t, iter_value, maxlevel);
   subdir_path(path, sizeof(path), checkpoints_dir, leaf);
+  InternalNozzleProbeSnapshot operation_before = internal_nozzle_probe_capture();
   InternalNozzleInvariantSnapshotV4 before =
     internal_nozzle_invariant_snapshot_v4();
+  InternalNozzleProbeSnapshot operation_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&operation_before, &operation_after, "candidate_aggregate_snapshot_before",
+     "candidate_added", "internal_nozzle_invariant_snapshot_v4");
+  operation_before = internal_nozzle_probe_capture();
   canonicalize_restart_solver_state();
+  operation_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&operation_before, &operation_after, "candidate_canonicalization",
+     "candidate_added", "canonicalize_restart_solver_state");
+  operation_before = internal_nozzle_probe_capture();
   InternalNozzleInvariantSnapshotV4 after =
     internal_nozzle_invariant_snapshot_v4();
+  operation_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&operation_before, &operation_after, "candidate_aggregate_snapshot_after",
+     "candidate_added", "internal_nozzle_invariant_snapshot_v4");
   if (before.active_physical_hash != after.active_physical_hash ||
       before.actual_face_hash != after.actual_face_hash ||
       before.active_physical_count != after.active_physical_count ||
@@ -1913,9 +1952,19 @@ static void write_checkpoint_dump (int iter_value) {
   char closure_state[1200];
   snprintf(closure_state, sizeof(closure_state),
            "%s.prediction-closure-v4", path);
+  operation_before = internal_nozzle_probe_capture();
   internal_nozzle_write_prediction_closure_v4(closure_state);
+  operation_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&operation_before, &operation_after, "candidate_prediction_closure_writer",
+     "candidate_added", "internal_nozzle_write_prediction_closure_v4");
   p.nodump = pf.nodump = false;
+  operation_before = internal_nozzle_probe_capture();
   dump(file = path);
+  operation_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&operation_before, &operation_after, "native_dump", "pre_existing",
+     "dump:file_path");
   if (!file_exists_nonzero(path)) {
     fprintf(stderr, "ERROR checkpoint dump is missing or empty: %s\n", path);
     stable_flag = 0;

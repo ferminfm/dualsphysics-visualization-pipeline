@@ -370,8 +370,18 @@ static void internal_nozzle_validate_current_keys_v4
   uint64_t current_cell_count = 0, current_face_count = 0;
   InternalNozzleCellRecordV4 * current_cells = NULL;
   InternalNozzleFaceRecordV4 * current_faces = NULL;
+  InternalNozzleProbeSnapshot probe_before = internal_nozzle_probe_capture();
   internal_nozzle_collect_cells_v4(&current_cells, &current_cell_count);
+  InternalNozzleProbeSnapshot probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_validate_enumerate_cells",
+     "candidate_added", "internal_nozzle_validate_current_keys_v4:cells");
+  probe_before = internal_nozzle_probe_capture();
   internal_nozzle_collect_faces_v4(&current_faces, &current_face_count);
+  probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_validate_enumerate_faces",
+     "candidate_added", "internal_nozzle_validate_current_keys_v4:faces");
   if (current_cell_count != header->cell_count ||
       current_face_count != header->face_count) {
     fprintf(stderr, "ERROR prediction-closure current count mismatch\n");
@@ -503,10 +513,25 @@ static void internal_nozzle_write_prediction_closure_v4 (const char * path)
   InternalNozzleCellRecordV4 * cells = NULL, * check_cells = NULL;
   InternalNozzleFaceRecordV4 * faces = NULL, * check_faces = NULL;
   uint64_t cell_count = 0, face_count = 0;
+  InternalNozzleProbeSnapshot probe_before = internal_nozzle_probe_capture();
   internal_nozzle_collect_cells_v4(&cells, &cell_count);
+  InternalNozzleProbeSnapshot probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_writer_enumerate_cells",
+     "candidate_added", "internal_nozzle_collect_cells_v4");
+  probe_before = internal_nozzle_probe_capture();
   internal_nozzle_collect_faces_v4(&faces, &face_count);
+  probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_writer_enumerate_faces",
+     "candidate_added", "internal_nozzle_collect_faces_v4");
+  probe_before = internal_nozzle_probe_capture();
   InternalNozzleInvariantSnapshotV4 snapshot =
     internal_nozzle_invariant_snapshot_v4();
+  probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_writer_invariant_snapshot",
+     "candidate_added", "internal_nozzle_invariant_snapshot_v4");
   InternalNozzleCheckpointHeaderV4 header = {0};
   snprintf(header.magic, sizeof(header.magic),
            "internal_nozzle_prediction_closure_v4");
@@ -541,6 +566,7 @@ static void internal_nozzle_write_prediction_closure_v4 (const char * path)
     exit(2);
   }
   sprintf(temporary, "%s.tmp", path);
+  probe_before = internal_nozzle_probe_capture();
   FILE * fp = fopen(temporary, "wb");
   if (!fp || fwrite(&header, sizeof(header), 1, fp) != 1 ||
       fwrite(cells, sizeof(*cells), (size_t) cell_count, fp) != cell_count ||
@@ -549,15 +575,29 @@ static void internal_nozzle_write_prediction_closure_v4 (const char * path)
     fprintf(stderr, "ERROR cannot write prediction-closure checkpoint %s\n", path);
     exit(2);
   }
+  probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_container_serialize",
+     "candidate_added", "fwrite_fflush_fclose_rename");
   free(temporary);
 
   InternalNozzleCheckpointHeaderV4 check_header;
+  probe_before = internal_nozzle_probe_capture();
   internal_nozzle_read_closure_v4
     (path, &check_header, &check_cells, &check_faces);
+  probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_container_reread",
+     "candidate_added", "internal_nozzle_read_closure_v4");
   InternalNozzleCellRecordV4 * current_cells = NULL;
   InternalNozzleFaceRecordV4 * current_faces = NULL;
+  probe_before = internal_nozzle_probe_capture();
   internal_nozzle_validate_current_keys_v4
     (&check_header, check_cells, check_faces, &current_cells, &current_faces);
+  probe_after = internal_nozzle_probe_capture();
+  internal_nozzle_probe_compare
+    (&probe_before, &probe_after, "candidate_container_validate_current_keys",
+     "candidate_added", "internal_nozzle_validate_current_keys_v4");
   if (memcmp(check_cells, current_cells,
              (size_t) cell_count*sizeof(*cells)) ||
       memcmp(check_faces, current_faces,
