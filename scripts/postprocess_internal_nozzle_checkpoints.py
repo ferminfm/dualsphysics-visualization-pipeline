@@ -20,7 +20,7 @@ METRIC_FIELDS = [
     "exit_flow",
     "exit_liquid_area",
     "liquid_volume",
-    "liquid_volume_error",
+    "liquid_mass_balance_relative_error",
     "active_front",
     "interface_proxy",
     "interface_growth",

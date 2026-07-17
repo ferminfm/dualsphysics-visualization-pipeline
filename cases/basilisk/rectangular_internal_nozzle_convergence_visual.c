@@ -1,6 +1,12 @@
 #include "grid/octree.h"
 #include "embed.h"
-#include "navier-stokes/centered.h"
+#ifdef INTERNAL_NOZZLE_PROJECTION_TRACE
+# include "internal_nozzle_projection_trace.h"
+#endif
+#ifndef INTERNAL_NOZZLE_RESTARTABLE_TIMESTEP
+# error "compile through the hash-gated restartable centered-header preparation path"
+#endif
+#include "internal_nozzle_centered.h"
 #define mu(f) (1./(clamp(f,0.,1.)*(1./mu1 - 1./mu2) + 1./mu2))
 #include "two-phase.h"
 #include "tension.h"
@@ -44,6 +50,7 @@ int raw_frame_index = 0;
 int field_frame_index = 0;
 int checkpoint_index = 0;
 int surface_frame_index = 0;
+int recovered_checkpoint_iteration = -1;
 
 double official_r = 1./12.;
 double A0, D0, Wrect, Hrect, Dhrect;
@@ -73,6 +80,28 @@ double station_half_dh = 0.15;
 double transverse_scale = 0.75;
 double restore_time = -1.;
 double next_field_export_time = 0.;
+double schedule_tick_dt = 0.;
+double schedule_time_tolerance = 1e-12;
+int light_base_stride = 2;
+int light_dense_stride = 1;
+int field_base_stride = 8;
+int field_dense_stride = 4;
+int checkpoint_stride = 6;
+int dense_start_tick = 24;
+int dense_end_tick = 120;
+int current_master_tick = -1;
+double current_target_time = -1.;
+double current_actual_time = -1.;
+
+double cumulative_liquid_inflow = 0.;
+double cumulative_liquid_outflow = 0.;
+double previous_liquid_inflow_rate = 0.;
+double previous_liquid_outflow_rate = 0.;
+double last_mass_balance_time = -1.;
+double liquid_inventory_change_fraction = 0.;
+double liquid_mass_balance_residual = 0.;
+double liquid_mass_balance_relative_error = 0.;
+double mass_balance_tolerance = 0.05;
 
 char case_id[128] = "W2_visual_pipeline";
 char output_dir[512] = ".";
@@ -84,6 +113,18 @@ char surfaces_dir[640] = "";
 char checkpoints_dir[640] = "";
 char fields_dir[640] = "";
 char sanitized_case_id[128] = "W2_visual_pipeline";
+char schedule_version[128] = "legacy_unspecified";
+char schedule_sha[128] = "legacy_unspecified";
+char source_sha[128] = "unresolved";
+char pending_prediction_closure_path[1200] = "";
+int pending_prediction_closure_restore = 0;
+int enable_forensic_probes = 0;
+int forensic_probe_index = 0;
+double forensic_start_time = -1.;
+double forensic_end_time = -1.;
+char forensic_dir[640] = "";
+int projection_trace_index = 0;
+char projection_trace_dir[700] = "";
 
 double max_active_front = 0.;
 double max_interface_proxy = 0.;
@@ -189,9 +230,116 @@ static void subdir_path (char *buf, int n, const char *dir, const char *leaf) {
   snprintf(buf, n, "%s/%s", dir, leaf);
 }
 
+static void atomic_rename (const char *tmp, const char *dst);
+
 static int file_exists_nonzero (const char *path) {
   struct stat st;
   return stat(path, &st) == 0 && st.st_size > 0;
+}
+
+static int canonical_schedule_enabled (void) {
+  return schedule_tick_dt > 0.;
+}
+
+static int canonical_tick_for_time (double actual) {
+  if (!canonical_schedule_enabled())
+    return -1;
+  int tick = (int) llround(actual/schedule_tick_dt);
+  double target = tick*schedule_tick_dt;
+  return fabs(actual - target) <= schedule_time_tolerance ? tick : -1;
+}
+
+static int dense_tick (int tick) {
+  return tick >= dense_start_tick && tick <= dense_end_tick;
+}
+
+static int lightweight_tick (int tick) {
+  return tick >= 0 &&
+    (tick % light_base_stride == 0 ||
+     (dense_tick(tick) && tick % light_dense_stride == 0));
+}
+
+static int full_field_tick (int tick) {
+  return tick >= 0 &&
+    (tick % field_base_stride == 0 ||
+     (dense_tick(tick) && tick % field_dense_stride == 0));
+}
+
+static int checkpoint_target_tick (int tick) {
+  return tick > 0 && tick % checkpoint_stride == 0;
+}
+
+static void select_output_target (int tick) {
+  current_master_tick = tick;
+  current_target_time = canonical_schedule_enabled() ? tick*schedule_tick_dt : t;
+  current_actual_time = t;
+}
+
+static int text_file_contains (const char *path, const char *needle) {
+  FILE *fp = fopen(path, "r");
+  if (!fp)
+    return 0;
+  char buffer[4096];
+  int found = 0;
+  while (fgets(buffer, sizeof(buffer), fp))
+    if (strstr(buffer, needle)) {
+      found = 1;
+      break;
+    }
+  fclose(fp);
+  return found;
+}
+
+static void write_schedule_contract (void) {
+  char path[1024], tmp[1024], expected_version[320], expected_sha[320];
+  output_path(path, sizeof(path), "run_schedule_contract.json");
+  snprintf(expected_version, sizeof(expected_version), "\"schedule_version\": \"%s\"", schedule_version);
+  snprintf(expected_sha, sizeof(expected_sha), "\"schedule_sha256\": \"%s\"", schedule_sha);
+  if (file_exists_nonzero(path) &&
+      (!text_file_contains(path, expected_version) || !text_file_contains(path, expected_sha))) {
+    fprintf(stderr, "ERROR schedule migration denied: existing contract does not match %s %s\n",
+            schedule_version, schedule_sha);
+    exit(2);
+  }
+  output_path(tmp, sizeof(tmp), "run_schedule_contract.json.tmp");
+  FILE *fp = fopen(tmp, "w");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot write %s\n", tmp);
+    exit(2);
+  }
+  fprintf(fp,
+          "{\n"
+          "  \"schema\": \"internal_nozzle_runtime_schedule_v1\",\n"
+          "  \"schedule_version\": \"%s\",\n"
+          "  \"schedule_sha256\": \"%s\",\n"
+          "  \"source_sha256\": \"%s\",\n"
+          "  \"master_tick_dt\": %.17g,\n"
+          "  \"event_time_tolerance\": %.17g,\n"
+          "  \"lightweight\": {\"base_stride\": %d, \"dense_stride\": %d},\n"
+          "  \"full_field\": {\"base_stride\": %d, \"dense_stride\": %d},\n"
+          "  \"checkpoint_stride\": %d,\n"
+          "  \"dense_window\": {\"start_tick\": %d, \"end_tick\": %d},\n"
+          "  \"restart_policy\": \"schedule identity mismatch fails closed; completed target times are skipped\"\n"
+          "}\n",
+          schedule_version, schedule_sha, source_sha, schedule_tick_dt,
+          schedule_time_tolerance, light_base_stride, light_dense_stride,
+          field_base_stride, field_dense_stride, checkpoint_stride,
+          dense_start_tick, dense_end_tick);
+  fclose(fp);
+  atomic_rename(tmp, path);
+}
+
+#include "internal_nozzle_checkpoint_v4.h"
+
+/* Establish a process-independent checkpoint boundary state. Generic dumps
+ * omit ghost cells and face fields; applying this operation both immediately
+ * before a canonical dump and immediately after restore makes the boundary
+ * representation part of the declared restart algorithm. */
+static void canonicalize_restart_solver_state (void) {
+  boundary({f, u, p, pf, g});
+  boundary((scalar *){uf});
+  boundary((scalar *){fs});
+  boundary((scalar *){a});
 }
 
 static void ensure_dir (const char *path) {
@@ -212,7 +360,419 @@ static void ensure_output_dirs (void) {
   ensure_dir(surfaces_dir);
   ensure_dir(checkpoints_dir);
   ensure_dir(fields_dir);
+  if (enable_forensic_probes) {
+    snprintf(forensic_dir, sizeof(forensic_dir), "%s/forensic_probes", output_dir);
+    ensure_dir(forensic_dir);
+#ifdef INTERNAL_NOZZLE_PROJECTION_TRACE
+    snprintf(projection_trace_dir, sizeof(projection_trace_dir),
+             "%s/projection_trace", output_dir);
+    ensure_dir(projection_trace_dir);
+#endif
+  }
 }
+
+/* Read-only keyed state snapshots for Task 02R. These are called only from
+ * phases which already exist in the solver schedule and never call boundary(),
+ * restriction(), adaptation, or a solver routine. */
+static void write_forensic_probe (const char *phase, int iter_value) {
+  if (!enable_forensic_probes ||
+      (forensic_start_time >= 0. && t < forensic_start_time - 1e-14) ||
+      (forensic_end_time >= 0. && t > forensic_end_time + 1e-14))
+    return;
+  char cell_path[1024], face_path[1024], manifest_path[1024];
+  snprintf(cell_path, sizeof(cell_path), "%s/probe_%05d_%s_t%.9f_i%07d_cells.csv",
+           forensic_dir, forensic_probe_index, phase, t, iter_value);
+  snprintf(face_path, sizeof(face_path), "%s/probe_%05d_%s_t%.9f_i%07d_faces.csv",
+           forensic_dir, forensic_probe_index, phase, t, iter_value);
+  FILE *cells = fopen(cell_path, "w");
+  FILE *faces = fopen(face_path, "w");
+  if (!cells || !faces) {
+    fprintf(stderr, "ERROR cannot write forensic probe %s at t %.17g i %d\n",
+            phase, t, iter_value);
+    exit(2);
+  }
+  fputs("x,y,z,level,Delta,f,ux,uy,uz,p,pf,gx,gy,gz,cs,cm,un\n", cells);
+  foreach(serial) {
+    fprintf(cells,
+            "%.17g,%.17g,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n",
+            x, y, z, level, Delta, f[], u.x[], u.y[], u.z[], p[], pf[],
+            g.x[], g.y[], g.z[], cs[], cm[], un[]);
+  }
+  fputs("axis,x,y,z,level,Delta,uf,fs,a\n", faces);
+  foreach_face(x, serial) {
+    fprintf(faces, "x,%.17g,%.17g,%.17g,%d,%.17g,%.17g,%.17g,%.17g\n",
+            x, y, z, level, Delta, uf.x[], fs.x[], a.x[]);
+  }
+  foreach_face(y, serial) {
+    fprintf(faces, "y,%.17g,%.17g,%.17g,%d,%.17g,%.17g,%.17g,%.17g\n",
+            x, y, z, level, Delta, uf.y[], fs.y[], a.y[]);
+  }
+  foreach_face(z, serial) {
+    fprintf(faces, "z,%.17g,%.17g,%.17g,%d,%.17g,%.17g,%.17g,%.17g\n",
+            x, y, z, level, Delta, uf.z[], fs.z[], a.z[]);
+  }
+  fclose(cells);
+  fclose(faces);
+  snprintf(manifest_path, sizeof(manifest_path), "%s/probe_manifest.csv", forensic_dir);
+  int exists = file_exists_nonzero(manifest_path);
+  FILE *manifest = fopen(manifest_path, "a");
+  if (!manifest) {
+    fprintf(stderr, "ERROR cannot append forensic probe manifest %s\n", manifest_path);
+    exit(2);
+  }
+  if (!exists)
+    fputs("probe_index,phase,t,i,cell_file,face_file\n", manifest);
+  fprintf(manifest, "%d,%s,%.17g,%d,%s,%s\n", forensic_probe_index, phase,
+          t, iter_value, cell_path, face_path);
+  fclose(manifest);
+  forensic_probe_index++;
+}
+
+#ifdef INTERNAL_NOZZLE_PROJECTION_TRACE
+static int projection_trace_active (scalar pressure_trace) {
+  const char * name = pressure_trace.name;
+  return enable_forensic_probes && projection_trace_dir[0] && name &&
+    (!strcmp(name, "p") || !strcmp(name, "pf")) &&
+    (forensic_start_time < 0. || t >= forensic_start_time - 1e-14) &&
+    (forensic_end_time < 0. || t <= forensic_end_time + 1e-14);
+}
+
+static void write_trace_scalar_rows
+  (FILE * fp, scalar * fields, const char ** labels)
+{
+  fputs("sequence,x,y,z,level,Delta,is_leaf,field_index,field_role,value\n",
+        fp);
+  int seq = 0;
+  foreach_cell() {
+    for (int k = 0; fields[k].i >= 0; k++)
+      fprintf(fp, "%d,%a,%a,%a,%d,%a,%d,%d,%s,%a\n",
+              seq, x, y, z, level, Delta, is_leaf(cell), k, labels[k],
+              val(fields[k],0,0,0));
+    seq++;
+  }
+}
+
+static void write_trace_boundary_rows
+  (FILE * fp, scalar * fields, const char ** labels)
+{
+  fputs("boundary,sequence,x,y,z,level,Delta,field_index,field_role,value\n",
+        fp);
+  int seq = 0;
+  for (int l = 0; l <= grid->maxdepth; l++)
+    foreach_level (l) {
+      double eps = 1e-12*max(1., L0);
+      if (x - Delta/2. <= X0 + eps) {
+        for (int k = 0; fields[k].i >= 0; k++)
+          fprintf(fp, "left,%d,%a,%a,%a,%d,%a,%d,%s,%a\n",
+                  seq, x - Delta, y, z, level, Delta, k, labels[k],
+                  val(fields[k],-1,0,0));
+        seq++;
+      }
+      if (x + Delta/2. >= X0 + L0 - eps) {
+        for (int k = 0; fields[k].i >= 0; k++)
+          fprintf(fp, "right,%d,%a,%a,%a,%d,%a,%d,%s,%a\n",
+                  seq, x + Delta, y, z, level, Delta, k, labels[k],
+                  val(fields[k],1,0,0));
+        seq++;
+      }
+#if dimension > 1
+      if (y - Delta/2. <= Y0 + eps) {
+        for (int k = 0; fields[k].i >= 0; k++)
+          fprintf(fp, "bottom,%d,%a,%a,%a,%d,%a,%d,%s,%a\n",
+                  seq, x, y - Delta, z, level, Delta, k, labels[k],
+                  val(fields[k],0,-1,0));
+        seq++;
+      }
+      if (y + Delta/2. >= Y0 + L0 - eps) {
+        for (int k = 0; fields[k].i >= 0; k++)
+          fprintf(fp, "top,%d,%a,%a,%a,%d,%a,%d,%s,%a\n",
+                  seq, x, y + Delta, z, level, Delta, k, labels[k],
+                  val(fields[k],0,1,0));
+        seq++;
+      }
+#endif
+#if dimension > 2
+      if (z - Delta/2. <= Z0 + eps) {
+        for (int k = 0; fields[k].i >= 0; k++)
+          fprintf(fp, "back,%d,%a,%a,%a,%d,%a,%d,%s,%a\n",
+                  seq, x, y, z - Delta, level, Delta, k, labels[k],
+                  val(fields[k],0,0,-1));
+        seq++;
+      }
+      if (z + Delta/2. >= Z0 + L0 - eps) {
+        for (int k = 0; fields[k].i >= 0; k++)
+          fprintf(fp, "front,%d,%a,%a,%a,%d,%a,%d,%s,%a\n",
+                  seq, x, y, z + Delta, level, Delta, k, labels[k],
+                  val(fields[k],0,0,1));
+        seq++;
+      }
+#endif
+    }
+}
+
+static void append_projection_trace_manifest
+  (const char * kind, const char * stage, scalar pressure_trace,
+   int cycle, int active_level, int nrelax, double residual_value,
+   const char * data_file, const char * boundary_file)
+{
+  char path[1024];
+  snprintf(path, sizeof(path), "%s/trace_manifest.csv", projection_trace_dir);
+  int exists = file_exists_nonzero(path);
+  FILE * fp = fopen(path, "a");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot append projection trace manifest %s\n", path);
+    exit(2);
+  }
+  if (!exists)
+    fputs("trace_index,kind,stage,pressure,t,i,dt,DT,dtmax,CFL,"
+          "cycle,active_level,nrelax,residual,TOLERANCE,NITERMIN,NITERMAX,"
+          "grid_maxdepth,mgp_i,mgp_resb,mgp_resa,mgp_nrelax,"
+          "mgpf_i,mgpf_resb,mgpf_resa,mgpf_nrelax,"
+          "pressure_nodump,pf_nodump,data_file,boundary_file\n", fp);
+  fprintf(fp,
+          "%d,%s,%s,%s,%.17g,%d,%.17g,%.17g,%.17g,%.17g,"
+          "%d,%d,%d,%.17g,%.17g,%d,%d,%d,"
+          "%d,%.17g,%.17g,%d,%d,%.17g,%.17g,%d,%d,%d,%s,%s\n",
+          projection_trace_index, kind, stage, pressure_trace.name, t, iter,
+          dt, DT, dtmax, CFL, cycle, active_level, nrelax, residual_value,
+          TOLERANCE, NITERMIN, NITERMAX, grid->maxdepth,
+          mgp.i, mgp.resb, mgp.resa, mgp.nrelax,
+          mgpf.i, mgpf.resb, mgpf.resa, mgpf.nrelax,
+          p.nodump, pf.nodump, data_file, boundary_file);
+  fclose(fp);
+}
+
+static void write_projection_boundary_rows
+  (FILE * fp, scalar pressure_trace, scalar div_trace)
+{
+  scalar * fields = (scalar *){pressure_trace, p, pf, div_trace, cm, cs};
+  const char * labels[] = {
+    "active_pressure", "p", "pf", "div", "cm", "cs"
+  };
+  write_trace_boundary_rows(fp, fields, labels);
+}
+
+void internal_nozzle_prediction_trace_stage
+  (const char * stage, face vector uf_trace,
+   (const) face vector alpha_trace)
+{
+  if (!projection_trace_active(pf))
+    return;
+  char cell_path[1024], face_path[1024], boundary_path[1024], manifest_path[1024];
+  snprintf(cell_path, sizeof(cell_path), "%s/prediction_%s_cells.csv",
+           projection_trace_dir, stage);
+  snprintf(face_path, sizeof(face_path), "%s/prediction_%s_faces.csv",
+           projection_trace_dir, stage);
+  snprintf(boundary_path, sizeof(boundary_path), "%s/prediction_%s_boundary.csv",
+           projection_trace_dir, stage);
+  FILE * cells = fopen(cell_path, "w");
+  FILE * faces = fopen(face_path, "w");
+  FILE * boundaries = fopen(boundary_path, "w");
+  if (!cells || !faces || !boundaries) {
+    fprintf(stderr, "ERROR cannot create prediction trace %s\n", stage);
+    exit(2);
+  }
+  scalar * cell_fields = (scalar *){f, u, g, p, pf, cm, cs};
+  const char * cell_labels[] = {
+    "f", "ux", "uy", "uz", "gx", "gy", "gz", "p", "pf", "cm", "cs"
+  };
+  write_trace_scalar_rows(cells, cell_fields, cell_labels);
+  scalar * boundary_fields = (scalar *){u, g, p, pf, f, cm, cs};
+  const char * boundary_labels[] = {
+    "ux", "uy", "uz", "gx", "gy", "gz", "p", "pf", "f", "cm", "cs"
+  };
+  write_trace_boundary_rows(boundaries, boundary_fields, boundary_labels);
+  fputs("axis,sequence,x,y,z,level,Delta,uf,alpha,fm,fs,a\n", faces);
+  int seq = 0;
+  foreach_face(x, serial)
+    fprintf(faces, "x,%d,%a,%a,%a,%d,%a,%a,%a,%a,%a,%a\n",
+            seq++, x, y, z, level, Delta, uf_trace.x[], alpha_trace.x[],
+            fm.x[], fs.x[], a.x[]);
+  seq = 0;
+  foreach_face(y, serial)
+    fprintf(faces, "y,%d,%a,%a,%a,%d,%a,%a,%a,%a,%a,%a\n",
+            seq++, x, y, z, level, Delta, uf_trace.y[], alpha_trace.y[],
+            fm.y[], fs.y[], a.y[]);
+  seq = 0;
+  foreach_face(z, serial)
+    fprintf(faces, "z,%d,%a,%a,%a,%d,%a,%a,%a,%a,%a,%a\n",
+            seq++, x, y, z, level, Delta, uf_trace.z[], alpha_trace.z[],
+            fm.z[], fs.z[], a.z[]);
+  fclose(cells);
+  fclose(faces);
+  fclose(boundaries);
+  snprintf(manifest_path, sizeof(manifest_path),
+           "%s/prediction_trace_manifest.csv", projection_trace_dir);
+  int exists = file_exists_nonzero(manifest_path);
+  FILE * manifest = fopen(manifest_path, "a");
+  if (!manifest) {
+    fprintf(stderr, "ERROR cannot append prediction trace manifest %s\n",
+            manifest_path);
+    exit(2);
+  }
+  if (!exists)
+    fputs("stage,t,i,dt,DT,dtmax,CFL,grid_maxdepth,cell_file,face_file,boundary_file\n",
+          manifest);
+  fprintf(manifest, "%s,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%d,%s,%s,%s\n",
+          stage, t, iter, dt, DT, dtmax, CFL, grid->maxdepth,
+          cell_path, face_path, boundary_path);
+  fclose(manifest);
+}
+
+void internal_nozzle_projection_trace_stage
+  (const char * stage, face vector uf_trace, scalar pressure_trace,
+   (const) face vector alpha_trace, scalar div_trace,
+   double projection_dt, int requested_nrelax)
+{
+  if (!projection_trace_active(pressure_trace))
+    return;
+  char data_path[1024], boundary_path[1024];
+  snprintf(data_path, sizeof(data_path), "%s/trace_%05d_project_%s_%s_cells.csv",
+           projection_trace_dir, projection_trace_index, pressure_trace.name, stage);
+  snprintf(boundary_path, sizeof(boundary_path),
+           "%s/trace_%05d_project_%s_%s_boundary.csv",
+           projection_trace_dir, projection_trace_index, pressure_trace.name, stage);
+  FILE * cells = fopen(data_path, "w");
+  FILE * boundaries = fopen(boundary_path, "w");
+  if (!cells || !boundaries) {
+    fprintf(stderr, "ERROR cannot create projection trace %s %s\n",
+            pressure_trace.name, stage);
+    exit(2);
+  }
+  scalar * fields = (scalar *){pressure_trace, p, pf, div_trace, f, u, g,
+                                cm, cs, uf_trace, alpha_trace, fm};
+  const char * labels[] = {
+    "active_pressure", "p", "pf", "div", "f",
+    "ux", "uy", "uz", "gx", "gy", "gz", "cm", "cs",
+    "ufx", "ufy", "ufz", "alphax", "alphay", "alphaz",
+    "fmx", "fmy", "fmz"
+  };
+  write_trace_scalar_rows(cells, fields, labels);
+  write_projection_boundary_rows(boundaries, pressure_trace, div_trace);
+  fclose(cells);
+  fclose(boundaries);
+  append_projection_trace_manifest("project", stage, pressure_trace, -1, -1,
+                                   requested_nrelax, projection_dt,
+                                   data_path, boundary_path);
+  projection_trace_index++;
+}
+
+void internal_nozzle_poisson_trace_stage
+  (const char * stage, scalar pressure_trace, scalar rhs_trace,
+   (const) face vector alpha_trace, (const) scalar lambda_trace,
+   double tolerance, int nrelax, int minlevel)
+{
+  if (!projection_trace_active(pressure_trace))
+    return;
+  char data_path[1024], boundary_path[1024];
+  snprintf(data_path, sizeof(data_path), "%s/trace_%05d_poisson_%s_%s.csv",
+           projection_trace_dir, projection_trace_index, pressure_trace.name, stage);
+  snprintf(boundary_path, sizeof(boundary_path),
+           "%s/trace_%05d_poisson_%s_%s_boundary.csv",
+           projection_trace_dir, projection_trace_index, pressure_trace.name, stage);
+  FILE * cells = fopen(data_path, "w");
+  FILE * boundaries = fopen(boundary_path, "w");
+  if (!cells || !boundaries) {
+    fprintf(stderr, "ERROR cannot create Poisson trace %s %s\n",
+            pressure_trace.name, stage);
+    exit(2);
+  }
+  scalar * fields = (scalar *){pressure_trace, p, pf, rhs_trace,
+                                lambda_trace, alpha_trace, cm, cs, fm};
+  const char * labels[] = {
+    "active_pressure", "p", "pf", "rhs", "lambda",
+    "alphax", "alphay", "alphaz", "cm", "cs", "fmx", "fmy", "fmz"
+  };
+  write_trace_scalar_rows(cells, fields, labels);
+  write_projection_boundary_rows(boundaries, pressure_trace, rhs_trace);
+  fclose(cells);
+  fclose(boundaries);
+  append_projection_trace_manifest("poisson", stage, pressure_trace, -1,
+                                   minlevel, nrelax, tolerance,
+                                   data_path, boundary_path);
+  projection_trace_index++;
+}
+
+static void write_mg_boundary_rows
+  (FILE * fp, scalar solution, scalar rhs, scalar residual_trace,
+   scalar correction_trace, int active_level)
+{
+  scalar * fields = (scalar *){solution, rhs, residual_trace,
+                                correction_trace, p, pf};
+  const char * labels[] = {
+    "solution", "rhs", "residual", "correction", "p", "pf"
+  };
+  write_trace_boundary_rows(fp, fields, labels);
+}
+
+void internal_nozzle_mg_trace_stage
+  (const char * stage, scalar * solution_list, scalar * rhs_list,
+   scalar * residual_list, scalar * correction_list,
+   int cycle, int active_level, int nrelax, double residual_value)
+{
+  if (!solution_list)
+    return;
+  scalar solution = solution_list[0];
+  if (!projection_trace_active(solution) || !residual_list || !correction_list)
+    return;
+  scalar rhs = rhs_list ? rhs_list[0] : residual_list[0];
+  scalar residual_trace = residual_list[0];
+  scalar correction_trace = correction_list[0];
+  char data_path[1024], boundary_path[1024];
+  snprintf(data_path, sizeof(data_path), "%s/trace_%05d_mg_%s_%s_c%03d_l%03d.csv",
+           projection_trace_dir, projection_trace_index, solution.name, stage,
+           cycle, active_level);
+  snprintf(boundary_path, sizeof(boundary_path),
+           "%s/trace_%05d_mg_%s_%s_c%03d_l%03d_boundary.csv",
+           projection_trace_dir, projection_trace_index, solution.name, stage,
+           cycle, active_level);
+  FILE * cells = fopen(data_path, "w");
+  FILE * boundaries = fopen(boundary_path, "w");
+  if (!cells || !boundaries) {
+    fprintf(stderr, "ERROR cannot create multigrid trace %s %s\n",
+            solution.name, stage);
+    exit(2);
+  }
+  scalar * fields = (scalar *){solution, rhs, residual_trace,
+                                correction_trace, p, pf};
+  const char * labels[] = {
+    "solution", "rhs", "residual", "correction", "p", "pf"
+  };
+  write_trace_scalar_rows(cells, fields, labels);
+  if (active_level >= 0)
+    write_mg_boundary_rows(boundaries, solution, rhs, residual_trace,
+                           correction_trace, active_level);
+  fclose(cells);
+  fclose(boundaries);
+  append_projection_trace_manifest("multigrid", stage, solution, cycle,
+                                   active_level, nrelax, residual_value,
+                                   data_path, boundary_path);
+  projection_trace_index++;
+}
+
+void internal_nozzle_projection_trace_summary
+  (scalar pressure_trace, int iterations, double residual_before,
+   double residual_after, double rhs_sum, int nrelax, int minlevel)
+{
+  if (!projection_trace_active(pressure_trace))
+    return;
+  char path[1024];
+  snprintf(path, sizeof(path), "%s/projection_summaries.csv", projection_trace_dir);
+  int exists = file_exists_nonzero(path);
+  FILE * fp = fopen(path, "a");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot append projection summary %s\n", path);
+    exit(2);
+  }
+  if (!exists)
+    fputs("pressure,t,i,iterations,residual_before,residual_after,rhs_sum,nrelax,minlevel\n",
+          fp);
+  fprintf(fp, "%s,%.17g,%d,%d,%.17g,%.17g,%.17g,%d,%d\n",
+          pressure_trace.name, t, iter, iterations, residual_before,
+          residual_after, rhs_sum, nrelax, minlevel);
+  fclose(fp);
+}
+#endif
 
 static void write_header_if_missing (const char *path, const char *header) {
   if (file_exists_nonzero(path))
@@ -315,6 +875,102 @@ static double checkpoint_time_from_index (const char *checkpoint) {
   return found;
 }
 
+static void recover_checkpoint_metadata (const char *checkpoint) {
+  char meta[1200];
+  snprintf(meta, sizeof(meta), "%s.meta", checkpoint);
+  FILE *fp = fopen(meta, "r");
+  if (!fp) {
+    if (canonical_schedule_enabled()) {
+      fprintf(stderr, "ERROR canonical restart metadata is missing: %s\n", meta);
+      exit(2);
+    }
+    return;
+  }
+  char line[2048], found_version[128] = "", found_sha[128] = "";
+  int found_tick = -1, found_iteration = -1;
+  double found_target = -1., found_actual = -1.;
+  while (fgets(line, sizeof(line), fp)) {
+    if (sscanf(line, "schedule_version=%127s", found_version) == 1)
+      continue;
+    if (sscanf(line, "schedule_sha256=%127s", found_sha) == 1)
+      continue;
+    if (sscanf(line, "master_tick=%d", &found_tick) == 1)
+      continue;
+    if (sscanf(line, "iteration=%d", &found_iteration) == 1)
+      continue;
+    if (sscanf(line, "target_time=%lf", &found_target) == 1)
+      continue;
+    if (sscanf(line, "actual_time=%lf", &found_actual) == 1)
+      continue;
+    if (sscanf(line, "initial_liquid_volume=%lf", &initial_liquid_volume) == 1)
+      continue;
+    if (sscanf(line, "cumulative_liquid_inflow=%lf", &cumulative_liquid_inflow) == 1)
+      continue;
+    if (sscanf(line, "cumulative_liquid_outflow=%lf", &cumulative_liquid_outflow) == 1)
+      continue;
+    if (sscanf(line, "previous_liquid_inflow_rate=%lf", &previous_liquid_inflow_rate) == 1)
+      continue;
+    if (sscanf(line, "previous_liquid_outflow_rate=%lf", &previous_liquid_outflow_rate) == 1)
+      continue;
+    if (sscanf(line, "last_mass_balance_time=%lf", &last_mass_balance_time) == 1)
+      continue;
+    if (sscanf(line, "timestep_previous=%lf", &internal_nozzle_timestep_previous) == 1)
+      continue;
+    if (sscanf(line, "mgp_nrelax=%d", &mgp.nrelax) == 1)
+      continue;
+    if (sscanf(line, "mgpf_nrelax=%d", &mgpf.nrelax) == 1)
+      continue;
+    if (sscanf(line, "mgu_nrelax=%d", &mgu.nrelax) == 1)
+      continue;
+    if (sscanf(line, "initial_interface_proxy=%lf", &initial_interface_proxy) == 1)
+      continue;
+    if (sscanf(line, "max_interface_growth=%lf", &max_interface_growth) == 1)
+      continue;
+    if (sscanf(line, "max_active_front=%lf", &max_active_front) == 1)
+      continue;
+    if (sscanf(line, "max_post_tag_count=%d", &max_post_tag_count) == 1)
+      continue;
+    if (sscanf(line, "max_detached_proxy_count=%d", &max_detached_proxy_count) == 1)
+      continue;
+    sscanf(line, "max_one_cell_debris_count=%d", &max_one_cell_debris_count);
+  }
+  fclose(fp);
+  if (canonical_schedule_enabled() &&
+      (strcmp(found_version, schedule_version) || strcmp(found_sha, schedule_sha))) {
+    fprintf(stderr,
+            "ERROR schedule migration denied for checkpoint: found %s %s, requested %s %s\n",
+            found_version, found_sha, schedule_version, schedule_sha);
+    exit(2);
+  }
+  if (canonical_schedule_enabled() &&
+      (found_tick < 0 || fabs(found_actual - found_target) > schedule_time_tolerance)) {
+    fprintf(stderr, "ERROR invalid canonical checkpoint timing metadata in %s\n", meta);
+    exit(2);
+  }
+  current_master_tick = found_tick;
+  current_target_time = found_target;
+  current_actual_time = found_actual;
+  if (canonical_schedule_enabled())
+    restore_time = found_target;
+  if (canonical_schedule_enabled()) {
+    t = found_target;
+    recovered_checkpoint_iteration = found_iteration;
+    /* centered.h calls stability once from its init event and again for the
+     * resumed iteration. The first call may compute dt but must not advance
+     * the persisted timestep-ramp history. */
+    internal_nozzle_timestep_restore_probe = 1;
+    snprintf(pending_prediction_closure_path,
+             sizeof(pending_prediction_closure_path),
+             "%s.prediction-closure-v4", checkpoint);
+    if (!file_exists_nonzero(pending_prediction_closure_path)) {
+      fprintf(stderr, "ERROR prediction-closure-v4 checkpoint is missing: %s\n",
+              pending_prediction_closure_path);
+      exit(2);
+    }
+    pending_prediction_closure_restore = 1;
+  }
+}
+
 static void recover_metrics_from_existing_raw (void) {
   char path[1024];
   output_path(path, sizeof(path), "raw_frame_summary.csv");
@@ -399,6 +1055,19 @@ static void print_usage (const char *prog) {
           "  --field-dt FLOAT           post-projection field-export cadence\n"
           "  --visual-dt FLOAT          native frame/facet cadence\n"
           "  --checkpoint-dt FLOAT      checkpoint cadence\n"
+          "  --schedule-tick-dt FLOAT   canonical master-tick spacing; enables exact schedule\n"
+          "  --schedule-version STR     canonical schedule version (required with schedule)\n"
+          "  --schedule-sha STR         canonical schedule SHA-256 (required with schedule)\n"
+          "  --source-sha STR           source SHA-256 recorded in every output manifest\n"
+          "  --schedule-tolerance FLOAT event-time acceptance tolerance\n"
+          "  --light-base-stride INT    lightweight base stride in master ticks\n"
+          "  --light-dense-stride INT   lightweight dense-window stride\n"
+          "  --field-base-stride INT    full-field base stride in master ticks\n"
+          "  --field-dense-stride INT   full-field dense-window stride\n"
+          "  --checkpoint-stride INT    checkpoint stride in master ticks\n"
+          "  --dense-start-tick INT     dense-window first master tick\n"
+          "  --dense-end-tick INT       dense-window final master tick\n"
+          "  --mass-balance-tolerance FLOAT relative liquid mass-balance gate\n"
           "  --raw-export 0|1           enable raw station/interface CSV export\n"
           "  --field-export 0|1         enable post-projection phase/u/vorticity/p CSV export\n"
           "  --native-frames 0|1        enable native Basilisk VOF PPM frames\n"
@@ -476,6 +1145,32 @@ static void parse_args (int argc, char **argv) {
       visual_dt = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--checkpoint-dt"))
       checkpoint_dt = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--schedule-tick-dt"))
+      schedule_tick_dt = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--schedule-version"))
+      copy_string(schedule_version, sizeof(schedule_version), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--schedule-sha"))
+      copy_string(schedule_sha, sizeof(schedule_sha), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--source-sha"))
+      copy_string(source_sha, sizeof(source_sha), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--schedule-tolerance"))
+      schedule_time_tolerance = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--light-base-stride"))
+      light_base_stride = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--light-dense-stride"))
+      light_dense_stride = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--field-base-stride"))
+      field_base_stride = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--field-dense-stride"))
+      field_dense_stride = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--checkpoint-stride"))
+      checkpoint_stride = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--dense-start-tick"))
+      dense_start_tick = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--dense-end-tick"))
+      dense_end_tick = atoi(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--mass-balance-tolerance"))
+      mass_balance_tolerance = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--raw-export"))
       enable_raw_export = parse_bool_arg(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--field-export"))
@@ -484,6 +1179,12 @@ static void parse_args (int argc, char **argv) {
       enable_native_frames = parse_bool_arg(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--facet-export"))
       enable_facet_export = parse_bool_arg(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--forensic-probes"))
+      enable_forensic_probes = parse_bool_arg(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--forensic-start-time"))
+      forensic_start_time = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--forensic-end-time"))
+      forensic_end_time = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--restore")) {
       copy_string(restore_path, sizeof(restore_path), require_value(argc, argv, &a));
       restore_requested = 1;
@@ -620,6 +1321,32 @@ static double liquid_volume_total (void) {
   return vol;
 }
 
+static void liquid_boundary_fluxes (double *inflow, double *outflow) {
+  double qin = 0., qexit = 0.;
+  foreach_boundary(left, reduction(+:qin))
+    qin += clamp(f[], 0., 1.)*u.x[]*cs[]*sq(Delta);
+  foreach_boundary(right, reduction(+:qexit))
+    qexit += clamp(f[], 0., 1.)*u.x[]*cs[]*sq(Delta);
+  *inflow = qin;
+  *outflow = qexit;
+}
+
+static void integrate_liquid_flux_to_time (double actual_time) {
+  double qin = 0., qexit = 0.;
+  liquid_boundary_fluxes(&qin, &qexit);
+  if (initial_liquid_volume < 0.)
+    initial_liquid_volume = liquid_volume_total();
+  if (last_mass_balance_time >= 0. &&
+      actual_time > last_mass_balance_time + schedule_time_tolerance) {
+    double interval = actual_time - last_mass_balance_time;
+    cumulative_liquid_inflow += 0.5*(previous_liquid_inflow_rate + qin)*interval;
+    cumulative_liquid_outflow += 0.5*(previous_liquid_outflow_rate + qexit)*interval;
+  }
+  previous_liquid_inflow_rate = qin;
+  previous_liquid_outflow_rate = qexit;
+  last_mass_balance_time = actual_time;
+}
+
 static double interface_proxy_now (void) {
   double proxy = 0.;
   foreach(reduction(+:proxy))
@@ -655,7 +1382,13 @@ static void update_metrics (double *mean_u, double *flow, double *area, double *
   if (initial_liquid_volume < 0.)
     initial_liquid_volume = *lv;
   final_liquid_volume = *lv;
-  final_liquid_volume_error = initial_liquid_volume > 0. ? fabs(*lv - initial_liquid_volume)/initial_liquid_volume : 0.;
+  liquid_inventory_change_fraction = initial_liquid_volume > 0. ?
+    (*lv - initial_liquid_volume)/initial_liquid_volume : 0.;
+  double expected = initial_liquid_volume + cumulative_liquid_inflow - cumulative_liquid_outflow;
+  liquid_mass_balance_residual = *lv - expected;
+  double scale = max(initial_liquid_volume + fabs(cumulative_liquid_inflow), 1e-30);
+  liquid_mass_balance_relative_error = fabs(liquid_mass_balance_residual)/scale;
+  final_liquid_volume_error = liquid_mass_balance_relative_error;
   *af = active_front_now();
   *ip = interface_proxy_now();
   if (initial_interface_proxy <= 0. && *ip > 0.)
@@ -954,18 +1687,21 @@ static void write_field_export_contract (void) {
   }
   fprintf(fp,
           "{\n"
-          "  \"schema\": \"internal_nozzle_post_projection_fields_v1\",\n"
+          "  \"schema\": \"internal_nozzle_post_projection_fields_v2\",\n"
           "  \"selected_case\": \"W2_longer_duration\",\n"
           "  \"pressure_provenance\": \"runtime_cell_centered_p_after_centered_projection\",\n"
-          "  \"event_provenance\": \"post_projection_fields_i_plus_plus_last_after_centered_projection\",\n"
+          "  \"event_provenance\": \"canonical_master_tick_post_projection_i_plus_plus_last\",\n"
           "  \"pressure_gauge_context\": \"Dirichlet p=pressure_value at left and p=0 at right; values are outlet-gauge-relative\",\n"
           "  \"gravity_enabled\": false,\n"
           "  \"fields\": [\"phase_fraction\", \"velocity_x\", \"velocity_y\", \"velocity_z\", \"velocity_magnitude\", \"vorticity_magnitude\", \"pressure\", \"embedded_fluid_fraction\"],\n"
           "  \"coordinate_convention\": \"x_streamwise_y_width_z_height_origin_nozzle_inlet\",\n"
           "  \"frame_naming\": \"field_tTTTTTT.TTTTTT_iIIIIIII_fFFFF.csv\",\n"
-          "  \"station_frame_join\": \"case_id+t+i; frame_index is local to each manifest\",\n"
+          "  \"station_frame_join\": \"case_id+schedule_sha256+master_tick; frame index is local\",\n"
+          "  \"source_sha256\": \"%s\",\n"
+          "  \"schedule_version\": \"%s\",\n"
+          "  \"schedule_sha256\": \"%s\",\n"
           "  \"instrumentation_changes_solver_state\": false\n"
-          "}\n");
+          "}\n", source_sha, schedule_version, schedule_sha);
   fclose(fp);
   atomic_rename(tmp, path);
 }
@@ -973,17 +1709,18 @@ static void write_field_export_contract (void) {
 static void write_post_projection_fields (int iter_value) {
   char leaf[256], path[1024], rel[768], source_frame[96];
   snprintf(leaf, sizeof(leaf), "field_t%013.6f_i%07d_f%04d.csv",
-           t, iter_value, field_frame_index);
+           current_target_time, iter_value, field_frame_index);
   subdir_path(path, sizeof(path), fields_dir, leaf);
   snprintf(rel, sizeof(rel), "fields/%s", leaf);
-  snprintf(source_frame, sizeof(source_frame), "t%013.6f_i%07d", t, iter_value);
+  snprintf(source_frame, sizeof(source_frame), "tick%06d_t%013.6f_i%07d",
+           current_master_tick, current_target_time, iter_value);
 
   FILE *fp = fopen(path, "w");
   if (!fp) {
     fprintf(stderr, "ERROR cannot write %s\n", path);
     exit(2);
   }
-  fprintf(fp, "case_id,source_frame_id,field_frame_index,t,i,x,y,z,f,ux,uy,uz,velocity_magnitude,vorticity_magnitude,p,cs,level,Delta,region_flag,pressure_provenance,event_provenance,gravity_enabled\n");
+  fprintf(fp, "case_id,source_frame_id,field_frame_index,t,i,x,y,z,f,ux,uy,uz,velocity_magnitude,vorticity_magnitude,p,cs,level,Delta,region_flag,pressure_provenance,event_provenance,gravity_enabled,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,restart_lineage\n");
 
   double pmin = HUGE, pmax = -HUGE, fmin = HUGE, fmax = -HUGE;
   double umin = HUGE, umax = -HUGE, omin = HUGE, omax = -HUGE;
@@ -1003,9 +1740,12 @@ static void write_post_projection_fields (int iter_value) {
       fmin = min(fmin, f[]); fmax = max(fmax, f[]);
       umin = min(umin, umag); umax = max(umax, umag);
       omin = min(omin, omag); omax = max(omax, omag);
-      fprintf(fp, "%s,%s,%d,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%d,runtime_cell_centered_p_after_centered_projection,post_projection_fields_i_plus_plus_last_after_centered_projection,0\n",
+      fprintf(fp, "%s,%s,%d,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%d,runtime_cell_centered_p_after_centered_projection,canonical_master_tick_post_projection_i_plus_plus_last,0,%s,%s,%s,%d,%.17g,%.17g,%s\n",
               case_id, source_frame, field_frame_index, t, iter_value, x, y, z,
-              f[], ux, uy, uz, umag, omag, p[], cs[], level, Delta, region_flag(x));
+              f[], ux, uy, uz, umag, omag, p[], cs[], level, Delta, region_flag(x),
+              source_sha, schedule_version, schedule_sha, current_master_tick,
+              current_target_time, current_actual_time,
+              restored_from[0] ? restored_from : "fresh");
       sample_count++;
     }
   }
@@ -1027,12 +1767,16 @@ static void write_post_projection_fields (int iter_value) {
     fprintf(stderr, "ERROR cannot append %s\n", manifest);
     exit(2);
   }
-  fprintf(mf, "%s,%s,%d,%.12g,%d,%s,%d,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,runtime_cell_centered_p_after_centered_projection,post_projection_fields_i_plus_plus_last_after_centered_projection,outlet_dirichlet_zero_gauge,0\n",
+  fprintf(mf, "%s,%s,%d,%.12g,%d,%s,%d,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,runtime_cell_centered_p_after_centered_projection,canonical_master_tick_post_projection_i_plus_plus_last,outlet_dirichlet_zero_gauge,0,%s,%s,%s,%d,%.17g,%.17g,%d,%s,%s\n",
           case_id, domain_label(), field_frame_index, t, iter_value, rel, sample_count,
           sample_count > 0 ? pmin : 0., sample_count > 0 ? pmax : 0., prange,
           pressure_nonzero, sample_count > 0 ? fmin : 0., sample_count > 0 ? fmax : 0.,
           sample_count > 0 ? umin : 0., sample_count > 0 ? umax : 0.,
-          sample_count > 0 ? omin : 0., sample_count > 0 ? omax : 0.);
+          sample_count > 0 ? omin : 0., sample_count > 0 ? omax : 0.,
+          source_sha, schedule_version, schedule_sha, current_master_tick,
+          current_target_time, current_actual_time, maxlevel,
+          restored_from[0] ? restored_from : "fresh",
+          "f|ux|uy|uz|velocity_magnitude|vorticity_magnitude|p|cs");
   fclose(mf);
   field_frame_index++;
 }
@@ -1040,7 +1784,7 @@ static void write_post_projection_fields (int iter_value) {
 static void initialize_output_files (void) {
   char path[1024];
   output_path(path, sizeof(path), "raw_frame_summary.csv");
-  write_header_if_missing(path, "case_id,t,frame_index,i,mean_exit_velocity,exit_flow,exit_liquid_area,profile_sanity,liquid_volume,liquid_volume_error,active_front,active_front_Dh,interface_proxy,interface_growth,post_tag_count,detached_proxy_count,one_cell_debris_count\n");
+  write_header_if_missing(path, "case_id,t,frame_index,i,mean_exit_velocity,exit_flow,exit_liquid_area,profile_sanity,liquid_volume,liquid_mass_balance_relative_error,active_front,active_front_Dh,interface_proxy,interface_growth,post_tag_count,detached_proxy_count,one_cell_debris_count,liquid_inventory_change_fraction,cumulative_liquid_inflow,cumulative_liquid_outflow,liquid_mass_balance_residual,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,maxlevel,pressure_provenance,gravity_enabled,restart_lineage\n");
   output_path(path, sizeof(path), "raw_component_summary.csv");
   write_header_if_missing(path, "case_id,t,component_id,tag_count,volume,cells,centroid_x_from_exit,centroid_y,centroid_z,credible,region_flag\n");
   output_path(path, sizeof(path), "raw_reduced_cross_section_metrics.csv");
@@ -1052,13 +1796,13 @@ static void initialize_output_files (void) {
   output_path(path, sizeof(path), "raw_interface_cells.csv");
   write_header_if_missing(path, "case_id,t,frame_index,x_from_exit,x,y,z,f,ux,uy,uz,p,cs,level,Delta,cell_volume_proxy,region_flag\n");
   output_path(path, sizeof(path), "visual_frame_manifest.csv");
-  write_header_if_missing(path, "case_id,domain_mode,frame_index,t,i,filename,format,camera,exit_marker,nozzle_exit_x,Dh,pressure,maxlevel\n");
+  write_header_if_missing(path, "case_id,domain_mode,frame_index,t,i,filename,format,camera,exit_marker,nozzle_exit_x,Dh,pressure,maxlevel,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,pressure_provenance,gravity_enabled,restart_lineage\n");
   output_path(path, sizeof(path), "surface_manifest.csv");
-  write_header_if_missing(path, "case_id,domain_mode,surface_index,t,i,filename,facet_cell_count,nozzle_exit_x,Dh,maxlevel,source_frame_id\n");
+  write_header_if_missing(path, "case_id,domain_mode,surface_index,t,i,filename,facet_cell_count,nozzle_exit_x,Dh,maxlevel,source_frame_id,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,pressure_provenance,gravity_enabled,restart_lineage\n");
   output_path(path, sizeof(path), "checkpoint_index.csv");
-  write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint\n");
+  write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,metadata_file,prediction_closure_state_file\n");
   output_path(path, sizeof(path), "field_frame_manifest.csv");
-  write_header_if_missing(path, "case_id,domain_mode,field_frame_index,t,i,filename,sample_count,p_min,p_max,p_range,pressure_nonzero,f_min,f_max,velocity_magnitude_min,velocity_magnitude_max,vorticity_magnitude_min,vorticity_magnitude_max,pressure_provenance,event_provenance,pressure_gauge_context,gravity_enabled\n");
+  write_header_if_missing(path, "case_id,domain_mode,field_frame_index,t,i,filename,sample_count,p_min,p_max,p_range,pressure_nonzero,f_min,f_max,velocity_magnitude_min,velocity_magnitude_max,vorticity_magnitude_min,vorticity_magnitude_max,pressure_provenance,event_provenance,pressure_gauge_context,gravity_enabled,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,maxlevel,restart_lineage,field_list\n");
   write_field_export_contract();
   rewrite_visual_manifest();
   rewrite_surface_manifest();
@@ -1097,9 +1841,11 @@ static void write_native_frame (int iter_value) {
     fprintf(stderr, "ERROR cannot append %s\n", manifest_csv);
     exit(2);
   }
-  fprintf(fp, "%s,%s,%d,%.12g,%d,%s,ppm,%s,nozzle_exit_text_overlay,%.12g,%.12g,%.12g,%d\n",
+  fprintf(fp, "%s,%s,%d,%.12g,%d,%s,ppm,%s,nozzle_exit_text_overlay,%.12g,%.12g,%.12g,%d,%s,%s,%s,%d,%.17g,%.17g,runtime_cell_centered_p_after_centered_projection,0,%s\n",
           case_id, domain_label(), visual_frame_index, t, iter_value, rel, camera_preset,
-          exit_x(), Dhrect, pressure_value, maxlevel);
+          exit_x(), Dhrect, pressure_value, maxlevel, source_sha, schedule_version,
+          schedule_sha, current_master_tick, current_target_time, current_actual_time,
+          restored_from[0] ? restored_from : "fresh");
   fclose(fp);
   rewrite_visual_manifest();
   visual_frame_index++;
@@ -1122,6 +1868,8 @@ static void write_surface_facets (int iter_value) {
   fprintf(fp, "# case_id=%s\n# domain_mode=%s\n# time=%.12g\n# iteration=%d\n", case_id, domain_label(), t, iter_value);
   fprintf(fp, "# coordinate_convention=x_streamwise_y_width_z_height_origin_nozzle_inlet\n");
   fprintf(fp, "# nozzle_exit_x=%.12g\n# Dh=%.12g\n# source_frame_id=%s\n", exit_x(), Dhrect, source_frame);
+  fprintf(fp, "# source_sha256=%s\n# schedule_version=%s\n# schedule_sha256=%s\n", source_sha, schedule_version, schedule_sha);
+  fprintf(fp, "# master_tick=%d\n# target_time=%.17g\n# actual_time=%.17g\n", current_master_tick, current_target_time, current_actual_time);
   fprintf(fp, "# topology_cleanup_operations=none\n");
   output_facets(f, fp);
   fclose(fp);
@@ -1133,9 +1881,11 @@ static void write_surface_facets (int iter_value) {
     fprintf(stderr, "ERROR cannot append %s\n", manifest_csv);
     exit(2);
   }
-  fprintf(mf, "%s,%s,%d,%.12g,%d,%s,%d,%.12g,%.12g,%d,%s\n",
+  fprintf(mf, "%s,%s,%d,%.12g,%d,%s,%d,%.12g,%.12g,%d,%s,%s,%s,%s,%d,%.17g,%.17g,runtime_cell_centered_p_after_centered_projection,0,%s\n",
           case_id, domain_label(), surface_frame_index, t, iter_value, rel, facet_cells,
-          exit_x(), Dhrect, maxlevel, source_frame);
+          exit_x(), Dhrect, maxlevel, source_frame, source_sha, schedule_version,
+          schedule_sha, current_master_tick, current_target_time, current_actual_time,
+          restored_from[0] ? restored_from : "fresh");
   fclose(mf);
   rewrite_surface_manifest();
   surface_frame_index++;
@@ -1148,12 +1898,79 @@ static void write_checkpoint_dump (int iter_value) {
   snprintf(leaf, sizeof(leaf), "%s_%s_t%09.6f_i%07d_l%d.dump",
            sanitized_case_id, domain_label(), t, iter_value, maxlevel);
   subdir_path(path, sizeof(path), checkpoints_dir, leaf);
+  InternalNozzleInvariantSnapshotV4 before =
+    internal_nozzle_invariant_snapshot_v4();
+  canonicalize_restart_solver_state();
+  InternalNozzleInvariantSnapshotV4 after =
+    internal_nozzle_invariant_snapshot_v4();
+  if (before.active_physical_hash != after.active_physical_hash ||
+      before.actual_face_hash != after.actual_face_hash ||
+      before.active_physical_count != after.active_physical_count ||
+      before.actual_face_count != after.actual_face_count) {
+    fprintf(stderr, "ERROR checkpoint canonicalization changed active cells or actual faces\n");
+    exit(2);
+  }
+  char closure_state[1200];
+  snprintf(closure_state, sizeof(closure_state),
+           "%s.prediction-closure-v4", path);
+  internal_nozzle_write_prediction_closure_v4(closure_state);
+  p.nodump = pf.nodump = false;
   dump(file = path);
   if (!file_exists_nonzero(path)) {
     fprintf(stderr, "ERROR checkpoint dump is missing or empty: %s\n", path);
     stable_flag = 0;
     return;
   }
+  char meta[1200];
+  snprintf(meta, sizeof(meta), "%s.meta", path);
+  FILE *metadata = fopen(meta, "w");
+  if (!metadata) {
+    fprintf(stderr, "ERROR cannot write checkpoint metadata %s\n", meta);
+    exit(2);
+  }
+  fprintf(metadata,
+          "schema=internal_nozzle_checkpoint_metadata_v4\n"
+          "case_id=%s\n"
+          "source_sha256=%s\n"
+          "schedule_version=%s\n"
+          "schedule_sha256=%s\n"
+          "master_tick=%d\n"
+          "target_time=%.17g\n"
+          "actual_time=%.17g\n"
+          "iteration=%d\n"
+          "maxlevel=%d\n"
+          "pressure_provenance=runtime_cell_centered_p_after_centered_projection\n"
+          "gravity_enabled=false\n"
+          "restored_from=%s\n"
+          "initial_liquid_volume=%.17g\n"
+          "cumulative_liquid_inflow=%.17g\n"
+          "cumulative_liquid_outflow=%.17g\n"
+          "previous_liquid_inflow_rate=%.17g\n"
+          "previous_liquid_outflow_rate=%.17g\n"
+          "last_mass_balance_time=%.17g\n"
+          "solver_dt=%.17g\n"
+          "timestep_previous=%.17g\n"
+          "mgp_nrelax=%d\n"
+          "mgpf_nrelax=%d\n"
+          "mgu_nrelax=%d\n"
+          "initial_interface_proxy=%.17g\n"
+          "max_interface_growth=%.17g\n"
+          "max_active_front=%.17g\n"
+          "max_post_tag_count=%d\n"
+          "max_detached_proxy_count=%d\n"
+          "max_one_cell_debris_count=%d\n"
+          "prediction_closure_schema=internal_nozzle_prediction_closure_v4\n"
+          "prediction_closure_state=%s\n",
+          case_id, source_sha, schedule_version, schedule_sha,
+          current_master_tick, current_target_time, current_actual_time,
+          iter_value, maxlevel, parent, initial_liquid_volume,
+          cumulative_liquid_inflow, cumulative_liquid_outflow,
+          previous_liquid_inflow_rate, previous_liquid_outflow_rate,
+          last_mass_balance_time, dt, internal_nozzle_timestep_previous,
+          mgp.nrelax, mgpf.nrelax, mgu.nrelax, initial_interface_proxy,
+          max_interface_growth, max_active_front, max_post_tag_count,
+          max_detached_proxy_count, max_one_cell_debris_count, closure_state);
+  fclose(metadata);
   char csv[1024];
   output_path(csv, sizeof(csv), "checkpoint_index.csv");
   FILE *fp = fopen(csv, "a");
@@ -1161,8 +1978,10 @@ static void write_checkpoint_dump (int iter_value) {
     fprintf(stderr, "ERROR cannot append %s\n", csv);
     exit(2);
   }
-  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%s,%s\n",
-          case_id, domain_label(), checkpoint_index, t, iter_value, maxlevel, path, parent);
+  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%s,%s,%s,%s,%s,%d,%.17g,%.17g,%s,%s\n",
+          case_id, domain_label(), checkpoint_index, t, iter_value, maxlevel, path, parent,
+          source_sha, schedule_version, schedule_sha, current_master_tick,
+          current_target_time, current_actual_time, meta, closure_state);
   fclose(fp);
   rewrite_checkpoint_manifest();
   checkpoint_index++;
@@ -1171,12 +1990,41 @@ static void write_checkpoint_dump (int iter_value) {
 int main (int argc, char **argv) {
   parse_args(argc, argv);
   base_pressure_value = pressure_value;
-  if (enable_field_export && field_dt <= 0.) {
+  if (!canonical_schedule_enabled() && enable_field_export && field_dt <= 0.) {
     fprintf(stderr, "ERROR --field-dt must be positive when field export is enabled\n");
     return 2;
   }
-  if (enable_field_export && fabs(field_dt - diagnostic_dt) > 1e-12) {
+  if (!canonical_schedule_enabled() && enable_field_export && fabs(field_dt - diagnostic_dt) > 1e-12) {
     fprintf(stderr, "ERROR --field-dt must equal --diagnostic-dt for matched field/station cadence\n");
+    return 2;
+  }
+  if (canonical_schedule_enabled()) {
+    if (!strcmp(schedule_version, "legacy_unspecified") ||
+        !strcmp(schedule_sha, "legacy_unspecified") ||
+        !strcmp(source_sha, "unresolved")) {
+      fprintf(stderr, "ERROR canonical schedule requires --schedule-version, --schedule-sha, and --source-sha\n");
+      return 2;
+    }
+    if (schedule_time_tolerance <= 0. || light_base_stride <= 0 ||
+        light_dense_stride <= 0 || field_base_stride <= 0 ||
+        field_dense_stride <= 0 || checkpoint_stride <= 0 ||
+        dense_start_tick < 0 || dense_end_tick < dense_start_tick) {
+      fprintf(stderr, "ERROR invalid canonical schedule controls\n");
+      return 2;
+    }
+    int final_tick = (int) llround(end_time/schedule_tick_dt);
+    if (fabs(end_time - final_tick*schedule_tick_dt) > schedule_time_tolerance) {
+      fprintf(stderr, "ERROR end_time %.17g is not a canonical master tick for dt %.17g\n",
+              end_time, schedule_tick_dt);
+      return 2;
+    }
+    diagnostic_dt = schedule_tick_dt;
+    field_dt = schedule_tick_dt;
+    visual_dt = schedule_tick_dt;
+    checkpoint_dt = schedule_tick_dt;
+  }
+  if (mass_balance_tolerance <= 0.) {
+    fprintf(stderr, "ERROR mass-balance tolerance must be positive\n");
     return 2;
   }
 
@@ -1206,6 +2054,7 @@ int main (int argc, char **argv) {
   NITERMIN = 2;
 
   ensure_output_dirs();
+  write_schedule_contract();
   if (auto_restore && !restore_requested && discover_latest_checkpoint(restore_path, sizeof(restore_path)))
     restore_requested = 1;
   initialize_output_files();
@@ -1213,6 +2062,7 @@ int main (int argc, char **argv) {
 }
 
 event init (t = 0) {
+  p.nodump = pf.nodump = false;
   for (scalar s in {u, p, pf})
     s.third = true;
   f.refine = f.prolongation = fraction_refine;
@@ -1225,14 +2075,21 @@ event init (t = 0) {
     restored_ok = 1;
     copy_string(restored_from, sizeof(restored_from), restore_path);
     build_geometry();
-    boundary({f, u, un});
+    /* Generic dumps contain cell-centered interior values, not ghost-cell
+     * state. Reconstruct every persisted solver field boundary before the
+     * centered init event consumes g, p, or pf on the resumed step. */
+    boundary({f, u, un, p, pf, g});
     recover_indices_for_restore();
     recover_metrics_from_existing_raw();
     double indexed_time = checkpoint_time_from_index(restore_path);
     restore_time = indexed_time >= 0. ? indexed_time : t;
+    recover_checkpoint_metadata(restore_path);
     next_field_export_time = restore_time + field_dt;
-    fprintf(stderr, "restored checkpoint %s at t %.12g i %d next_visual %d next_raw %d next_surface %d next_checkpoint %d\n",
-            restored_from, restore_time, i, visual_frame_index, raw_frame_index, surface_frame_index, checkpoint_index);
+    write_forensic_probe("post_restore_pre_centered", i);
+    fprintf(stderr, "restored checkpoint %s at t %.12g i %d next_visual %d next_raw %d next_surface %d next_checkpoint %d mg_nrelax=%d/%d/%d\n",
+            restored_from, restore_time, i, visual_frame_index, raw_frame_index,
+            surface_frame_index, checkpoint_index, mgp.nrelax, mgpf.nrelax,
+            mgu.nrelax);
     return 0;
   }
 
@@ -1251,11 +2108,39 @@ event init (t = 0) {
   boundary ({f, u, un});
 }
 
+/* Validate and apply the complete keyed prediction-read closure only after
+ * properties and field-specific boundary reconstruction. No operation may
+ * rewrite the closure between this hook and the first resumed prediction. */
+event stability (i++, last) {
+  if (pending_prediction_closure_restore) {
+    event("properties");
+    boundary ({f, u, p, pf, g});
+    internal_nozzle_restore_prediction_closure_v4
+      (pending_prediction_closure_path);
+    char closure_probe[1024];
+    output_path(closure_probe, sizeof(closure_probe),
+                "restored_prediction_closure_probe.v4");
+    internal_nozzle_write_prediction_closure_v4(closure_probe);
+    fprintf(stderr,
+            "restored prediction-closure-v4 and timestep-ramp history %.17g before resumed advection; probe=%s\n",
+            internal_nozzle_timestep_previous, closure_probe);
+    pending_prediction_closure_restore = 0;
+  }
+  write_forensic_probe("stability_post_sidecar", i);
+}
+
 event pressure_update (i++) {
   if (perturb_amp != 0. && perturb_period > 0.)
     pressure_value = base_pressure_value*(1. + perturb_amp*sin(2.*pi*t/perturb_period));
   else
     pressure_value = base_pressure_value;
+  write_forensic_probe("pressure_update", i);
+}
+
+/* Integrate signed liquid fluxes at both streamwise boundaries.  Inventory
+ * change is reported separately from the conservation residual. */
+event liquid_mass_balance (i++, last) {
+  integrate_liquid_flux_to_time(t);
 }
 
 /*
@@ -1265,19 +2150,44 @@ event pressure_update (i++) {
  * The event is read-only with respect to solver fields.
  */
 event post_projection_fields (i++, last) {
+  write_forensic_probe("post_projection", i);
   if (!enable_field_export || field_dt <= 0.)
     return 0;
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
-  if (t + 1e-12 < next_field_export_time)
-    return 0;
+  if (canonical_schedule_enabled()) {
+    int tick = canonical_tick_for_time(t);
+    if (tick < 0 || !full_field_tick(tick))
+      return 0;
+    select_output_target(tick);
+  }
+  else {
+    if (t + 1e-12 < next_field_export_time)
+      return 0;
+    current_master_tick = field_frame_index;
+    current_target_time = t;
+    current_actual_time = t;
+  }
   write_post_projection_fields(i);
-  next_field_export_time = t + field_dt;
+  if (!canonical_schedule_enabled())
+    next_field_export_time = t + field_dt;
 }
 
 event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
+  if (canonical_schedule_enabled()) {
+    int tick = canonical_tick_for_time(t);
+    if (tick < 0 || !lightweight_tick(tick))
+      return 0;
+    select_output_target(tick);
+  }
+  else {
+    current_master_tick = raw_frame_index;
+    current_target_time = t;
+    current_actual_time = t;
+  }
+  integrate_liquid_flux_to_time(t);
   last_iter = i;
   double mean_u = 0., flow = 0., area = 0., ps = 0., lv = 0., af = 0., ip = 0., growth = 1.;
   update_metrics(&mean_u, &flow, &area, &ps, &lv, &af, &ip, &growth);
@@ -1297,7 +2207,8 @@ event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
   write_reduced_cross_sections(xs);
   fclose(xs);
 
-  if (enable_raw_export) {
+  if (enable_raw_export &&
+      (!canonical_schedule_enabled() || full_field_tick(current_master_tick))) {
     output_path(path, sizeof(path), "raw_station_cells.csv");
     FILE *station = fopen(path, "a");
     write_station_slab_cells(station, af);
@@ -1316,14 +2227,21 @@ event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
 
   output_path(path, sizeof(path), "raw_frame_summary.csv");
   FILE *fp = fopen(path, "a");
-  fprintf(fp, "%s,%.12g,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d\n",
+  fprintf(fp, "%s,%.12g,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%s,%s,%s,%d,%.17g,%.17g,%d,runtime_cell_centered_p_after_centered_projection,0,%s\n",
           case_id, t, raw_frame_index, i, mean_u, flow, area, ps, lv, final_liquid_volume_error,
-          af, Dhrect > 0. ? af/Dhrect : 0., ip, growth, nt, nd, debris);
+          af, Dhrect > 0. ? af/Dhrect : 0., ip, growth, nt, nd, debris,
+          liquid_inventory_change_fraction, cumulative_liquid_inflow,
+          cumulative_liquid_outflow, liquid_mass_balance_residual, source_sha,
+          schedule_version, schedule_sha, current_master_tick, current_target_time,
+          current_actual_time, maxlevel, restored_from[0] ? restored_from : "fresh");
   fclose(fp);
   raw_frame_index++;
 
-  if (final_liquid_volume_error > 0.5)
+  if (final_liquid_volume_error > mass_balance_tolerance) {
+    fprintf(stderr, "ERROR liquid mass-balance relative error %.12g exceeds %.12g at t %.12g\n",
+            final_liquid_volume_error, mass_balance_tolerance, t);
     stable_flag = 0;
+  }
 }
 
 event native_frames (t = 0.; t += visual_dt; t <= end_time + 1e-12) {
@@ -1331,6 +2249,17 @@ event native_frames (t = 0.; t += visual_dt; t <= end_time + 1e-12) {
     return 0;
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
+  if (canonical_schedule_enabled()) {
+    int tick = canonical_tick_for_time(t);
+    if (tick < 0 || !lightweight_tick(tick))
+      return 0;
+    select_output_target(tick);
+  }
+  else {
+    current_master_tick = visual_frame_index;
+    current_target_time = t;
+    current_actual_time = t;
+  }
   write_native_frame(i);
 }
 
@@ -1339,18 +2268,51 @@ event surface_facets (t = 0.; t += visual_dt; t <= end_time + 1e-12) {
     return 0;
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
+  if (canonical_schedule_enabled()) {
+    int tick = canonical_tick_for_time(t);
+    if (tick < 0 || !lightweight_tick(tick))
+      return 0;
+    select_output_target(tick);
+  }
+  else {
+    current_master_tick = surface_frame_index;
+    current_target_time = t;
+    current_actual_time = t;
+  }
   write_surface_facets(i);
 }
 
 event checkpoint_dumps (t = checkpoint_dt; t += checkpoint_dt; t <= end_time + 1e-12) {
+  if (canonical_schedule_enabled())
+    return 0;
   if (checkpoint_dt <= 0.)
     return 0;
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
+  current_master_tick = checkpoint_index + 1;
+  current_target_time = t;
+  current_actual_time = t;
   write_checkpoint_dump(i);
 }
 
+/* Canonical checkpoints are taken only after the completed projection and
+ * other last-timestep solver events at the exact master tick. */
+event canonical_checkpoint_dumps (i++, last) {
+  if (!canonical_schedule_enabled())
+    return 0;
+  if (restored_ok && t <= restore_time + schedule_time_tolerance)
+    return 0;
+  int tick = canonical_tick_for_time(t);
+  if (tick < 0 || !checkpoint_target_tick(tick))
+    return 0;
+  select_output_target(tick);
+  integrate_liquid_flux_to_time(t);
+  write_checkpoint_dump(i);
+  write_forensic_probe("post_checkpoint", i);
+}
+
 event logfile (i++) {
+  write_forensic_probe("logfile", i);
   last_iter = i;
   double du = change(u.x, un);
   if (i >= max_steps) {
@@ -1375,8 +2337,8 @@ event end (t = end_time) {
   char path[1024];
   output_path(path, sizeof(path), "visual_pipeline_case_summary.csv");
   FILE *fp = fopen(path, "w");
-  fprintf(fp, "case_id,domain_mode,case_mode,t,i,maxlevel,baselevel,pressure_value,base_pressure_value,perturb_amp,perturb_period,target_u,mean_exit_velocity,pressure_retuned,exit_flow,exit_liquid_area,liquid_volume,liquid_volume_error,max_active_front,max_active_front_Dh,max_interface_proxy,max_interface_growth,max_post_tag_count,max_detached_proxy_count,max_one_cell_debris_count,symmetry_leakage,width,height,Dh,area,external_Dh,diagnostic_dt,visual_dt,checkpoint_dt,raw_export,native_frames,facet_export,restored_from,stable_flag\n");
-  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%s,%d\n",
+  fprintf(fp, "case_id,domain_mode,case_mode,t,i,maxlevel,baselevel,pressure_value,base_pressure_value,perturb_amp,perturb_period,target_u,mean_exit_velocity,pressure_retuned,exit_flow,exit_liquid_area,liquid_volume,liquid_mass_balance_relative_error,max_active_front,max_active_front_Dh,max_interface_proxy,max_interface_growth,max_post_tag_count,max_detached_proxy_count,max_one_cell_debris_count,symmetry_leakage,width,height,Dh,area,external_Dh,diagnostic_dt,visual_dt,checkpoint_dt,raw_export,native_frames,facet_export,restored_from,stable_flag,liquid_inventory_change_fraction,cumulative_liquid_inflow,cumulative_liquid_outflow,liquid_mass_balance_residual,mass_balance_tolerance,source_sha256,schedule_version,schedule_sha256\n");
+  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%s,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%s,%s,%s\n",
           case_id, domain_label(), case_mode, t, last_iter, maxlevel, baselevel,
           pressure_value, base_pressure_value, perturb_amp, perturb_period, target_u,
           final_mean_exit_velocity, fabs(base_pressure_value - 2524.75) > 1e-6 || perturb_amp != 0.,
@@ -1386,7 +2348,10 @@ event end (t = end_time) {
           max_detached_proxy_count, max_one_cell_debris_count, max_symmetry_leakage,
           Wrect, Hrect, Dhrect, A0, external_Dh, diagnostic_dt, visual_dt,
           checkpoint_dt, enable_raw_export, enable_native_frames, enable_facet_export,
-          restored_from[0] ? restored_from : "fresh", stable_flag);
+          restored_from[0] ? restored_from : "fresh", stable_flag,
+          liquid_inventory_change_fraction, cumulative_liquid_inflow,
+          cumulative_liquid_outflow, liquid_mass_balance_residual,
+          mass_balance_tolerance, source_sha, schedule_version, schedule_sha);
   fclose(fp);
 
   output_path(path, sizeof(path), "raw_export_manifest.json");
@@ -1405,6 +2370,11 @@ event end (t = end_time) {
           "  \"field_dt\": %.12g,\n"
           "  \"visual_dt\": %.12g,\n"
           "  \"checkpoint_dt\": %.12g,\n"
+          "  \"source_sha256\": \"%s\",\n"
+          "  \"schedule_version\": \"%s\",\n"
+          "  \"schedule_sha256\": \"%s\",\n"
+          "  \"master_tick_dt\": %.17g,\n"
+          "  \"mass_balance\": {\"inventory_change_fraction\": %.12g, \"cumulative_inflow\": %.12g, \"cumulative_outflow\": %.12g, \"residual\": %.12g, \"relative_error\": %.12g, \"tolerance\": %.12g, \"passed\": %s},\n"
           "  \"geometry\": {\"W\": %.12g, \"H\": %.12g, \"Dh\": %.12g, \"A0\": %.12g, \"nozzle_exit_x\": %.12g},\n"
           "  \"export_modes\": [\"post_projection_runtime_fields\", \"station_slab_raw_export\", \"interface_cloud_export\", \"component_diagnostics_export\", \"profile_exit_export\", \"native_vof_frames\", \"output_facets_surfaces\", \"checkpoint_dumps\"],\n"
           "  \"pressure_export\": {\"provenance\": \"runtime_cell_centered_p_after_centered_projection\", \"gauge_context\": \"outlet_dirichlet_zero_gauge\", \"min_frame_range\": %.12g, \"max_frame_range\": %.12g, \"zero_range_frames\": %d},\n"
@@ -1425,6 +2395,11 @@ event end (t = end_time) {
           "  \"claim_boundary\": \"internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false\"\n"
           "}\n",
           case_id, domain_label(), maxlevel, t, diagnostic_dt, field_dt, visual_dt, checkpoint_dt,
+          source_sha, schedule_version, schedule_sha, schedule_tick_dt,
+          liquid_inventory_change_fraction, cumulative_liquid_inflow,
+          cumulative_liquid_outflow, liquid_mass_balance_residual,
+          liquid_mass_balance_relative_error, mass_balance_tolerance,
+          liquid_mass_balance_relative_error <= mass_balance_tolerance ? "true" : "false",
           Wrect, Hrect, Dhrect, A0, exit_x(),
           min_runtime_pressure_range < HUGE ? min_runtime_pressure_range : 0.,
           max_runtime_pressure_range, zero_range_pressure_frames);

@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 PRESSURE_PROVENANCE = "runtime_cell_centered_p_after_centered_projection"
-EVENT_PROVENANCE = "post_projection_fields_i_plus_plus_last_after_centered_projection"
+EVENT_PROVENANCE = "canonical_master_tick_post_projection_i_plus_plus_last"
 FIELD_COLUMNS = {
     "f",
     "ux",
@@ -103,7 +103,7 @@ def validate_run(run_dir: Path, require_checkpoints: bool, require_facets: bool)
     result = {
         "run_dir": str(run_dir),
         "contract_valid": (
-            contract.get("schema") == "internal_nozzle_post_projection_fields_v1"
+            contract.get("schema") == "internal_nozzle_post_projection_fields_v2"
             and contract.get("pressure_provenance") == PRESSURE_PROVENANCE
             and contract.get("event_provenance") == EVENT_PROVENANCE
             and contract.get("gravity_enabled") is False
