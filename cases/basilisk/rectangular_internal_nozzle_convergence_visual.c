@@ -438,6 +438,7 @@ static void write_trace_scalar_rows
     for (int k = 0; fields[k].i >= 0; k++)
       fprintf(fp, "%d,%a,%a,%a,%d,%a,%d,%d,%s,%a\n",
               seq, x, y, z, level, Delta, is_leaf(cell), k, labels[k],
+              is_constant(fields[k]) ? constant(fields[k]) :
               val(fields[k],0,0,0));
     seq++;
   }
