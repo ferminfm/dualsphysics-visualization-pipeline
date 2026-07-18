@@ -10,6 +10,12 @@ import math
 from pathlib import Path
 from typing import Iterable
 
+from postprocess_internal_nozzle_checkpoints import (
+    reconstruct_checkpoint_manifest,
+    read_checkpoint_index,
+    validate_checkpoint_records,
+)
+
 
 PRESSURE_PROVENANCE = "runtime_cell_centered_p_after_centered_projection"
 EVENT_PROVENANCE = "canonical_master_tick_post_projection_i_plus_plus_last"
@@ -111,7 +117,7 @@ def validate_run(run_dir: Path) -> dict[str, object]:
     fields = read_csv(run_dir / "field_frame_manifest.csv")
     visuals = read_csv(run_dir / "visual_frame_manifest.csv")
     surfaces = read_csv(run_dir / "surface_manifest.csv")
-    checkpoints = read_csv(run_dir / "checkpoint_index.csv")
+    checkpoint_schema, checkpoints = read_checkpoint_index(run_dir / "checkpoint_index.csv")
     end_tick = max(int(row["master_tick"]) for row in raw)
     restart_tick: int | None = None
     lineage = raw[0].get("restart_lineage", "fresh") if raw else "fresh"
@@ -143,25 +149,33 @@ def validate_run(run_dir: Path) -> dict[str, object]:
         and (run_dir / row["filename"]).stat().st_size > 0
         for row in fields
     )
+    if checkpoint_schema not in ("legacy_face_state", "v4"):
+        # Preserve the historical schedule-validator requirement and failure for
+        # legacy indexes that predate the face-state column.
+        checkpoints[0]["face_velocity_state_file"]
+    checkpoint_validations = validate_checkpoint_records(checkpoints, checkpoint_schema)
     checkpoint_metadata: list[dict[str, object]] = []
-    for row in checkpoints:
-        dump = Path(row["filename"])
-        meta = Path(row["metadata_file"])
-        face_state = Path(row["face_velocity_state_file"])
-        metadata_text = meta.read_text(encoding="utf-8") if meta.is_file() else ""
-        valid = (
-            dump.is_file()
-            and dump.stat().st_size > 0
-            and meta.is_file()
-            and face_state.is_file()
-            and face_state.stat().st_size > 0
-            and f"schedule_version={contract['schedule_version']}" in metadata_text
-            and f"schedule_sha256={contract['schedule_sha256']}" in metadata_text
-            and f"master_tick={row['master_tick']}" in metadata_text
-        )
-        checkpoint_metadata.append(
-            {"dump": str(dump), "metadata": str(meta), "face_velocity_state": str(face_state), "valid": valid}
-        )
+    for item in checkpoint_validations:
+        if checkpoint_schema == "legacy_face_state":
+            checkpoint_metadata.append(
+                {
+                    "dump": item["dump"],
+                    "metadata": item["metadata"],
+                    "face_velocity_state": item["state_file"],
+                    "valid": item["valid"],
+                }
+            )
+        else:
+            checkpoint_metadata.append(
+                {
+                    "dump": item["dump"],
+                    "metadata": item["metadata"],
+                    "prediction_closure_state": item["state_file"],
+                    "prediction_closure_validation": item["prediction_closure_validation"],
+                    "parent_checkpoint": item["parent_checkpoint"],
+                    "valid": item["valid"],
+                }
+            )
     mass_errors = [float(row["liquid_mass_balance_relative_error"]) for row in raw]
     mass_tolerance = float(json.loads((run_dir / "raw_export_manifest.json").read_text())["mass_balance"]["tolerance"])
     mass_ok = bool(mass_errors) and all(finite(value) and value <= mass_tolerance for value in mass_errors)
@@ -180,6 +194,11 @@ def validate_run(run_dir: Path) -> dict[str, object]:
             "passed": mass_ok,
         },
     }
+    if checkpoint_schema == "v4":
+        result["checkpoint_schema"] = "internal_nozzle_checkpoint_metadata_v4"
+        result["reconstructed_checkpoint_manifest"] = reconstruct_checkpoint_manifest(
+            checkpoints, checkpoint_schema, checkpoint_validations
+        )
     result["passed"] = bool(
         all(check["passed"] for check in checks.values())
         and pressure_ok
