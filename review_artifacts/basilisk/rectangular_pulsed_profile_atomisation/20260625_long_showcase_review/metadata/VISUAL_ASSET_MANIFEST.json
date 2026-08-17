@@ -1,0 +1,94 @@
+{
+  "status": "corrected_internal_review_assets_ready",
+  "created_media": [
+    {
+      "name": "long_primary_route_blender_sequence_v2",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/corrected_media/long_primary_route_blender_sequence_v2.mp4",
+      "size_bytes": 3951247,
+      "size_mb": 3.768202781677246,
+      "sha256": "dc79e00ddd479de92f8d391e374523526062b5c59ebccf148831a7b481196530",
+      "ffprobe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/metadata/ffprobe_long_primary_route_blender_sequence_v2.json",
+      "contact_sheet_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/contact_sheets/long_primary_route_blender_sequence_v2_contact_sheet.jpg",
+      "first_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/long_primary_route_blender_sequence_v2_first.jpg",
+      "middle_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/long_primary_route_blender_sequence_v2_middle.jpg",
+      "last_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/long_primary_route_blender_sequence_v2_last.jpg",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "Internal review artifact only; no validation, true atomisation, fit-readiness, or public-readiness claim."
+    },
+    {
+      "name": "round_vs_rectangular_split_screen_v2",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/corrected_media/round_vs_rectangular_split_screen_v2.mp4",
+      "size_bytes": 2628848,
+      "size_mb": 2.5070648193359375,
+      "sha256": "540166c4afe5aa46375654f96c60c0313f03f626904209caa3347cd5d1a725df",
+      "ffprobe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/metadata/ffprobe_round_vs_rectangular_split_screen_v2.json",
+      "contact_sheet_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/contact_sheets/round_vs_rectangular_split_screen_v2_contact_sheet.jpg",
+      "first_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/round_vs_rectangular_split_screen_v2_first.jpg",
+      "middle_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/round_vs_rectangular_split_screen_v2_middle.jpg",
+      "last_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/round_vs_rectangular_split_screen_v2_last.jpg",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "Internal review artifact only; no validation, true atomisation, fit-readiness, or public-readiness claim."
+    },
+    {
+      "name": "final_complex_geometry_flythrough_v2",
+      "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/corrected_media/final_complex_geometry_flythrough_v2.mp4",
+      "size_bytes": 3857939,
+      "size_mb": 3.6792173385620117,
+      "sha256": "921b326fb6ab3fc4168c976074435585eebc5df0cd9945ae6312259fd6516ad8",
+      "ffprobe_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/metadata/ffprobe_final_complex_geometry_flythrough_v2.json",
+      "contact_sheet_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/contact_sheets/final_complex_geometry_flythrough_v2_contact_sheet.jpg",
+      "first_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/final_complex_geometry_flythrough_v2_first.jpg",
+      "middle_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/final_complex_geometry_flythrough_v2_middle.jpg",
+      "last_still_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/stills/final_complex_geometry_flythrough_v2_last.jpg",
+      "public_ready": false,
+      "fit_ready": false,
+      "claim_boundary": "Internal review artifact only; no validation, true atomisation, fit-readiness, or public-readiness claim."
+    }
+  ],
+  "primary_sequence": {
+    "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/corrected_media/long_primary_route_blender_sequence_v2.mp4",
+    "source_route": "official circular control",
+    "physical_frames_included": 101,
+    "all_primary_physical_frames_included": true,
+    "fps": 12,
+    "resolution": [
+      1920,
+      1080
+    ]
+  },
+  "comparison": {
+    "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/corrected_media/round_vs_rectangular_split_screen_v2.mp4",
+    "composition": "synchronized compositor split screen; not a shared 3D room",
+    "left_label": "Official circular control",
+    "right_label": "2:1 rectangular top-hat imposed inlet \u2014 resolution-sensitive",
+    "persistent_note": "Rectangular velocity is imposed at the inlet plane; internal nozzle flow is not resolved.",
+    "exact_time_pairs": 101,
+    "frame_mapping_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/manifests/round_vs_rectangular_split_screen_v2_frame_mapping.csv",
+    "fps": 12,
+    "resolution": [
+      1920,
+      1080
+    ]
+  },
+  "flythrough": {
+    "path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/corrected_media/final_complex_geometry_flythrough_v2.mp4",
+    "source_frame": 98,
+    "source_time": 1.96,
+    "visibility_summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/metrics/flythrough_visibility_summary.json",
+    "visibility_passed": true,
+    "maximum_consecutive_low_visibility_frames": 2,
+    "fps": 12,
+    "resolution": [
+      1920,
+      1080
+    ]
+  },
+  "selected_rectangular_case": "C1_rect_area_top_hat",
+  "selected_rectangular_profile": "rect_area_top_hat",
+  "naming_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
+  "before_after_review_sheet": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-visual-correction/review_assets/contact_sheets/before_after_comparison_review_sheet.jpg",
+  "public_ready": false,
+  "fit_ready": false
+}

@@ -1,0 +1,52 @@
+{
+  "packet_id": "visualbasilisk_v01_publicprep_20260628",
+  "created_utc": "2026-06-27T19:02:24.612020+00:00",
+  "visualbasilisk_head": "bf526dea14ffcb720b5208a2afe91b70ff4a4f20",
+  "evidence_branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "fit_ready": false,
+  "public_ready": false,
+  "artifacts": [
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/HUMAN_DECISION_CHECKLIST.md",
+      "size_bytes": 595,
+      "sha256": "cd4ef11a1414f8d07670dc8e0b03874e8a1e1e46e6e682081766d61f854489bf",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/LAYER1_HANDOFF.md",
+      "size_bytes": 1411,
+      "sha256": "76e7f265e456fed6d606c520594f38942fa92d9a4b147f9149d55890f2905cdc",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/READINESS_NOTES.md",
+      "size_bytes": 975,
+      "sha256": "ba14d906e9d68c2d4ada549e199148737132ed294c8a80e7d6c85e69584b8a25",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/README_LAYER1_REVIEW.md",
+      "size_bytes": 742,
+      "sha256": "c194b275f7937209a3d92fccb4df0ab3afa0935a6de900655bc3710327f2f950",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/TASK_RESULT_INVENTORY.json",
+      "size_bytes": 3390,
+      "sha256": "89cc65fcd30166917af27f8184e69e1d3fa5a059d7559ad222836405acde0f14",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/VISUALBASILISK_REPO_STATUS.md",
+      "size_bytes": 616,
+      "sha256": "28c1f5ddea435980048eb8a34ff87458bfac61b020041afac10b624b8af45e08",
+      "kind": "text_or_json"
+    },
+    {
+      "path": "review_artifacts/visualbasilisk/20260628_v01_publicprep_review/evidence/CLAIM_BOUNDARY.md",
+      "size_bytes": 476,
+      "sha256": "fa164171759b0e32900490b5e1fbbd9a3f3e6d9a391797658f92b9ee730f5c8f",
+      "kind": "text_or_json"
+    }
+  ]
+}

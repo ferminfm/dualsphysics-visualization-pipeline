@@ -1,0 +1,241 @@
+{
+  "asset_availability": {
+    "artifact_count": 7,
+    "blender_assets_ready": true,
+    "boundary_clearance_audit_ready": true,
+    "corrected_flythrough_v2": true,
+    "corrected_primary_sequence_v2": true,
+    "corrected_split_screen_v2": true,
+    "flythrough_visibility_qa_ready": true,
+    "review_packet_repo_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review",
+    "scientific_media_ready": true
+  },
+  "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "branch_note": "Historical review-branch name contains Poiseuille, but the selected rectangular long route is C1_rect_area_top_hat / rect_area_top_hat, not Poiseuille.",
+  "claim_boundary": {
+    "component_counts_are_thresholded_diagnostics": true,
+    "not_fit_ready": true,
+    "not_internal_nozzle_for_rectangular_route": true,
+    "not_public_ready": true,
+    "not_validation": true
+  },
+  "corrected_visual_assets": {
+    "boundary_clearance_audit": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/BOUNDARY_CLEARANCE_AUDIT.md",
+    "comparison_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/round_vs_rectangular_split_screen_v2.mp4",
+    "flythrough_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/final_complex_geometry_flythrough_v2.mp4",
+    "flythrough_visibility_qa": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/FLYTHROUGH_VISIBILITY_QA.md",
+    "primary_sequence_v2": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/videos_proxy/long_primary_route_blender_sequence_v2.mp4",
+    "visual_asset_manifest": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/metadata/VISUAL_ASSET_MANIFEST.json"
+  },
+  "fit_ready": false,
+  "generated_at_utc": "2026-06-25T23:28:57Z",
+  "head_sha_at_status_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "hero_frame_selection": {
+    "scientifically_safe_hero_frame": 98,
+    "scientifically_safe_hero_route": "official_round_control",
+    "scientifically_safe_hero_time": 1.96,
+    "selection_basis": "highest complexity eligible official-round frame before any meaningful downstream or lateral boundary contact"
+  },
+  "human_decisions_required": [
+    "circular scientific value and portfolio lead route",
+    "rectangular comparison inclusion and mandatory caveat wording",
+    "resolution credibility next step",
+    "visual corrections before public packaging",
+    "stacked PR disposition"
+  ],
+  "layer1_decision": {
+    "fit_ready": false,
+    "layer1_decision_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/evidence/LAYER1_DECISION.md",
+    "official_circular_internal_lead_candidate": true,
+    "poiseuille_series_note": "Poiseuille-series profiles were implemented/tested but were not selected by the bounded candidate gate.",
+    "poiseuille_series_selected": false,
+    "public_packaging_blocked": true,
+    "public_packaging_blockers_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/PUBLIC_PACKAGING_BLOCKERS.md",
+    "public_ready": false,
+    "rectangular_secondary_caveated_comparison_only": true,
+    "selected_rectangular_case": "C1_rect_area_top_hat",
+    "selected_rectangular_description": "2:1 rectangular top-hat imposed-inlet comparison",
+    "selected_rectangular_profile": "rect_area_top_hat",
+    "v2_flythrough_requires_direct_human_visual_inspection": true
+  },
+  "naming_correction_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
+  "poiseuille_series_selected": false,
+  "postprocess_publicprep_packet": {
+    "field_media_ready": true,
+    "fit_ready": false,
+    "generated_at_utc": "2026-06-26T19:48:09+00:00",
+    "lambda2_q_blocked": true,
+    "lead_route": "official_round_control",
+    "pressure_visualization_blocked": true,
+    "public_ready": false,
+    "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+    "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat imposed-inlet comparison",
+    "v31_cleanup": {
+      "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/",
+      "surface_recipe_default": "merged_smooth_normals",
+      "primary_sequence_v31": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "split_screen_v31": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "field_reel_v31_no_pressure": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "flythrough_retained": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "pressure_panel_removed": true,
+      "pressure_visualization_blocked": "restored p has zero range",
+      "fit_ready": false,
+      "public_ready": false,
+      "layer1_v31_decision_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md"
+    }
+  },
+  "public_ready": false,
+  "remote_base_sha_at_status_write": "34fe347e5571c91dcbd35e640f39578feb80f481",
+  "remote_target_sha_at_status_write": "3ec1f7868db46bcddc5ac8af529b567c8764c298",
+  "review_packet_path": "review_artifacts/basilisk/rectangular_pulsed_profile_atomisation/20260625_long_showcase_review/",
+  "route_definitions": {
+    "official_round_control": {
+      "Re": 5800,
+      "basis": "local Basilisk examples/atomisation.c defaults",
+      "density_ratio": 27.84,
+      "profile": "round_official_top_hat",
+      "pulse_amplitude": 0.05,
+      "pulse_period": 0.1,
+      "sigma": 3e-05,
+      "u0": 1
+    },
+    "rectangular_top_hat_imposed_inlet": {
+      "aperture": "2:1 rectangle with area equal to official circular aperture",
+      "case": "C1_rect_area_top_hat",
+      "description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
+      "geometry": {
+        "A0": 0.02181661564992912,
+        "H": 0.10444284477629169,
+        "W": 0.20888568955258338,
+        "aspect_ratio_W_over_H": 2.0,
+        "half_H": 0.052221422388145845,
+        "half_W": 0.10444284477629169,
+        "hydraulic_diameter": 0.1392571263683889,
+        "radius": 0.08333333333333333
+      },
+      "imposed_inlet_boundary": true,
+      "internal_nozzle_flow_resolved": false,
+      "poiseuille_series_note": "Poiseuille-series profiles were implemented and tested but were not selected by the bounded candidate gate.",
+      "poiseuille_series_selected": false,
+      "profile": "rect_area_top_hat"
+    }
+  },
+  "selected_rectangular_case": "C1_rect_area_top_hat",
+  "selected_rectangular_description": "2:1 area-matched rectangular top-hat imposed-inlet comparison",
+  "selected_rectangular_profile": "rect_area_top_hat",
+  "source_file_hashes": {
+    "cases/basilisk/official_rectangular_pulsed_atomisation.c": {
+      "sha256": "341e7d3ce32f2737d285a1aced2dfd9e9ad5ded89db2a2bbafa4406709039efc"
+    },
+    "docs/basilisk_rectangular_atomisation_blender_showcase.md": {
+      "sha256": "c8758e635b0866e65fe273af1574c81940b4c2147c19bb7124c3839302e68bbe"
+    },
+    "docs/basilisk_rectangular_pulsed_profile_benchmark.md": {
+      "sha256": "cc576052be4ca2806672428a1dc1dbbdc87885f9f5014ce23355e7e279c53af3"
+    },
+    "scripts/analyze_basilisk_atomisation_benchmark.py": {
+      "sha256": "ca1a38025d2c8d75ac1d7c76306013f89969fe3973aa1218f55e8dbf268b30cf"
+    },
+    "scripts/assemble_basilisk_atomisation_media.py": {
+      "sha256": "ab065dfb1bd593a4749ee55c740ae33c63c3fe4576abe2885f6bb6d529d9d0a2"
+    },
+    "scripts/blender_rectangular_atomisation_showcase.py": {
+      "sha256": "635da020a493777a96f2cccdfd0ad7935f007f4870fc9e479cd2ed9a45998d78"
+    }
+  },
+  "source_repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
+  "status": "public_packaging_prep_packet_added_public_packaging_blocked",
+  "task_results": {
+    "claim_boundary": {
+      "component_counts_are_thresholded_diagnostics": true,
+      "fit_ready": false,
+      "not_internal_nozzle_flow": true,
+      "not_validation": true,
+      "public_ready": false,
+      "rectangular_is_imposed_inlet_boundary": true
+    },
+    "comparison_route": "rectangular_top_hat_resolution_sensitive",
+    "generated_at_utc": "2026-06-25T23:28:57Z",
+    "poiseuille_series_selected": false,
+    "primary_media_route": "official_round_control",
+    "profile_validation": {
+      "geometry": {
+        "A0": 0.02181661564992912,
+        "H": 0.10444284477629169,
+        "W": 0.20888568955258338,
+        "aspect_ratio_W_over_H": 2.0,
+        "half_H": 0.052221422388145845,
+        "half_W": 0.10444284477629169,
+        "hydraulic_diameter": 0.1392571263683889,
+        "radius": 0.08333333333333333
+      },
+      "poisseuille_series": {
+        "alias_note": "The runbook spelling rect_area_poisseuille_series is kept as the canonical mode string; rect_area_poiseuille_series is an accepted source alias.",
+        "raw_midpoint_mean": 0.1107909511423405,
+        "terms": 61
+      },
+      "profile_count": 3,
+      "rectangular_profile_validated": true,
+      "row_count": 12,
+      "tolerances": {
+        "average": 0.005,
+        "mass": 0.01,
+        "wall": 1e-10
+      }
+    },
+    "rectangular": {
+      "checkpoint_chain_valid": true,
+      "classification": "rectangular_candidate_resolution_sensitive",
+      "final_time": 2.0,
+      "l9_confirmation_performed": true,
+      "l9_final_time": 0.8,
+      "max_credible_component_count": 120,
+      "max_separated_component_count": 119,
+      "morphology_classification": "persistent_credible_detached_topology",
+      "physical_frames": 101,
+      "profile_mass_flow_valid": true,
+      "profile_mode": "rect_area_top_hat",
+      "resolution_confirmation_passed": false,
+      "selected_case": "C1_rect_area_top_hat",
+      "topology_change_onset_time": 0.56
+    },
+    "round": {
+      "checkpoint_chain_valid": true,
+      "classification": "official_round_benchmark_candidate_supported",
+      "final_time": 2.0,
+      "max_credible_component_count": 172,
+      "max_separated_component_count": 171,
+      "morphology_classification": "persistent_credible_detached_topology",
+      "physical_frames": 101,
+      "topology_change_onset_time": 0.48
+    },
+    "selected_rectangular_case": "C1_rect_area_top_hat",
+    "selected_rectangular_profile": "rect_area_top_hat"
+  },
+  "layer1_v31_decision": {
+    "reviewed_head": "e16c7e97c37c7012cd9a6dd32cdd98b6144a1bf6",
+    "decision_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/evidence/LAYER1_V31_DECISION.md",
+    "official_circular_internal_visual_lead": true,
+    "rectangular_top_hat_secondary_caveated_imposed_inlet_comparison_only": true,
+    "v31_primary_split_field_reels_internal_review_accepted": true,
+    "surface_recipe_default": "merged_smooth_normals",
+    "pressure_visualization_blocked": true,
+    "pressure_panels_removed": true,
+    "q_lambda2_blocked_pending_validated_gradient_tensor_export": true,
+    "gravity_branch_deferred": true,
+    "public_packaging_blocked": true,
+    "fit_ready": false,
+    "public_ready": false
+  },
+  "public_packaging_prep": {
+    "review_packet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260627_public_packaging_prep_review/",
+    "lead_route": "official_round_control",
+    "secondary_route": "C1_rect_area_top_hat / rect_area_top_hat imposed-inlet comparison",
+    "recommended_bridge_repo_name": "basilisk-blender-bridge",
+    "pressure_available": false,
+    "future_pressure_export_needed": true,
+    "public_packaging_blocked": true,
+    "fit_ready": false,
+    "public_ready": false
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "batch_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch",
+  "generated_at_utc": "2026-06-26T19:48:09+00:00",
+  "reports": [
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CODEX_TASK_01_REPORT.md",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/CODEX_TASK_02_REPORT.md",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_REPORT.md",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/CODEX_TASK_04_REPORT.md",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_REPORT.md",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/CODEX_TASK_06_REPORT.md",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/07_final_evidence_gate_layer1_sync/CODEX_TASK_07_REPORT.md"
+  ],
+  "tasks": [
+    {
+      "exact_blocker": "",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": true,
+      "repo_changed": false,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CODEX_TASK_01_REPORT.md",
+      "safe_to_continue": true,
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CODEX_TASK_01_SUMMARY.json",
+      "task_id": "01_physical_framing_claim_strategy"
+    },
+    {
+      "exact_blocker": "Pressure visualization blocked: restored p has zero range in all selected saved-checkpoint exports. Lambda2/Q-like fields blocked pending a separately validated adaptive-octree gradient export.",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": true,
+      "repo_changed": false,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/CODEX_TASK_02_REPORT.md",
+      "safe_to_continue": true,
+      "status": "partial_success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/CODEX_TASK_02_SUMMARY.json",
+      "task_id": "02_field_export_diagnostic_extraction"
+    },
+    {
+      "exact_blocker": "",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": true,
+      "repo_changed": false,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_REPORT.md",
+      "safe_to_continue": true,
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_SUMMARY.json",
+      "task_id": "03_smooth_render_surface_pipeline"
+    },
+    {
+      "exact_blocker": "",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": null,
+      "repo_changed": false,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/CODEX_TASK_04_REPORT.md",
+      "safe_to_continue": true,
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/CODEX_TASK_04_SUMMARY.json",
+      "task_id": "04_blender_material_camera_v3"
+    },
+    {
+      "exact_blocker": "Pressure visualization blocked because restored p has zero range in Task 02 exports; lambda2/Q-like media blocked because no validated gradient-tensor export exists. Usable phase, speed, diagnostic-vorticity, and ambient-phase media were generated.",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": true,
+      "repo_changed": false,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_REPORT.md",
+      "safe_to_continue": true,
+      "status": "partial_success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_SUMMARY.json",
+      "task_id": "05_field_visualization_media"
+    },
+    {
+      "exact_blocker": "",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": true,
+      "repo_changed": false,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/CODEX_TASK_06_REPORT.md",
+      "safe_to_continue": true,
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/CODEX_TASK_06_SUMMARY.json",
+      "task_id": "06_internal_package_draft"
+    },
+    {
+      "exact_blocker": "",
+      "fit_ready": false,
+      "public_ready": false,
+      "qa_passed": null,
+      "repo_changed": null,
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/07_final_evidence_gate_layer1_sync/CODEX_TASK_07_REPORT.md",
+      "safe_to_continue": true,
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/07_final_evidence_gate_layer1_sync/CODEX_TASK_07_SUMMARY.json",
+      "task_id": "07_final_evidence_gate_layer1_sync"
+    }
+  ]
+}

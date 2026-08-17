@@ -1,0 +1,64 @@
+{
+  "tasks": [
+    {
+      "task_id": "01_v01_bridge_hardening",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/01_v01_bridge_hardening/CODEX_TASK_01_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/01_v01_bridge_hardening/CODEX_TASK_01_REPORT.md",
+      "commit_hash": "e1115a8f8159a8f4b76b533b9f7a58003b3c9d0d",
+      "repo_changed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to license, provenance, and distribution model documentation."
+    },
+    {
+      "task_id": "02_license_distribution",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/02_license_distribution/CODEX_TASK_02_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/02_license_distribution/CODEX_TASK_02_REPORT.md",
+      "commit_hash": "e8da5fdf75762a6bd6e2af3ce018d5538718211b",
+      "repo_changed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to documentation and wording hardening."
+    },
+    {
+      "task_id": "03_docs_wording",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/03_docs_wording/CODEX_TASK_03_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/03_docs_wording/CODEX_TASK_03_REPORT.md",
+      "commit_hash": "bf1867fd3a140c16dac7c3ecda8b5e31c1c09511",
+      "repo_changed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to repository readiness audit."
+    },
+    {
+      "task_id": "04_repo_readiness",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/04_repo_readiness/CODEX_TASK_04_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/04_repo_readiness/CODEX_TASK_04_REPORT.md",
+      "commit_hash": "bf1867fd3a140c16dac7c3ecda8b5e31c1c09511",
+      "repo_changed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Continue to profile-page draft; avoid editing dirty site repo unless it becomes safe."
+    },
+    {
+      "task_id": "05_profile_page_draft",
+      "status": "partial_success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/05_profile_page_draft/CODEX_TASK_05_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v01-publicprep-batch/05_profile_page_draft/CODEX_TASK_05_REPORT.md",
+      "commit_hash": "bf526dea14ffcb720b5208a2afe91b70ff4a4f20",
+      "repo_changed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "Site repo has unrelated dirty OpenFOAM media/page changes, so no site branch or site file was created.",
+      "recommended_next_step": "Continue to final review packet; site integration requires a clean site repo and separate publication approval."
+    }
+  ]
+}

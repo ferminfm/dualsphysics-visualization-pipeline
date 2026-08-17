@@ -1,0 +1,39 @@
+{
+  "status": "internal_candidate_not_public_ready",
+  "fit_ready": false,
+  "public_ready": false,
+  "selected_lead_assets": [
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "role": "lead",
+      "publish_status": "internal_review_candidate"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "role": "supporting",
+      "publish_status": "needs_public_caption_review"
+    }
+  ],
+  "selected_supporting_assets": [
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "role": "supporting",
+      "publish_status": "secondary_caveated_comparison"
+    },
+    {
+      "path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "role": "diagnostic",
+      "publish_status": "internal_technical_diagnostic"
+    }
+  ],
+  "archive_internal_only": [
+    "legacy v2/v3 proxies except retained flythrough",
+    "raw stack-validation frame/surface/checkpoint folders"
+  ],
+  "do_not_publish": [
+    "pressure/Q/lambda2 field panels",
+    "raw solver outputs",
+    "assets implying validation or internal-nozzle flow for the rectangular route"
+  ],
+  "claim_boundary": "technical/research workflow sample only; not validation; not production CFD; not public-ready"
+}

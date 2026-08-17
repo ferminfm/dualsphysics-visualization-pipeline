@@ -1,0 +1,63 @@
+{
+  "packet": "visualbasilisk_v03_public_visibility_gate",
+  "status": "gate_complete_human_decision_required",
+  "repository_visibility_changed": false,
+  "items": [
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/ARTIFACT_PRIVACY_SCAN_STATUS.md",
+      "size_bytes": 769,
+      "sha256": "b3288a726ff317114b311241a3204bea3480924a471415a8d88ab48723b70116",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/BRANCH_PR_STATUS.md",
+      "size_bytes": 646,
+      "sha256": "0f4afdf3a45fe0c43ec64f6804b6822b5c5afe44ce23eaa3f63bdc0dc3de3119",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/GATE_SUMMARY.json",
+      "size_bytes": 847,
+      "sha256": "95dc234370bffa073f68f4236763276906640f7e48d3c596e3f43730bd8e94b2",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/HUMAN_DECISION_CHECKLIST.md",
+      "size_bytes": 780,
+      "sha256": "45d38ca5c80020559cd6420cfa0921e774bb7a731b63f862bf3a5a537cca4122",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/LAYER1_HANDOFF.md",
+      "size_bytes": 836,
+      "sha256": "48748548162e0311e748ebf600068aaa79c2051c81e0baf9d35a22b08a9dde70",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/PUBLIC_VISIBILITY_GATE_REPORT.md",
+      "size_bytes": 2030,
+      "sha256": "9b5213a176720efbab33a1f320fab69f29745ced5253fa2c52fec5f675c2c09a",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/README_LAYER1_REVIEW.md",
+      "size_bytes": 831,
+      "sha256": "64c6b13260a93fd41c0372d5d0da23743582d80a5add1c7959d52891446f1bb3",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "repo_relative_path": "review_artifacts/visualbasilisk/20260628_v03_public_visibility_gate/TEST_AND_RENDER_STATUS.md",
+      "size_bytes": 488,
+      "sha256": "fd0f12d378400ff553f6e557cdd49e2371ed6b18915603a622cd4ac9f7da20a5",
+      "public_ready": false,
+      "fit_ready": false
+    }
+  ]
+}

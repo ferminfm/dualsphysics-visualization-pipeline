@@ -1,0 +1,343 @@
+{
+  "task_id": "07_final_evidence_gate_layer1_sync",
+  "generated_at_utc": "2026-06-27T09:35:24.735066+00:00",
+  "source_batch_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch",
+  "review_packet_repo_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review",
+  "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+  "base_sha_before_task07_commit": "281904de4e73c61a222a885d1441370c13a472de",
+  "remote_tracking_sha_before_task07_commit": "281904de4e73c61a222a885d1441370c13a472de",
+  "task_summaries": [
+    {
+      "task_id": "01_physical_framing_claim_strategy",
+      "status": "success",
+      "safe_to_continue": true,
+      "qa_passed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 02 only with the conservative no-gravity, no-validation, no-public-readiness, and imposed-inlet rectangular-route boundaries preserved.",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CODEX_TASK_01_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/01_physical_framing_claim_strategy/CODEX_TASK_01_REPORT.md"
+    },
+    {
+      "task_id": "02_field_export_diagnostic_extraction",
+      "status": "partial_success",
+      "safe_to_continue": true,
+      "qa_passed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "Pressure visualization blocked: restored p has zero range in all selected saved-checkpoint exports. Lambda2/Q-like fields blocked pending a separately validated adaptive-octree gradient export.",
+      "recommended_next_step": "Task 05 may consume phase, velocity, speed, and vorticity-magnitude CSVs for internal diagnostic panels; it must not create pressure, lambda2, or Q-like media unless a later validated export provides nonzero/valid fields.",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/CODEX_TASK_02_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/CODEX_TASK_02_REPORT.md"
+    },
+    {
+      "task_id": "03_smooth_render_surface_pipeline",
+      "status": "success",
+      "safe_to_continue": true,
+      "qa_passed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Task 04 should use the render-only merged_weighted_normals recipe for presentation meshes, keep diagnostics on raw output_facets(f), and fall back to raw_flat_facets if weighted-normal rendering is unstable on any future frame.",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/CODEX_TASK_03_REPORT.md"
+    },
+    {
+      "task_id": "04_blender_material_camera_v3",
+      "status": "success",
+      "safe_to_continue": true,
+      "qa_passed": null,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 05 field-visualization media with Task 02 field availability caveats.",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/CODEX_TASK_04_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/CODEX_TASK_04_REPORT.md"
+    },
+    {
+      "task_id": "05_field_visualization_media",
+      "status": "partial_success",
+      "safe_to_continue": true,
+      "qa_passed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "Pressure visualization blocked because restored p has zero range in Task 02 exports; lambda2/Q-like media blocked because no validated gradient-tensor export exists. Usable phase, speed, diagnostic-vorticity, and ambient-phase media were generated.",
+      "recommended_next_step": "Proceed to Task 06 internal package drafting with Task 05 media labeled as diagnostic, not validation or fit-ready evidence.",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_REPORT.md"
+    },
+    {
+      "task_id": "06_internal_package_draft",
+      "status": "success",
+      "safe_to_continue": true,
+      "qa_passed": true,
+      "fit_ready": false,
+      "public_ready": false,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 07 final evidence gate and Layer-1 sync; keep public packaging blocked pending human review.",
+      "summary_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/CODEX_TASK_06_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/06_internal_package_draft/CODEX_TASK_06_REPORT.md"
+    }
+  ],
+  "audit_decision": {
+    "all_prior_task_summaries_present": true,
+    "safe_to_continue": true,
+    "controlled_partial_success_tasks": [
+      "02_field_export_diagnostic_extraction",
+      "05_field_visualization_media"
+    ],
+    "field_media_status": "phase/speed/diagnostic-vorticity/ambient-phase media available; pressure and lambda2/Q-like media blocked",
+    "surface_pipeline_status": "render-only merged_weighted_normals selected; raw_flat_facets fallback documented and used for unstable v3 late frames",
+    "asset_readiness": "internal review assets ready; portfolio/public use requires human review",
+    "fit_ready": false,
+    "public_ready": false,
+    "layer1_review_ready": true,
+    "v31_cleanup_applied": true,
+    "pressure_placeholder_media_removed": true,
+    "surface_recipe_default": "merged_smooth_normals"
+  },
+  "artifacts": [
+    {
+      "asset_id": "long_primary_route_blender_sequence_v31",
+      "kind": "mp4",
+      "role": "V3.1 primary official-round Blender/Cycles internal-review sequence",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "official_round_control",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/long_primary_route_blender_sequence_v31.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/corrected_media/long_primary_route_blender_sequence_v31.mp4",
+      "file_size": 2461438,
+      "sha256": "875ef850649d529d542e2c9e9989d34c87b34d4450fb5a198ee3502ad7b809f0",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_long_primary_route_blender_sequence_v31.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/long_primary_route_blender_sequence_v31_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v31_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v31_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/long_primary_route_blender_sequence_v31_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 8.416667,
+        "frame_count": 101,
+        "size_bytes": 2461438
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Uses merged_smooth_normals as full-sequence default; all 101 official circular physical frames included exactly once."
+    },
+    {
+      "asset_id": "round_vs_rectangular_split_screen_v31",
+      "kind": "mp4",
+      "role": "V3.1 synchronized circular/rectangular split-screen comparison",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "round_and_rectangular_comparison",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/round_vs_rectangular_split_screen_v31.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/corrected_media/round_vs_rectangular_split_screen_v31.mp4",
+      "file_size": 1517627,
+      "sha256": "0344c1b1d79fba3929cba26238694115c64e2f8e16d54fda66e395a90c40dc53",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_round_vs_rectangular_split_screen_v31.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/round_vs_rectangular_split_screen_v31_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v31_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v31_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/round_vs_rectangular_split_screen_v31_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 8.416667,
+        "frame_count": 101,
+        "size_bytes": 1517627
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Rectangular route is labeled as a 2:1 rectangular top-hat imposed-inlet comparison; no internal-nozzle flow is implied."
+    },
+    {
+      "asset_id": "rectangular_top_hat_sequence_v31",
+      "kind": "mp4",
+      "role": "V3.1 rectangular route diagnostic sequence",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "rectangular_top_hat_comparison",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/rectangular_top_hat_sequence_v31.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/corrected_media/rectangular_top_hat_sequence_v31.mp4",
+      "file_size": 2151394,
+      "sha256": "bcb6ab3118d1457055e617f34efe94308055a80425b233f39e86c9093ea15e87",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_rectangular_top_hat_sequence_v31.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/rectangular_top_hat_sequence_v31_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_sequence_v31_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_sequence_v31_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_sequence_v31_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 8.416667,
+        "frame_count": 101,
+        "size_bytes": 2151394
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Secondary route only; resolution-sensitive rectangular top-hat imposed-inlet comparison."
+    },
+    {
+      "asset_id": "task05_field_visualization_reel_v31_no_pressure",
+      "kind": "mp4",
+      "role": "V3.1 all-route field reel without pressure panel",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "field_diagnostics",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/corrected_media/task05_field_visualization_reel_v31_no_pressure.mp4",
+      "file_size": 343876,
+      "sha256": "bf4ae00e8819cbb5e07402603507af7e3d7164b7adbee095674c8d6c18e93fa5",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_task05_field_visualization_reel_v31_no_pressure.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/task05_field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_v31_no_pressure_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_v31_no_pressure_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/task05_field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 10.0,
+        "frame_count": 240,
+        "size_bytes": 343876
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Pressure panel removed; restored p has zero range. Shows only phase, velocity magnitude, diagnostic vorticity magnitude, and ambient-phase speed/context."
+    },
+    {
+      "asset_id": "official_round_control_field_visualization_reel_v31_no_pressure",
+      "kind": "mp4",
+      "role": "V3.1 official route field reel without pressure panel",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "official_round_control",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/official_round_control__field_visualization_reel_v31_no_pressure.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/corrected_media/official_round_control__field_visualization_reel_v31_no_pressure.mp4",
+      "file_size": 184659,
+      "sha256": "2cd563cf5f81ce12eb4e8fbe94c8d91a49e9c494dcd88e17ff3aa3236a7cb60d",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_official_round_control__field_visualization_reel_v31_no_pressure.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/official_round_control__field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_v31_no_pressure_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_v31_no_pressure_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/official_round_control__field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 5.0,
+        "frame_count": 120,
+        "size_bytes": 184659
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Pressure panel removed; restored p has zero range."
+    },
+    {
+      "asset_id": "rectangular_top_hat_comparison_field_visualization_reel_v31_no_pressure",
+      "kind": "mp4",
+      "role": "V3.1 rectangular route field reel without pressure panel",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "rectangular_top_hat_comparison",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260627-basilisk-long-benchmark-v31-visual-field-cleanup/corrected_media/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure.mp4",
+      "file_size": 203979,
+      "sha256": "e13e88dc498d2ab662a8589264f71207e12d762d88badd0314854860d3af9e2c",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/rectangular_top_hat_comparison__field_visualization_reel_v31_no_pressure_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 5.0,
+        "frame_count": 120,
+        "size_bytes": 203979
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Pressure panel removed; secondary imposed-inlet comparison only."
+    },
+    {
+      "asset_id": "final_complex_geometry_flythrough_v3_retained",
+      "kind": "mp4",
+      "role": "Retained v3 safe-frame flythrough; visibility QA already passed",
+      "source_task": "v31_visual_field_cleanup",
+      "route": "official_round_control",
+      "review_status": "internal review only; direct human visual review required before public packaging",
+      "repo_relative_review_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/videos_proxy/final_complex_geometry_flythrough_v3.mp4",
+      "source_local_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/04_blender_material_camera_v3/media/final_complex_geometry_flythrough_v3.mp4",
+      "file_size": 4722651,
+      "sha256": "187d454ab15d8618ca5326520f4f45d07705a66355a3d155baecf3739ad2416a",
+      "ffprobe_metadata_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/metadata/ffprobe_final_complex_geometry_flythrough_v3.json",
+      "contact_sheet_path": "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/contact_sheets/final_complex_geometry_flythrough_v3_contact_sheet.jpg",
+      "still_paths": [
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_first.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_middle.jpg",
+        "review_artifacts/basilisk/long_benchmark_postprocess/20260626_postprocess_review/stills/final_complex_geometry_flythrough_v3_last.jpg"
+      ],
+      "media_metadata": {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "duration_seconds": 6.0,
+        "frame_count": 72,
+        "size_bytes": 4722651
+      },
+      "proxy_or_original": "original-small-file",
+      "fit_ready": false,
+      "public_ready": false,
+      "claim_boundary": "internal Layer-1 review only; public_ready=false; fit_ready=false; not validation; not production CFD; not final public media",
+      "notes": "Retained rather than rerendered for V3.1 because the existing flythrough passed visibility QA and no new solver/geometry evidence was produced."
+    }
+  ],
+  "excluded_artifact_classes": [
+    "raw field grids and field_exports CSV folders",
+    "Basilisk checkpoints and dumps",
+    "full frame folders and mask folders",
+    "surface/facet folders",
+    ".blend files",
+    "large CSVs and raw solver logs",
+    "complete stack-validation task directories"
+  ],
+  "v31_update_note": "Supersedes Task 05 field reels that included pressure-blocked placeholder panels; pressure visualization remains blocked because restored p has zero range."
+}

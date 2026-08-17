@@ -1,0 +1,108 @@
+{
+  "cfd_solver_run": false,
+  "delta_min": 0.01171875,
+  "domain": {
+    "L0": 3.0,
+    "x_max": 3.0,
+    "x_min": 0.0,
+    "y_max": 1.5,
+    "y_min": -1.5,
+    "z_max": 1.5,
+    "z_min": -1.5
+  },
+  "fit_ready": false,
+  "generated_at_utc": "2026-06-26T05:18:08.799702+00:00",
+  "hero_selection_rule": "highest interface/component/facet complexity score among frames with no meaningful downstream or lateral boundary contact",
+  "maxlevel": 8,
+  "public_ready": false,
+  "rectangular_safe_hero_frame": 99,
+  "rectangular_safe_hero_time": 1.98,
+  "routes": {
+    "official_round_control": {
+      "boundary_clean_until_time": 2.0,
+      "boundary_contact_detected": false,
+      "case_id": "C0_long_official_round_control",
+      "diagnostics_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/metrics/round_frame_diagnostics.csv",
+      "first_meaningful_downstream_or_lateral_contact": {
+        "x_max": null,
+        "y_max": null,
+        "y_min": null,
+        "z_max": null,
+        "z_min": null
+      },
+      "hero_candidate": {
+        "case_id": "C0_long_official_round_control",
+        "credible_component_count": "172",
+        "detached_proxy_count": "171",
+        "downstream_clearance": 1.32473,
+        "frame_index": 98,
+        "hero_complexity_score": 0.8711047490230001,
+        "interface_proxy": "0.491317749023",
+        "route_id": "official_round_control",
+        "time": 1.96,
+        "xmax": 1.67527,
+        "y_max_clearance": 1.002424,
+        "y_min_clearance": 1.00533,
+        "ymax": 0.497576,
+        "ymin": -0.49467,
+        "z_max_clearance": 0.971501,
+        "z_min_clearance": 0.989399,
+        "zmax": 0.528499,
+        "zmin": -0.510601
+      },
+      "max_active_front_over_L0": 0.568359375,
+      "meaningful_contact_threshold_fraction": 0.001,
+      "min_downstream_clearance": 1.29273,
+      "min_lateral_clearance": 0.965188,
+      "profile_mode": "round_official_top_hat",
+      "surface_count": 101
+    },
+    "rectangular_top_hat": {
+      "boundary_clean_until_time": 2.0,
+      "boundary_contact_detected": false,
+      "case_id": "C1_rect_area_top_hat",
+      "diagnostics_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/metrics/rectangular_frame_diagnostics.csv",
+      "first_meaningful_downstream_or_lateral_contact": {
+        "x_max": null,
+        "y_max": null,
+        "y_min": null,
+        "z_max": null,
+        "z_min": null
+      },
+      "hero_candidate": {
+        "case_id": "C1_rect_area_top_hat",
+        "credible_component_count": "120",
+        "detached_proxy_count": "119",
+        "downstream_clearance": 1.343,
+        "frame_index": 99,
+        "hero_complexity_score": 0.715672068359,
+        "interface_proxy": "0.443695068359",
+        "route_id": "rectangular_top_hat",
+        "time": 1.98,
+        "xmax": 1.657,
+        "y_max_clearance": 0.94653,
+        "y_min_clearance": 1.076827,
+        "ymax": 0.55347,
+        "ymin": -0.423173,
+        "z_max_clearance": 1.040003,
+        "z_min_clearance": 0.936718,
+        "zmax": 0.459997,
+        "zmin": -0.563282
+      },
+      "max_active_front_over_L0": 0.556640625,
+      "meaningful_contact_threshold_fraction": 0.001,
+      "min_downstream_clearance": 1.33084,
+      "min_lateral_clearance": 0.935551,
+      "profile_mode": "rect_area_top_hat",
+      "surface_count": 101
+    }
+  },
+  "scientifically_safe_hero_frame": 98,
+  "scientifically_safe_hero_route": "official_round_control",
+  "scientifically_safe_hero_time": 1.96,
+  "thresholds": {
+    "0p05_domain_length": 0.15000000000000002,
+    "2_delta_min": 0.0234375,
+    "4_delta_min": 0.046875
+  }
+}

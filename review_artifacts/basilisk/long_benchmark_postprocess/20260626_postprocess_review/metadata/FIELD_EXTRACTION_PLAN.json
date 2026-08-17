@@ -1,0 +1,175 @@
+{
+  "task_id": "02_field_export_diagnostic_extraction",
+  "generated_at_utc": "2026-06-26T17:48:48+00:00",
+  "output_root": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction",
+  "extractor": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/02_field_export_diagnostic_extraction/scripts/restore_field_sampler_openmp",
+  "solver_time_advancement_allowed": false,
+  "solver_time_advancement_performed": false,
+  "render_run_performed": false,
+  "sample_limit_per_export": 50000,
+  "sample_policy": "restore saved checkpoint; sample interface cells and y=0/z=0 center slices within x<=2.1, |y|<=0.75, |z|<=0.75; write compact CSV only",
+  "routes": [
+    {
+      "route_id": "official_round_control",
+      "case_id": "C0_long_official_round_control",
+      "profile_mode": "round_official_top_hat",
+      "role": "primary official circular route",
+      "run_dir": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control",
+      "checkpoint_manifest": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoint_manifest.json",
+      "checkpoint_count": 20,
+      "all_checkpoints_verified_nonzero": true,
+      "visual_frame_count": 101,
+      "surface_count": 101,
+      "raw_frame_summary_count": 101,
+      "raw_interface_cells_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/raw_interface_cells.csv",
+      "raw_interface_cells_exists": true,
+      "selected_frames": [
+        {
+          "checkpoint_index": 0,
+          "time": 0.1,
+          "iteration": 31,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t00.100000_i0000031_l8.dump",
+          "parent_checkpoint": "fresh",
+          "verified_nonzero": true,
+          "selection_label": "early",
+          "selection_target_time": 0.1,
+          "selection_strategy": "exact"
+        },
+        {
+          "checkpoint_index": 4,
+          "time": 0.5,
+          "iteration": 163,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t00.500000_i0000163_l8.dump",
+          "parent_checkpoint": "fresh",
+          "verified_nonzero": true,
+          "selection_label": "onset_nearest_checkpoint",
+          "selection_target_time": 0.48,
+          "selection_strategy": "nearest_after_or_equal"
+        },
+        {
+          "checkpoint_index": 9,
+          "time": 1,
+          "iteration": 350,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t01.000000_i0000350_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t00.500000_i0000163_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "mid",
+          "selection_target_time": 1.0,
+          "selection_strategy": "exact"
+        },
+        {
+          "checkpoint_index": 18,
+          "time": 1.9,
+          "iteration": 681,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t01.900000_i0000681_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t01.500000_i0000536_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "safe_hero_proxy_checkpoint",
+          "selection_target_time": 1.96,
+          "selection_strategy": "nearest_before_or_equal"
+        },
+        {
+          "checkpoint_index": 19,
+          "time": 2,
+          "iteration": 711,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t02.000000_i0000711_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/checkpoints/C0_long_official_round_control_round_official_top_hat_t01.500000_i0000536_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "final",
+          "selection_target_time": 2.0,
+          "selection_strategy": "exact"
+        }
+      ]
+    },
+    {
+      "route_id": "rectangular_top_hat_comparison",
+      "case_id": "C1_long_rectangular_top_hat",
+      "profile_mode": "rect_area_top_hat",
+      "role": "secondary imposed-inlet comparison",
+      "run_dir": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production",
+      "checkpoint_manifest": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoint_manifest.json",
+      "checkpoint_count": 20,
+      "all_checkpoints_verified_nonzero": true,
+      "visual_frame_count": 101,
+      "surface_count": 101,
+      "raw_frame_summary_count": 101,
+      "raw_interface_cells_path": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/raw_interface_cells.csv",
+      "raw_interface_cells_exists": true,
+      "selected_frames": [
+        {
+          "checkpoint_index": 0,
+          "time": 0.1,
+          "iteration": 31,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t00.100000_i0000031_l8.dump",
+          "parent_checkpoint": "fresh",
+          "verified_nonzero": true,
+          "selection_label": "early",
+          "selection_target_time": 0.1,
+          "selection_strategy": "exact"
+        },
+        {
+          "checkpoint_index": 5,
+          "time": 0.6,
+          "iteration": 193,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t00.600000_i0000193_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t00.500000_i0000145_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "onset_nearest_checkpoint",
+          "selection_target_time": 0.56,
+          "selection_strategy": "nearest_after_or_equal"
+        },
+        {
+          "checkpoint_index": 9,
+          "time": 1,
+          "iteration": 336,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t01.000000_i0000336_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t00.500000_i0000145_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "mid",
+          "selection_target_time": 1.0,
+          "selection_strategy": "exact"
+        },
+        {
+          "checkpoint_index": 18,
+          "time": 1.9,
+          "iteration": 633,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t01.900000_i0000633_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t01.500000_i0000500_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "safe_hero_proxy_checkpoint",
+          "selection_target_time": 1.98,
+          "selection_strategy": "nearest_before_or_equal"
+        },
+        {
+          "checkpoint_index": 19,
+          "time": 2,
+          "iteration": 663,
+          "maxlevel": 8,
+          "filename": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t02.000000_i0000663_l8.dump",
+          "parent_checkpoint": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/checkpoints/C1_long_rectangular_top_hat_rect_area_top_hat_t01.500000_i0000500_l8.dump",
+          "verified_nonzero": true,
+          "selection_label": "final",
+          "selection_target_time": 2.0,
+          "selection_strategy": "exact"
+        }
+      ]
+    }
+  ],
+  "field_decision": {
+    "phase_indicator": "enabled from restored VOF f and sampled raw interface data",
+    "velocity": "enabled from restored u and existing raw interface velocity columns",
+    "velocity_magnitude": "derived from restored u",
+    "vorticity_magnitude": "derived by finite differences on restored velocity for compact diagnostic use",
+    "pressure": "conditional; only enabled if restored p has nonzero range",
+    "lambda2_or_q_like": "not exported; requires separate validated adaptive-grid gradient convention"
+  }
+}

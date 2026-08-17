@@ -1,0 +1,40 @@
+{
+  "exact_blocker": "Pressure visualization blocked because restored p has zero range in Task 02 exports; lambda2/Q-like media blocked because no validated gradient-tensor export exists. Usable phase, speed, diagnostic-vorticity, and ambient-phase media were generated.",
+  "field_media_manifest_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/TASK05_FIELD_MEDIA_MANIFEST.json",
+  "field_status": {
+    "ambient_phase_context": "generated_from_vof_complement",
+    "lambda2_or_q_like": "blocked_not_exported_validated",
+    "phase_indicator": "generated",
+    "pressure": "blocked_zero_range_in_task02_exports",
+    "velocity_magnitude": "generated",
+    "vorticity_magnitude": "generated_diagnostic"
+  },
+  "field_visualization_blocked": true,
+  "field_visualization_ready": true,
+  "final_marker": "TASK_05_FIELD_MEDIA_WRITTEN: /home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_REPORT.md",
+  "fit_ready": false,
+  "manifest_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/TASK05_FIELD_MEDIA_MANIFEST.json",
+  "orchestrator_normalized": true,
+  "outputs": {
+    "composite_panels_dir": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/panels/composite",
+    "contact_sheets_dir": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/contact_sheets",
+    "media_dir": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/media",
+    "plots_dir": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/plots"
+  },
+  "public_ready": false,
+  "push_performed": false,
+  "qa_passed": true,
+  "raw_outputs_committed": false,
+  "recommended_next_step": "Proceed to Task 06 internal package drafting with Task 05 media labeled as diagnostic, not validation or fit-ready evidence.",
+  "repo_changed": false,
+  "report_path": "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/05_field_visualization_media/CODEX_TASK_05_REPORT.md",
+  "retry_recommended": false,
+  "safe_to_continue": true,
+  "status": "partial_success",
+  "task_id": "05_field_visualization_media",
+  "validation_commands": [
+    "python3 -m py_compile scripts/task05_field_visualization_media.py",
+    "python3 -m json.tool TASK05_FIELD_MEDIA_MANIFEST.json",
+    "python3 -m json.tool CODEX_TASK_05_SUMMARY.json"
+  ]
+}

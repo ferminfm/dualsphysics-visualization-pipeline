@@ -1,0 +1,76 @@
+{
+  "tasks": [
+    {
+      "task_id": "01_scope_license_provenance_audit",
+      "task_output_root": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/01_scope_license_provenance_audit",
+      "summary_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/01_scope_license_provenance_audit/CODEX_TASK_01_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/01_scope_license_provenance_audit/CODEX_TASK_01_REPORT.md",
+      "status": "success",
+      "commit_hash": "",
+      "exact_blocker": "",
+      "recommended_next_step": "Create the VisualBasilisk source-first repo skeleton and governance docs.",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "task_id": "02_repo_skeleton_governance",
+      "task_output_root": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/02_repo_skeleton_governance",
+      "summary_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/02_repo_skeleton_governance/CODEX_TASK_02_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/02_repo_skeleton_governance/CODEX_TASK_02_REPORT.md",
+      "status": "success",
+      "commit_hash": "d10acb025894ae58de08edcae4982319a3f2cc68",
+      "exact_blocker": "",
+      "recommended_next_step": "Extract reusable bridge code, schemas, tests, and tiny fixtures.",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "task_id": "03_bridge_code_extraction",
+      "task_output_root": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/03_bridge_code_extraction",
+      "summary_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/03_bridge_code_extraction/CODEX_TASK_03_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/03_bridge_code_extraction/CODEX_TASK_03_REPORT.md",
+      "status": "success",
+      "commit_hash": "910d3deff352f37742a486d31acb88fba955342b",
+      "exact_blocker": "",
+      "recommended_next_step": "Record frozen toolchain and license/provenance setup documentation.",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "task_id": "04_frozen_toolchain_plan",
+      "task_output_root": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/04_frozen_toolchain_plan",
+      "summary_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/04_frozen_toolchain_plan/CODEX_TASK_04_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/04_frozen_toolchain_plan/CODEX_TASK_04_REPORT.md",
+      "status": "success",
+      "commit_hash": "8c8323d3d173e8eaf444b6b615ed8c0238c36dc2",
+      "exact_blocker": "",
+      "recommended_next_step": "Add smoke example docs and run package checks.",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "task_id": "05_smoke_example_tests",
+      "task_output_root": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/05_smoke_example_tests",
+      "summary_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/05_smoke_example_tests/CODEX_TASK_05_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/05_smoke_example_tests/CODEX_TASK_05_REPORT.md",
+      "status": "success",
+      "commit_hash": "7bcfa858497b745b8ee59f0fc80ffce7e68bb5a8",
+      "exact_blocker": "",
+      "recommended_next_step": "Prepare modest documentation and internal profile drafts for the private VisualBasilisk bridge repository.",
+      "public_ready": false,
+      "fit_ready": false
+    },
+    {
+      "task_id": "06_docs_profile_draft",
+      "task_output_root": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/06_docs_profile_draft",
+      "summary_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/06_docs_profile_draft/CODEX_TASK_06_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260627-visualbasilisk-extraction-batch/06_docs_profile_draft/CODEX_TASK_06_REPORT.md",
+      "status": "success",
+      "commit_hash": "227d91ec9c81ed07accea5cba4f1479d1ae2a546",
+      "exact_blocker": "",
+      "recommended_next_step": "Create the GitHub-visible evidence-repo review packet and final Layer 1 handoff.",
+      "public_ready": false,
+      "fit_ready": false
+    }
+  ]
+}

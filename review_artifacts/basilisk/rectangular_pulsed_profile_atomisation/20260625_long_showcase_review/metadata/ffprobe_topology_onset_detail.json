@@ -1,0 +1,15 @@
+{
+  "programs": [],
+  "streams": [
+    {
+      "avg_frame_rate": "6/1",
+      "codec_name": "h264",
+      "duration": "2.666667",
+      "height": 1080,
+      "nb_read_frames": "16",
+      "pix_fmt": "yuv420p",
+      "r_frame_rate": "6/1",
+      "width": 1920
+    }
+  ]
+}

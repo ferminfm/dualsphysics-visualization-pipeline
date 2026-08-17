@@ -1,0 +1,121 @@
+{
+  "task_id": "03_smooth_render_surface_pipeline",
+  "selected_recipe_id": "merged_weighted_normals",
+  "selected_recipe_status": "ready_for_task_04_render_only",
+  "safe_to_continue": true,
+  "surface_pipeline_ready": true,
+  "diagnostic_geometry_policy": "All diagnostics, metrics, scientific comparisons, and claim gates must continue to use the raw Basilisk output_facets(f) geometry.",
+  "render_recipe": {
+    "source_geometry": "existing Basilisk output_facets(f) facet files only",
+    "operations": [
+      "parse facet polygons without changing coordinates",
+      "merge exactly coincident vertices for the render mesh only using 1e-10 coordinate quantization",
+      "set polygon smooth normals for presentation",
+      "apply Blender Weighted Normal modifier with keep_sharp=true and weight=50",
+      "use existing material, lighting, camera, and overlays from the Task 04 render pass"
+    ],
+    "forbidden_default_operations": [
+      "coordinate smoothing",
+      "Catmull-Clark smoothing",
+      "surface remeshing",
+      "decimation",
+      "boolean cleanup",
+      "solver re-extraction",
+      "new interpolated solver frames"
+    ],
+    "subdivision_policy": "Do not use subdivision by default. The simple subdivision test preserved bounds but changed render mesh density and component counts, so it remains rejected for the default pipeline.",
+    "fallback_recipe_id": "raw_flat_facets",
+    "fallback_rule": "If a future frame or Blender version shows nonzero coordinate drift, component-count changes, unstable weighted-normal rendering, or visual ambiguity, render raw facets with improved material/camera only."
+  },
+  "acceptance_thresholds": {
+    "bbox_rel_drift_max": 1e-9,
+    "surface_area_rel_drift_max": 1e-9,
+    "coordinate_component_count_delta_required": 0,
+    "face_count_delta_required_for_default": 0,
+    "solver_time_advancement_allowed": false,
+    "raw_outputs_committed_allowed": false
+  },
+  "tested_inputs": {
+    "official_round_control": {
+      "surface_count": 101,
+      "selected_surface_indices": [
+        25,
+        50,
+        98,
+        100
+      ],
+      "surface_root": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/03_long_official_round_control/surfaces"
+    },
+    "rectangular_top_hat_comparison": {
+      "surface_count": 101,
+      "selected_surface_indices": [
+        30,
+        50,
+        98,
+        100
+      ],
+      "surface_root": "/home/franco/stack-validation/20260625-basilisk-rectangular-poiseuille-atomisation-showcase-batch/04_long_rectangular_production/surfaces"
+    }
+  },
+  "aggregate_metric_results": {
+    "raw_flat_facets": {
+      "safe_frames": 8,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.0,
+      "max_area_rel_drift": 0.0,
+      "max_abs_volume_proxy_rel_drift": 0.0,
+      "max_coordinate_component_count_delta_abs": 0,
+      "max_face_count_delta_abs": 0
+    },
+    "merged_smooth_normals": {
+      "safe_frames": 8,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.0,
+      "max_area_rel_drift": 0.0,
+      "max_abs_volume_proxy_rel_drift": 0.0,
+      "max_coordinate_component_count_delta_abs": 0,
+      "max_face_count_delta_abs": 0
+    },
+    "merged_weighted_normals": {
+      "safe_frames": 8,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.0,
+      "max_area_rel_drift": 0.0,
+      "max_abs_volume_proxy_rel_drift": 0.0,
+      "max_coordinate_component_count_delta_abs": 0,
+      "max_face_count_delta_abs": 0
+    },
+    "simple_subdivision_weighted_normals": {
+      "safe_frames": 0,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.0,
+      "max_area_rel_drift": 4.578210125348327e-8,
+      "max_abs_volume_proxy_rel_drift": 1.3994555969211495e-7,
+      "max_coordinate_component_count_delta_abs": 16,
+      "max_face_count_delta_abs": 116718,
+      "decision": "rejected_as_default"
+    },
+    "limited_laplacian_smooth": {
+      "safe_frames": 0,
+      "tested_frames": 8,
+      "max_bbox_rel_drift": 0.002512774145077893,
+      "max_area_rel_drift": 0.2655255813226679,
+      "max_abs_volume_proxy_rel_drift": 0.2892427376920381,
+      "max_coordinate_component_count_delta_abs": 0,
+      "max_face_count_delta_abs": 0,
+      "decision": "rejected"
+    }
+  },
+  "visual_review_assets": [
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/official_round_frame_0025_variant_contact_sheet.jpg",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/official_round_frame_0050_variant_contact_sheet.jpg",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/official_round_frame_0098_variant_contact_sheet.jpg",
+    "/home/franco/stack-validation/20260626-basilisk-long-benchmark-postprocess-publicprep-batch/03_smooth_render_surface_pipeline/contact_sheets/rectangular_frame_0098_variant_contact_sheet.jpg"
+  ],
+  "claim_boundary": {
+    "fit_ready": false,
+    "public_ready": false,
+    "validation_claim_allowed": false,
+    "rectangular_route_description": "2:1 rectangular top-hat imposed-inlet comparison, not internal-nozzle flow"
+  }
+}

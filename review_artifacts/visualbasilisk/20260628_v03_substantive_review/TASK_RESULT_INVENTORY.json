@@ -1,0 +1,109 @@
+{
+  "batch_id": "20260628-visualbasilisk-v03-substantive-hardening",
+  "status": "success",
+  "fit_ready": false,
+  "public_ready": false,
+  "tasks": [
+    {
+      "task_id": "01_baseline_assimilation_preflight",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/01_baseline_assimilation_preflight/CODEX_TASK01_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/01_baseline_assimilation_preflight/CODEX_TASK01_REPORT.md",
+      "commit_hash": "0b77d784f294e33849dba544922c429351d5baac",
+      "visualbasilisk_sha": "0b77d784f294e33849dba544922c429351d5baac",
+      "evidence_sha": "796ae7e9c853cf39f50080b5046b2045124e4dae",
+      "site_sha": "55c4bbab19354ad1d5ec28f2d0b7695071abbba6",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 02 CLI and renderer hardening."
+    },
+    {
+      "task_id": "02_cli_renderer_hardening",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/02_cli_renderer_hardening/CODEX_TASK02_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/02_cli_renderer_hardening/CODEX_TASK02_REPORT.md",
+      "commit_hash": "8898b5ee75f72d5ffd60d9782f59f3bbab059b45",
+      "visualbasilisk_sha": "8898b5ee75f72d5ffd60d9782f59f3bbab059b45",
+      "evidence_sha": null,
+      "site_sha": null,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 03 fixture pack and negative tests."
+    },
+    {
+      "task_id": "03_fixture_pack_and_negative_tests",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/03_fixture_pack_and_negative_tests/CODEX_TASK03_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/03_fixture_pack_and_negative_tests/CODEX_TASK03_REPORT.md",
+      "commit_hash": "378071e2d905f6c0111d7dbffb1036a85cb26312",
+      "visualbasilisk_sha": "378071e2d905f6c0111d7dbffb1036a85cb26312",
+      "evidence_sha": null,
+      "site_sha": null,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 04 render variants and visual QA."
+    },
+    {
+      "task_id": "04_render_variants_visual_qa",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/04_render_variants_visual_qa/CODEX_TASK04_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/04_render_variants_visual_qa/CODEX_TASK04_REPORT.md",
+      "commit_hash": "f4522d1fe1cd3c151dca15adc5b3c8595f1f9ff9",
+      "visualbasilisk_sha": null,
+      "evidence_sha": "f4522d1fe1cd3c151dca15adc5b3c8595f1f9ff9",
+      "site_sha": null,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 05 docs, provenance, and release hygiene."
+    },
+    {
+      "task_id": "05_docs_provenance_release_hygiene",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/05_docs_provenance_release_hygiene/CODEX_TASK05_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/05_docs_provenance_release_hygiene/CODEX_TASK05_REPORT.md",
+      "commit_hash": "948bc53d73f7f482e5e987050df06030a90bb65f",
+      "visualbasilisk_sha": "948bc53d73f7f482e5e987050df06030a90bb65f",
+      "evidence_sha": null,
+      "site_sha": null,
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 06 real Basilisk fixture feasibility."
+    },
+    {
+      "task_id": "06_real_basilisk_fixture_feasibility",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/06_real_basilisk_fixture_feasibility/CODEX_TASK06_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/06_real_basilisk_fixture_feasibility/CODEX_TASK06_REPORT.md",
+      "commit_hash": "2c57fdb9f1ba003512bc828f89724cd6153c7540",
+      "visualbasilisk_sha": "2c57fdb9f1ba003512bc828f89724cd6153c7540",
+      "evidence_sha": "060fe3dada45e4e24867fbb904042e59c7875d73",
+      "site_sha": null,
+      "exact_blocker": "No tiny real Basilisk-derived fixture with unambiguous provenance, license/citation status, package-safe size, and human approval was available.",
+      "recommended_next_step": "Proceed to Task 07 site draft; keep v0.3 fixtures synthetic-only."
+    },
+    {
+      "task_id": "07_site_draft_curated_media",
+      "status": "success",
+      "summary_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/07_site_draft_curated_media/CODEX_TASK07_SUMMARY.json",
+      "report_path": "/home/franco/stack-validation/20260628-visualbasilisk-v03-substantive-hardening-batch/07_site_draft_curated_media/CODEX_TASK07_REPORT.md",
+      "commit_hash": "402e28cb76a0cb7458330c7dbd0d8e9fe136b7a2",
+      "visualbasilisk_sha": null,
+      "evidence_sha": null,
+      "site_sha": "402e28cb76a0cb7458330c7dbd0d8e9fe136b7a2",
+      "exact_blocker": "",
+      "recommended_next_step": "Proceed to Task 08 final review packet and handoff sync."
+    }
+  ],
+  "visualbasilisk": {
+    "branch": "review/v03-substantive-hardening-20260628",
+    "sha": "2c57fdb9f1ba003512bc828f89724cd6153c7540",
+    "repo": "/home/franco/Documents/GitHub/visualbasilisk"
+  },
+  "evidence": {
+    "branch": "review/basilisk-rectangular-poiseuille-atomisation-20260625",
+    "sha_before_task08": "060fe3dada45e4e24867fbb904042e59c7875d73",
+    "repo": "/home/franco/Documents/GitHub/dualsphysics-visualsphysics-portfolio",
+    "review_packet_path": "review_artifacts/visualbasilisk/20260628_v03_substantive_review/"
+  },
+  "site": {
+    "branch": "review/visualbasilisk-v03-profile-draft-20260628",
+    "sha": "402e28cb76a0cb7458330c7dbd0d8e9fe136b7a2",
+    "repo": "/home/franco/Documents/GitHub/personal-ai-scientific-computing-site",
+    "deployed": false
+  }
+}
