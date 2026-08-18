@@ -1892,6 +1892,26 @@ static void write_checkpoint_dump (int iter_value) {
   snprintf(leaf, sizeof(leaf), "%s_%s_t%09.6f_i%07d_l%d.dump",
            sanitized_case_id, domain_label(), t, iter_value, maxlevel);
   subdir_path(path, sizeof(path), checkpoints_dir, leaf);
+  char meta[1200], closure_state[1200];
+  snprintf(meta, sizeof(meta), "%s.meta", path);
+  snprintf(closure_state, sizeof(closure_state), "%s.prediction-closure-v4", path);
+  /* A resumed segment can revisit its terminal checkpoint event.  The original
+   * completed generation is already the accepted checkpoint for this exact
+   * time/iteration identity; rewriting it would make the index and sidecar
+   * provenance disagree. */
+  if (file_exists_nonzero(path)) {
+    if (!file_exists_nonzero(meta) || !file_exists_nonzero(closure_state)) {
+      fprintf(stderr,
+              "ERROR incomplete existing checkpoint generation for t %.12g i %d: %s\n",
+              t, iter_value, path);
+      stable_flag = 0;
+      return;
+    }
+    fprintf(stderr,
+            "checkpoint already accepted for t %.12g i %d; preserving %s\n",
+            t, iter_value, path);
+    return;
+  }
   InternalNozzleProbeSnapshot operation_before = internal_nozzle_probe_capture();
   InternalNozzleInvariantSnapshotV4 before =
     internal_nozzle_invariant_snapshot_v4();
@@ -1899,9 +1919,6 @@ static void write_checkpoint_dump (int iter_value) {
   internal_nozzle_probe_compare
     (&operation_before, &operation_after, "candidate_aggregate_snapshot_before",
      "candidate_added", "internal_nozzle_invariant_snapshot_v4");
-  char closure_state[1200];
-  snprintf(closure_state, sizeof(closure_state),
-           "%s.prediction-closure-v4", path);
   operation_before = internal_nozzle_probe_capture();
   internal_nozzle_write_prediction_closure_v4(closure_state);
   operation_after = internal_nozzle_probe_capture();
@@ -1934,8 +1951,6 @@ static void write_checkpoint_dump (int iter_value) {
     stable_flag = 0;
     return;
   }
-  char meta[1200];
-  snprintf(meta, sizeof(meta), "%s.meta", path);
   FILE *metadata = fopen(meta, "w");
   if (!metadata) {
     fprintf(stderr, "ERROR cannot write checkpoint metadata %s\n", meta);
@@ -2097,6 +2112,8 @@ event init (t = 0) {
     double indexed_time = checkpoint_time_from_index(restore_path);
     restore_time = indexed_time >= 0. ? indexed_time : t;
     recover_checkpoint_metadata(restore_path);
+    if (canonical_schedule_enabled() && recovered_checkpoint_iteration >= 0)
+      iter = recovered_checkpoint_iteration;
     next_field_export_time = restore_time + field_dt;
     write_forensic_probe("post_restore_pre_centered", i);
     fprintf(stderr, "restored checkpoint %s at t %.12g i %d next_visual %d next_raw %d next_surface %d next_checkpoint %d mg_nrelax=%d/%d/%d\n",
