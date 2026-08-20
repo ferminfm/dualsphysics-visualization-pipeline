@@ -1270,13 +1270,23 @@ static int interface_flag_value (double ff) {
 static double symmetry_leakage_now (void) {
   if (!domain_quarter)
     return 0.;
+  /* Measure reflection parity on the plane through boundary ghost values.
+     The first interior normal velocity can be nonzero in an odd field even
+     when the normal component is exactly zero at the reflection plane. */
+  boundary ({u});
   double leak = 0.;
-  foreach(reduction(max:leak)) {
+  foreach_boundary(bottom, reduction(max:leak)) {
     if (cs[] > 1e-8) {
-      if (y < 1.5*Delta)
-        leak = max(leak, fabs(u.y[]));
-      if (z < 1.5*Delta)
-        leak = max(leak, fabs(u.z[]));
+      leak = max(leak, fabs(u.y[] + u.y[0,-1,0]));
+      leak = max(leak, fabs(u.x[] - u.x[0,-1,0]));
+      leak = max(leak, fabs(u.z[] - u.z[0,-1,0]));
+    }
+  }
+  foreach_boundary(back, reduction(max:leak)) {
+    if (cs[] > 1e-8) {
+      leak = max(leak, fabs(u.z[] + u.z[0,0,-1]));
+      leak = max(leak, fabs(u.x[] - u.x[0,0,-1]));
+      leak = max(leak, fabs(u.y[] - u.y[0,0,-1]));
     }
   }
   return leak;
