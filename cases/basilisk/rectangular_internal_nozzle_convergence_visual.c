@@ -2036,8 +2036,8 @@ int main (int argc, char **argv) {
     fprintf(stderr, "ERROR --field-dt must be positive when field export is enabled\n");
     return 2;
   }
-  if (!canonical_schedule_enabled() && enable_field_export && fabs(field_dt - diagnostic_dt) > 1e-12) {
-    fprintf(stderr, "ERROR --field-dt must equal --diagnostic-dt for matched field/station cadence\n");
+  if (!canonical_schedule_enabled() && enable_field_export && field_dt + 1e-12 < diagnostic_dt) {
+    fprintf(stderr, "ERROR --field-dt must not be shorter than --diagnostic-dt\n");
     return 2;
   }
   if (canonical_schedule_enabled()) {
