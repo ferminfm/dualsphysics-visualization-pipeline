@@ -71,6 +71,7 @@ double plenum_Dh = 2.0;
 double contraction_Dh = 3.0;
 double straight_Dh = 10.0;
 double external_Dh = 3.0;
+double refine_external_Dh = -1.;
 double plenum_scale = 3.0;
 double uemax = 0.25;
 double liquid_threshold = 1e-3;
@@ -1042,6 +1043,7 @@ static void print_usage (const char *prog) {
           "  --pressure FLOAT           pressure forcing, default 351.48\n"
           "  --end-time FLOAT           final simulation time\n"
           "  --external-dh FLOAT        external domain length in Dh\n"
+          "  --refine-external-dh FLOAT finest-refinement length downstream of exit in Dh\n"
           "  --output-dir PATH          output directory, created if needed\n"
           "  --diagnostic-dt FLOAT      raw diagnostic cadence\n"
           "  --field-dt FLOAT           post-projection field-export cadence\n"
@@ -1127,6 +1129,8 @@ static void parse_args (int argc, char **argv) {
       end_time = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--external-dh"))
       external_Dh = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--refine-external-dh"))
+      refine_external_Dh = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--output-dir"))
       copy_string(output_dir, sizeof(output_dir), require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--diagnostic-dt"))
@@ -1247,7 +1251,7 @@ f[back] = neumann(0.);
 
 static int in_refine_band (double xp, double yp, double zp) {
   double refine_band = plenum_scale*Wrect;
-  if (xp > exit_x() + external_Dh*Dhrect)
+  if (xp > exit_x() + refine_external_Dh*Dhrect)
     return 0;
   if (domain_quarter)
     return yp < 0.75*refine_band && zp < 0.75*refine_band;
@@ -2063,6 +2067,13 @@ int main (int argc, char **argv) {
   }
   if (mass_balance_tolerance <= 0.) {
     fprintf(stderr, "ERROR mass-balance tolerance must be positive\n");
+    return 2;
+  }
+  if (refine_external_Dh < 0.)
+    refine_external_Dh = external_Dh;
+  if (external_Dh <= 0. || refine_external_Dh <= 0. ||
+      refine_external_Dh > external_Dh) {
+    fprintf(stderr, "ERROR invalid external/refinement downstream lengths\n");
     return 2;
   }
 
