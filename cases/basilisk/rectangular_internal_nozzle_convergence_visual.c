@@ -48,6 +48,7 @@ int restored_ok = 0;
 int visual_frame_index = 0;
 int raw_frame_index = 0;
 int field_frame_index = 0;
+int hydraulic_metric_index = 0;
 int checkpoint_index = 0;
 int surface_frame_index = 0;
 int recovered_checkpoint_iteration = -1;
@@ -117,6 +118,7 @@ char sanitized_case_id[128] = "W2_visual_pipeline";
 char schedule_version[128] = "legacy_unspecified";
 char schedule_sha[128] = "legacy_unspecified";
 char source_sha[128] = "unresolved";
+char restore_source_sha[128] = "";
 char pending_prediction_closure_path[1200] = "";
 int pending_prediction_closure_restore = 0;
 int enable_forensic_probes = 0;
@@ -880,12 +882,15 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     return;
   }
   char line[2048], found_version[128] = "", found_sha[128] = "";
+  char found_source_sha[128] = "";
   int found_tick = -1, found_iteration = -1;
   double found_target = -1., found_actual = -1.;
   while (fgets(line, sizeof(line), fp)) {
     if (sscanf(line, "schedule_version=%127s", found_version) == 1)
       continue;
     if (sscanf(line, "schedule_sha256=%127s", found_sha) == 1)
+      continue;
+    if (sscanf(line, "source_sha256=%127s", found_source_sha) == 1)
       continue;
     if (sscanf(line, "master_tick=%d", &found_tick) == 1)
       continue;
@@ -928,6 +933,14 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     sscanf(line, "max_one_cell_debris_count=%d", &max_one_cell_debris_count);
   }
   fclose(fp);
+  const char * accepted_restore_source = restore_source_sha[0] ?
+    restore_source_sha : source_sha;
+  if (strcmp(found_source_sha, accepted_restore_source)) {
+    fprintf(stderr,
+            "ERROR checkpoint source migration denied: found %s, accepted %s\n",
+            found_source_sha, accepted_restore_source);
+    exit(2);
+  }
   if (canonical_schedule_enabled() &&
       (strcmp(found_version, schedule_version) || strcmp(found_sha, schedule_sha))) {
     fprintf(stderr,
@@ -948,20 +961,23 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   if (canonical_schedule_enabled()) {
     t = found_target;
     recovered_checkpoint_iteration = found_iteration;
-    /* centered.h calls stability once from its init event and again for the
-     * resumed iteration. The first call may compute dt but must not advance
-     * the persisted timestep-ramp history. */
-    internal_nozzle_timestep_restore_probe = 1;
-    snprintf(pending_prediction_closure_path,
-             sizeof(pending_prediction_closure_path),
-             "%s.prediction-closure-v4", checkpoint);
-    if (!file_exists_nonzero(pending_prediction_closure_path)) {
-      fprintf(stderr, "ERROR prediction-closure-v4 checkpoint is missing: %s\n",
-              pending_prediction_closure_path);
-      exit(2);
-    }
-    pending_prediction_closure_restore = 1;
   }
+  /* Every v4 checkpoint, including an accepted legacy-schedule generation,
+   * has a verified prediction-read closure.  Native dump/restore owns the
+   * mesh and named fields, while this companion restores the face velocity,
+   * centered acceleration and timestep history consumed before the first
+   * resumed projection.  Restricting this to canonical schedules silently
+   * discarded valid state and introduced a restart-only trajectory split. */
+  internal_nozzle_timestep_restore_probe = 1;
+  snprintf(pending_prediction_closure_path,
+           sizeof(pending_prediction_closure_path),
+           "%s.prediction-closure-v4", checkpoint);
+  if (!file_exists_nonzero(pending_prediction_closure_path)) {
+    fprintf(stderr, "ERROR prediction-closure-v4 checkpoint is missing: %s\n",
+            pending_prediction_closure_path);
+    exit(2);
+  }
+  pending_prediction_closure_restore = 1;
 }
 
 static void recover_metrics_from_existing_raw (void) {
@@ -1053,6 +1069,7 @@ static void print_usage (const char *prog) {
           "  --schedule-version STR     canonical schedule version (required with schedule)\n"
           "  --schedule-sha STR         canonical schedule SHA-256 (required with schedule)\n"
           "  --source-sha STR           source SHA-256 recorded in every output manifest\n"
+          "  --restore-source-sha HASH  explicit predecessor source accepted only for restore\n"
           "  --schedule-tolerance FLOAT event-time acceptance tolerance\n"
           "  --light-base-stride INT    lightweight base stride in master ticks\n"
           "  --light-dense-stride INT   lightweight dense-window stride\n"
@@ -1149,6 +1166,9 @@ static void parse_args (int argc, char **argv) {
       copy_string(schedule_sha, sizeof(schedule_sha), require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--source-sha"))
       copy_string(source_sha, sizeof(source_sha), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--restore-source-sha"))
+      copy_string(restore_source_sha, sizeof(restore_source_sha),
+                  require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--schedule-tolerance"))
       schedule_time_tolerance = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--light-base-stride"))
@@ -1317,6 +1337,148 @@ static void compute_exit_metrics (double *mean_u, double *flow, double *area, do
   *flow = sumu;
   *area = suma;
   *profile_sanity = profile_den > 0. ? profile_num/profile_den : 0.;
+}
+
+#define HYDRAULIC_PLANE_COUNT 6
+
+static const double hydraulic_plane_dh[HYDRAULIC_PLANE_COUNT] = {
+  0.5, 1.75, 5.25, 14.5, 15.0, 15.25
+};
+
+static const char * hydraulic_plane_label[HYDRAULIC_PLANE_COUNT] = {
+  "upstream_plenum", "pre_contraction", "post_contraction",
+  "legacy_exit_inner", "geometric_nozzle_exit", "near_exit_projected_aperture"
+};
+
+static double interval_overlap (double alo, double ahi, double blo, double bhi) {
+  return max(0., min(ahi, bhi) - max(alo, blo));
+}
+
+/* Exact y-z overlap with the declared rectangular aperture.  This avoids
+ * treating embedded volume fraction cs[] as a face-area fraction.  cs[] is
+ * still required to identify a retained fluid leaf.  Planes at and after the
+ * geometric exit use the exit aperture projected downstream. */
+static double hydraulic_aperture_overlap
+  (double plane_dh, double yp, double zp, double delta)
+{
+  double aperture_dh = min(plane_dh, plenum_Dh + contraction_Dh + straight_Dh);
+  double xp = x_origin_nozzle + aperture_dh*Dhrect;
+  double w = width_internal(xp), h = height_internal(xp);
+  double ymin = domain_quarter ? 0. : -0.5*w;
+  double zmin = domain_quarter ? 0. : -0.5*h;
+  double ymax = 0.5*w, zmax = 0.5*h;
+  return interval_overlap(yp - 0.5*delta, yp + 0.5*delta, ymin, ymax)*
+    interval_overlap(zp - 0.5*delta, zp + 0.5*delta, zmin, zmax);
+}
+
+static double liquid_volume_total (void);
+
+static void append_hydraulic_plane_metrics (int iter_value) {
+  char path[1024];
+  output_path(path, sizeof(path), "hydraulic_plane_metrics.csv");
+  FILE *fp = fopen(path, "a");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot append %s\n", path);
+    exit(2);
+  }
+  double mirror = domain_quarter ? 4. : 1.;
+  double liquid_volume = liquid_volume_total();
+  for (int n = 0; n < HYDRAULIC_PLANE_COUNT; n++) {
+    double xp = x_origin_nozzle + hydraulic_plane_dh[n]*Dhrect;
+    double area = 0., liquid_area = 0., ql = 0., qg = 0.;
+    double jk_liquid = 0., jk_mixture = 0., jp = 0.;
+    int cells = 0;
+    foreach(reduction(+:area) reduction(+:liquid_area) reduction(+:ql)
+            reduction(+:qg) reduction(+:jk_liquid) reduction(+:jk_mixture)
+            reduction(+:jp) reduction(+:cells)) {
+      if (cs[] > 1e-8 && x - 0.5*Delta <= xp && xp < x + 0.5*Delta) {
+        double aw = mirror*hydraulic_aperture_overlap
+          (hydraulic_plane_dh[n], y, z, Delta);
+        if (aw > 0.) {
+          double ff = clamp(f[], 0., 1.);
+          double ux = u.x[];
+          double rhomix = rho2 + ff*(rho1 - rho2);
+          area += aw;
+          liquid_area += ff*aw;
+          ql += ff*ux*aw;
+          qg += (1. - ff)*ux*aw;
+          jk_liquid += rho1*ff*sq(ux)*aw;
+          jk_mixture += rhomix*sq(ux)*aw;
+          jp += p[]*aw;
+          cells++;
+        }
+      }
+    }
+    double mean_pressure = area > 0. ? jp/area : 0.;
+    double u_area = liquid_area > 0. ? ql/liquid_area : 0.;
+    double u_flux = fabs(ql) > 1e-30 ? jk_liquid/(rho1*ql) : 0.;
+    double mdot_liquid = rho1*ql;
+    double mdot_mixture = rho1*ql + rho2*qg;
+    fprintf(fp,
+            "%s,%.12g,%d,%d,%s,%.12g,%.12g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%s,%s,%d,%s\n",
+            case_id, t, hydraulic_metric_index, iter_value, hydraulic_plane_label[n],
+            hydraulic_plane_dh[n], xp, cells, area, liquid_area, ql,
+            mdot_liquid, mdot_mixture, jk_liquid, jk_mixture, jp,
+            jk_mixture + jp, u_area, u_flux, mean_pressure,
+            pressure_value - mean_pressure, ql*u_area,
+            cumulative_liquid_inflow, cumulative_liquid_outflow,
+            liquid_volume, pressure_value,
+            "rho_mix=rho2+f*(rho1-rho2)",
+            "exact_rectangular_aperture_leaf_overlap_v1",
+            "runtime_cell_centered_p_after_centered_projection", maxlevel,
+            restored_from[0] ? restored_from : "fresh");
+  }
+  fclose(fp);
+}
+
+static void append_solver_health_metrics (int iter_value) {
+  char path[1024];
+  output_path(path, sizeof(path), "solver_health_metrics.csv");
+  FILE *fp = fopen(path, "a");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot append %s\n", path);
+    exit(2);
+  }
+  fprintf(fp,
+          "%s,%.12g,%d,%d,%.17g,%.17g,%.17g,%.17g,%d,%ld,"
+          "%d,%.17g,%.17g,%d,%d,%.17g,%.17g,%d,"
+          "%d,%.17g,%.17g,%d,%.17g,%.17g,%d,%s\n",
+          case_id, t, hydraulic_metric_index, iter_value, dt, DT, dtmax, CFL,
+          grid->maxdepth, grid->tn,
+          mgp.i, mgp.resb, mgp.resa, mgp.nrelax,
+          mgpf.i, mgpf.resb, mgpf.resa, mgpf.nrelax,
+          mgu.i, mgu.resb, mgu.resa, mgu.nrelax,
+          perf.t, perf.speed, maxlevel,
+          restored_from[0] ? restored_from : "fresh");
+  fclose(fp);
+}
+
+static void append_hydraulic_plane_profiles (int iter_value) {
+  char path[1024];
+  output_path(path, sizeof(path), "hydraulic_plane_profiles.csv");
+  FILE *fp = fopen(path, "a");
+  if (!fp) {
+    fprintf(stderr, "ERROR cannot append %s\n", path);
+    exit(2);
+  }
+  double mirror = domain_quarter ? 4. : 1.;
+  for (int n = 0; n < HYDRAULIC_PLANE_COUNT; n++) {
+    double xp = x_origin_nozzle + hydraulic_plane_dh[n]*Dhrect;
+    foreach(serial) {
+      if (cs[] > 1e-8 && x - 0.5*Delta <= xp && xp < x + 0.5*Delta) {
+        double aw = mirror*hydraulic_aperture_overlap
+          (hydraulic_plane_dh[n], y, z, Delta);
+        if (aw > 0.)
+          fprintf(fp,
+                  "%s,%.12g,%d,%d,%s,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.17g,%.12g,%d,%.12g,%.12g,%s\n",
+                  case_id, t, field_frame_index, iter_value,
+                  hydraulic_plane_label[n], hydraulic_plane_dh[n], xp,
+                  x, y, z, f[], u.x[], u.y[], u.z[], p[], cs[], level, Delta,
+                  aw, restored_from[0] ? restored_from : "fresh");
+      }
+    }
+  }
+  fclose(fp);
 }
 
 static double liquid_volume_total (void) {
@@ -1784,6 +1946,7 @@ static void write_post_projection_fields (int iter_value) {
           restored_from[0] ? restored_from : "fresh",
           "f|ux|uy|uz|velocity_magnitude|vorticity_magnitude|p|cs");
   fclose(mf);
+  append_hydraulic_plane_profiles(iter_value);
   field_frame_index++;
 }
 
@@ -1809,6 +1972,12 @@ static void initialize_output_files (void) {
   write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,metadata_file,prediction_closure_state_file\n");
   output_path(path, sizeof(path), "field_frame_manifest.csv");
   write_header_if_missing(path, "case_id,domain_mode,field_frame_index,t,i,filename,sample_count,p_min,p_max,p_range,pressure_nonzero,f_min,f_max,velocity_magnitude_min,velocity_magnitude_max,vorticity_magnitude_min,vorticity_magnitude_max,pressure_provenance,event_provenance,pressure_gauge_context,gravity_enabled,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,maxlevel,restart_lineage,field_list\n");
+  output_path(path, sizeof(path), "hydraulic_plane_metrics.csv");
+  write_header_if_missing(path, "case_id,t,metric_frame_index,i,plane_label,plane_x_Dh,plane_x,intersecting_leaf_count,fluid_area,liquid_area,Q_l,mdot_l,mdot_mix,J_k_liquid,J_k_mixture,J_p,J_total,area_weighted_liquid_velocity,flux_weighted_liquid_velocity,area_mean_pressure,forcing_to_plane_pressure_drop,legacy_Q_l_times_area_weighted_velocity,cumulative_liquid_inflow,cumulative_liquid_outflow,liquid_volume,pressure_forcing,density_convention,quadrature,pressure_provenance,maxlevel,restart_lineage\n");
+  output_path(path, sizeof(path), "hydraulic_plane_profiles.csv");
+  write_header_if_missing(path, "case_id,t,field_frame_index,i,plane_label,plane_x_Dh,plane_x,x,y,z,f,ux,uy,uz,p,cs,level,Delta,intersection_area,restart_lineage\n");
+  output_path(path, sizeof(path), "solver_health_metrics.csv");
+  write_header_if_missing(path, "case_id,t,metric_frame_index,i,dt,DT,dtmax,CFL,grid_maxdepth,total_grid_cells,mgp_i,mgp_resb,mgp_resa,mgp_nrelax,mgpf_i,mgpf_resb,mgpf_resa,mgpf_nrelax,mgu_i,mgu_resb,mgu_resa,mgu_nrelax,perf_elapsed,perf_speed,maxlevel,restart_lineage\n");
   write_field_export_contract();
   rewrite_visual_manifest();
   rewrite_surface_manifest();
@@ -2032,6 +2201,11 @@ static void write_checkpoint_dump (int iter_value) {
 int main (int argc, char **argv) {
   parse_args(argc, argv);
   base_pressure_value = pressure_value;
+  if (restore_source_sha[0] && !restore_requested && !auto_restore) {
+    fprintf(stderr,
+            "ERROR --restore-source-sha requires --restore or --auto-restore\n");
+    return 2;
+  }
   if (!canonical_schedule_enabled() && enable_field_export && field_dt <= 0.) {
     fprintf(stderr, "ERROR --field-dt must be positive when field export is enabled\n");
     return 2;
@@ -2224,6 +2398,36 @@ event post_projection_fields (i++, last) {
     next_field_export_time = t + field_dt;
 }
 
+/* Compact hydraulic metrics must use the same completed-projection state as
+ * the field exports.  Time-scheduled events run before the centered.h last
+ * group, so writing these metrics from diagnostics() would mix pre-projection
+ * scalars with post-projection field frames at the same nominal time. */
+event post_projection_hydraulics (i++, last) {
+  if (restored_ok && t <= restore_time + schedule_time_tolerance)
+    return 0;
+  if (canonical_schedule_enabled()) {
+    int tick = canonical_tick_for_time(t);
+    if (tick < 0 || !lightweight_tick(tick))
+      return 0;
+    select_output_target(tick);
+  }
+  else {
+    if (diagnostic_dt <= 0.)
+      return 0;
+    int tick = (int) llround(t/diagnostic_dt);
+    double target = tick*diagnostic_dt;
+    double tolerance = max(schedule_time_tolerance, 1e-10*diagnostic_dt);
+    if (tick < 0 || fabs(t - target) > tolerance)
+      return 0;
+    current_master_tick = tick;
+    current_target_time = target;
+    current_actual_time = t;
+  }
+  append_hydraulic_plane_metrics(i);
+  append_solver_health_metrics(i);
+  hydraulic_metric_index++;
+}
+
 event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
@@ -2242,7 +2446,6 @@ event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
   last_iter = i;
   double mean_u = 0., flow = 0., area = 0., ps = 0., lv = 0., af = 0., ip = 0., growth = 1.;
   update_metrics(&mean_u, &flow, &area, &ps, &lv, &af, &ip, &growth);
-
   int nt = 0, nd = 0, debris = 0;
   char path[1024];
   output_path(path, sizeof(path), "raw_component_summary.csv");
@@ -2333,15 +2536,25 @@ event surface_facets (t = 0.; t += visual_dt; t <= end_time + 1e-12) {
   write_surface_facets(i);
 }
 
-event checkpoint_dumps (t = checkpoint_dt; t += checkpoint_dt; t <= end_time + 1e-12) {
+/* Legacy cadence still needs a post-projection checkpoint.  A time-scheduled
+ * event runs before the centered.h i++,last group and therefore freezes a
+ * different event phase than the terminal diagnostic state.  Other legacy
+ * time events already make the solver land on diagnostic_dt; require an exact
+ * checkpoint multiple here after projection instead. */
+event checkpoint_dumps (i++, last) {
   if (canonical_schedule_enabled())
     return 0;
   if (checkpoint_dt <= 0.)
     return 0;
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
-  current_master_tick = checkpoint_index + 1;
-  current_target_time = t;
+  int tick = (int) llround(t/checkpoint_dt);
+  double target = tick*checkpoint_dt;
+  double tolerance = max(schedule_time_tolerance, 1e-10*checkpoint_dt);
+  if (tick <= 0 || fabs(t - target) > tolerance)
+    return 0;
+  current_master_tick = tick;
+  current_target_time = target;
   current_actual_time = t;
   write_checkpoint_dump(i);
 }

@@ -290,7 +290,8 @@ internal_nozzle_invariant_snapshot_v4 (void)
 static void internal_nozzle_read_closure_v4
   (const char * path, InternalNozzleCheckpointHeaderV4 * header,
    InternalNozzleCellRecordV4 ** cells_out,
-   InternalNozzleFaceRecordV4 ** faces_out)
+   InternalNozzleFaceRecordV4 ** faces_out,
+   const char * accepted_source_sha)
 {
   FILE * fp = fopen(path, "rb");
   if (!fp) {
@@ -318,7 +319,7 @@ static void internal_nozzle_read_closure_v4
     fprintf(stderr, "ERROR invalid prediction-closure counts in %s\n", path);
     exit(2);
   }
-  if (strcmp(header->source_sha256, source_sha) ||
+  if (strcmp(header->source_sha256, accepted_source_sha) ||
       strcmp(header->schedule_version_value, schedule_version) ||
       strcmp(header->schedule_sha256, schedule_sha)) {
     fprintf(stderr, "ERROR prediction-closure provenance mismatch in %s\n", path);
@@ -440,7 +441,8 @@ static void internal_nozzle_restore_prediction_closure_v4 (const char * path)
   InternalNozzleCellRecordV4 * expected_cells = NULL, * current_cells = NULL;
   InternalNozzleFaceRecordV4 * expected_faces = NULL, * current_faces = NULL;
   internal_nozzle_read_closure_v4
-    (path, &header, &expected_cells, &expected_faces);
+    (path, &header, &expected_cells, &expected_faces,
+     restore_source_sha[0] ? restore_source_sha : source_sha);
   internal_nozzle_validate_current_keys_v4
     (&header, expected_cells, expected_faces, &current_cells, &current_faces);
   free(current_cells); free(current_faces);
@@ -584,7 +586,7 @@ static void internal_nozzle_write_prediction_closure_v4 (const char * path)
   InternalNozzleCheckpointHeaderV4 check_header;
   probe_before = internal_nozzle_probe_capture();
   internal_nozzle_read_closure_v4
-    (path, &check_header, &check_cells, &check_faces);
+    (path, &check_header, &check_cells, &check_faces, source_sha);
   probe_after = internal_nozzle_probe_capture();
   internal_nozzle_probe_compare
     (&probe_before, &probe_after, "candidate_container_reread",
