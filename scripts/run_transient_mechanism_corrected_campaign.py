@@ -145,11 +145,18 @@ def main() -> int:
     }
     if ledger_path.exists():
         ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+        prior_targets = [float(value) for value in ledger.get("targets_tstar", [])]
+        ledger["targets_tstar"] = sorted(set(prior_targets + targets))
+        if ledger.get("source_sha256") != args.source_sha256:
+            raise RuntimeError("resume source SHA-256 disagrees with campaign ledger")
+        if abs(float(ledger.get("tstar_factor", 0.)) - args.tstar_factor) > 1e-15:
+            raise RuntimeError("resume t-star factor disagrees with campaign ledger")
 
     elapsed = sum(float(item.get("elapsed_seconds", 0.)) for item in ledger["segments"])
     current_time = checkpoint_time(select_checkpoint(args.checkpoint_manager, args.campaign_root)) \
         if state_path.exists() else 0.
-    for target_index, target_tstar in enumerate(targets, start=1):
+    next_segment_number = len(ledger["segments"]) + 1
+    for target_tstar in targets:
         end_time = target_tstar / args.tstar_factor
         if end_time <= current_time + 1e-9:
             continue
@@ -161,7 +168,7 @@ def main() -> int:
         if free < args.minimum_free_bytes:
             raise RuntimeError(f"filesystem free-space guard failed before next segment: {free}")
 
-        segment = f"segment-{target_index:04d}-tstar-{target_tstar:g}"
+        segment = f"segment-{next_segment_number:04d}-tstar-{target_tstar:g}"
         segment_root = args.output_root / segment
         if segment_root.exists():
             raise RuntimeError(f"refusing duplicate or ambiguous segment output: {segment_root}")
@@ -206,6 +213,7 @@ def main() -> int:
             "filesystem_free_bytes_after": shutil.disk_usage(args.batch_root).free,
             "completed_at_utc": now(),
         })
+        next_segment_number += 1
         atomic_json(ledger_path, ledger)
 
     ledger["completed_at_utc"] = now()

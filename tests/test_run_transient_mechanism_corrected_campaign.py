@@ -49,6 +49,14 @@ class CorrectedCampaignTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 MODULE.terminal_payload(terminal)
 
+    def test_atomic_json_replaces_resume_ledger(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ledger.json"
+            MODULE.atomic_json(path, {"targets_tstar": [1.0, 2.0]})
+            MODULE.atomic_json(path, {"targets_tstar": [1.0, 2.0, 4.0]})
+            self.assertEqual(json.loads(path.read_text())["targets_tstar"], [1.0, 2.0, 4.0])
+            self.assertFalse(path.with_suffix(".json.tmp").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
