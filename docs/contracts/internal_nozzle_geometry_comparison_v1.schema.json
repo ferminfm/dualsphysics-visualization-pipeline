@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "internal_nozzle_geometry_comparison_v1.schema.json",
+  "title": "Internal-nozzle geometry comparison record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "provenance",
+    "geometry",
+    "coordinates",
+    "hydraulics",
+    "observations",
+    "resolution_uncertainty",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema": {"const": "internal_nozzle_geometry_comparison_v1"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scientific_commit", "configuration_sha256", "domain_mode", "checkpoint_generation", "frame_id"],
+      "properties": {
+        "scientific_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "configuration_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "domain_mode": {"enum": ["full", "quarter"]},
+        "checkpoint_generation": {"type": ["integer", "null"], "minimum": 1},
+        "frame_id": {"type": "string", "minLength": 1},
+        "artifact_manifest": {"type": ["string", "null"]}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "area", "hydraulic_diameter", "major", "minor", "aspect_ratio"],
+      "properties": {
+        "family": {"enum": ["rectangular", "square", "elliptical"]},
+        "area": {"type": "number", "exclusiveMinimum": 0},
+        "hydraulic_diameter": {"type": "number", "exclusiveMinimum": 0},
+        "major": {"type": "number", "exclusiveMinimum": 0},
+        "minor": {"type": "number", "exclusiveMinimum": 0},
+        "aspect_ratio": {"type": "number", "minimum": 1}
+      }
+    },
+    "coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["t_star", "cumulative_discharge_over_A0Dh"],
+      "properties": {
+        "t_star": {"type": "number", "minimum": 0},
+        "cumulative_discharge_over_A0Dh": {"type": "number", "minimum": 0}
+      }
+    },
+    "hydraulics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Q_l", "mdot_l", "J_k", "J_p", "J_total", "pressure_drop"],
+      "properties": {
+        "Q_l": {"type": "number"},
+        "mdot_l": {"type": "number"},
+        "J_k": {"type": "number"},
+        "J_p": {"type": "number"},
+        "J_total": {"type": "number"},
+        "pressure_drop": {"type": "number"}
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["station_x_over_Dh", "area_over_A0", "major", "minor", "aspect_ratio", "centroid_y", "centroid_z"],
+        "properties": {
+          "station_x_over_Dh": {"type": "number"},
+          "area_over_A0": {"type": "number", "minimum": 0},
+          "major": {"type": "number", "minimum": 0},
+          "minor": {"type": "number", "minimum": 0},
+          "aspect_ratio": {"type": ["number", "null"], "minimum": 1},
+          "centroid_y": {"type": "number"},
+          "centroid_z": {"type": "number"},
+          "principal_axis_angle": {"type": ["number", "null"]},
+          "interface_proxy": {"type": ["number", "null"], "minimum": 0}
+        }
+      }
+    },
+    "resolution_uncertainty": {
+      "enum": ["l7_only_resolution_sensitive", "matched_l7_l8_bounded", "not_evaluated"]
+    },
+    "claim_boundary": {"type": "string", "minLength": 1}
+  }
+}
