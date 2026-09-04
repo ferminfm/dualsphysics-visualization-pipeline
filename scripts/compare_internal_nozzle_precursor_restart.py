@@ -32,8 +32,10 @@ CELL_KEY = ("x", "y", "z", "Delta")
 CELL_FIELDS = ("cs", "ux", "uy", "uz", "p")
 HISTORY_FIELDS = (
     "Q_l", "mdot_l", "J_k", "pressure_drop", "exit_area", "U_bulk",
-    "beta", "alpha", "mass_flow_imbalance", "profile_l2_change",
-    "max_ux_change", "mgp_residual", "mgu_residual", "cell_count",
+    "beta", "alpha", "inlet_boundary_face_flow",
+    "outlet_boundary_face_flow", "mass_flow_imbalance",
+    "profile_l2_change", "max_ux_change", "mgp_residual", "mgu_residual",
+    "cell_count",
 )
 PLANE_FIELDS = ("area", "Q_l", "mdot_l", "J_k", "pressure_mean", "beta", "alpha")
 CHECKPOINT_METADATA_KEYS = {

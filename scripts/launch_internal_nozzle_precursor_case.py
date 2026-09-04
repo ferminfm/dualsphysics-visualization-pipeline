@@ -352,6 +352,7 @@ def load_schedule(path: Path, expected_version: str) -> tuple[Path, dict[str, ob
 PRECURSOR_HISTORY_FIELDS = (
     "case_id", "t", "t_star", "i", "Q_l", "mdot_l", "J_k",
     "pressure_drop", "exit_area", "U_bulk", "beta", "alpha",
+    "inlet_boundary_face_flow", "outlet_boundary_face_flow",
     "mass_flow_imbalance", "profile_l2_change", "max_ux_change",
     "mgp_iterations", "mgu_iterations", "mgp_residual", "mgu_residual",
     "cell_count", "restart_state",
