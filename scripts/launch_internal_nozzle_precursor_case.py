@@ -20,6 +20,11 @@ from typing import Sequence
 TRANSFER_SCHEMA = "internal_nozzle_exact_target_transfer_v1"
 LAUNCH_SCHEMA = "internal_nozzle_bound_launch_v3"
 SCHEDULE_SCHEMA = "internal_nozzle_launch_schedule_v1"
+W2_GEOMETRY_SCHEMA = "internal_nozzle_w2_geometry_v1"
+W2_GEOMETRY_FINGERPRINT = (
+    "w2-area-pi-over-144-plenum2dh-contraction3dh-straight10dh-smoothstep-v1"
+)
+W2_PLENUM_TO_EXIT_AREA_RATIO = 9.0
 TRANSFER_METHOD = "exact_target_leaf_join_of_precursor_interpolated_samples"
 TARGET_SAMPLING_METHOD = (
     "basilisk_interpolate_at_target_leaf_center_or_strict_outlet_"
@@ -55,6 +60,7 @@ PROTECTED_SOLVER_OPTIONS = {
     "--dense-start-tick",
     "--dense-end-tick",
     "--profile-bulk-velocity",
+    "--profile-target-flow",
     "--precursor-convergence-sha256",
     "--precursor-history-sha256",
     "--precursor-target-q",
@@ -444,6 +450,8 @@ def load_convergence_bulk_target(
     }, "precursor terminal run contract")
     if (run_contract.get("schema") != "internal_nozzle_precursor_run_v1" or
             run_contract.get("case_id") != report.get("case_id") or
+            run_contract.get("geometry_schema") != W2_GEOMETRY_SCHEMA or
+            run_contract.get("geometry_fingerprint") != W2_GEOMETRY_FINGERPRINT or
             run_contract.get("source_commit") != precursor_source_commit or
             run_contract.get("source_sha256") != precursor_source_sha256):
         raise ValueError("precursor terminal run-contract source identity mismatch")
@@ -464,10 +472,12 @@ def load_convergence_bulk_target(
         flow = float(terminal["Q_l"])
         area = float(terminal["exit_area"])
         bulk = float(terminal["U_bulk"])
+        inlet_flow = float(terminal["inlet_boundary_face_flow"])
     except (TypeError, ValueError) as error:
         raise ValueError("precursor terminal history has invalid numeric data") from error
-    if (not all(math.isfinite(value) for value in (terminal_t_star, flow, area, bulk))
-            or flow <= 0.0 or area <= 0.0 or bulk <= 0.0):
+    if (not all(math.isfinite(value) for value in (
+            terminal_t_star, flow, area, bulk, inlet_flow,
+            )) or flow <= 0.0 or area <= 0.0 or bulk <= 0.0 or inlet_flow <= 0.0):
         raise ValueError("precursor terminal history has invalid numeric data")
     first_t_star = finite_number(
         history_record.get("first_t_star"), "precursor history first_t_star",
@@ -487,6 +497,8 @@ def load_convergence_bulk_target(
     if not math.isclose(terminal_t_star, end_t_star, rel_tol=0.0, abs_tol=1e-14):
         raise ValueError("precursor terminal history is not the convergence endpoint")
     derived = flow / area
+    profile_reference_inlet_area = W2_PLENUM_TO_EXIT_AREA_RATIO * area
+    profile_bulk_velocity = inlet_flow / profile_reference_inlet_area
     tolerance = max(1e-14, 1e-12 * abs(derived))
     if not math.isclose(bulk, derived, rel_tol=0.0, abs_tol=tolerance):
         raise ValueError("precursor terminal U_bulk is inconsistent with Q_l/exit_area")
@@ -505,6 +517,12 @@ def load_convergence_bulk_target(
         "terminal_liquid_area": area,
         "reported_bulk_velocity": bulk,
         "bulk_velocity": derived,
+        "terminal_inlet_boundary_face_flow": inlet_flow,
+        "profile_reference_inlet_area": profile_reference_inlet_area,
+        "profile_bulk_velocity": profile_bulk_velocity,
+        "profile_flow_match_basis": (
+            "terminal_precursor_inlet_boundary_face_flow_over_exact_w2_continuum_plenum_area"
+        ),
         "absolute_consistency_tolerance": tolerance,
     }
 
@@ -939,7 +957,9 @@ def build_contract(args: argparse.Namespace) -> dict[str, object]:
         if args.case_role == "C":
             solver_argv.extend((
                 "--profile-bulk-velocity",
-                format(float(bulk_target["bulk_velocity"]), ".17g"),
+                format(float(bulk_target["profile_bulk_velocity"]), ".17g"),
+                "--profile-target-flow",
+                format(float(bulk_target["terminal_inlet_boundary_face_flow"]), ".17g"),
             ))
     if args.restore is not None:
         solver_argv.extend((

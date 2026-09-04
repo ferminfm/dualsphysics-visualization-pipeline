@@ -31,6 +31,9 @@ static char internal_nozzle_transfer_template_path[1024] = "";
 static long internal_nozzle_transfer_expected_cells = 0;
 static long internal_nozzle_transfer_loaded_cells = 0;
 static double internal_nozzle_profile_bulk_velocity = -1.;
+static double internal_nozzle_profile_target_flow = -1.;
+static double internal_nozzle_profile_inlet_area = -1.;
+static double internal_nozzle_profile_achieved_flow = -1.;
 static double internal_nozzle_profile_normalization = 1.;
 static double internal_nozzle_profile_discrete_unit_bulk = -1.;
 
@@ -131,6 +134,11 @@ static int internal_nozzle_parse_precursor_option
       (internal_nozzle_option_value(argc, argv, index));
     return 1;
   }
+  if (!strcmp(option, "--profile-target-flow")) {
+    internal_nozzle_profile_target_flow = atof
+      (internal_nozzle_option_value(argc, argv, index));
+    return 1;
+  }
   return 0;
 }
 
@@ -141,7 +149,8 @@ static void internal_nozzle_print_precursor_usage (void) {
     "  --precursor-transfer-sha256 HEX preverified transfer-file SHA-256\n"
     "  --precursor-pressure-mode MODE transferred (primary) or velocity-only control\n"
     "  --write-transfer-template PATH  write internal target leaves and stop at t=0\n"
-    "  --profile-bulk-velocity FLOAT   Case-C plenum bulk velocity\n",
+    "  --profile-bulk-velocity FLOAT   Case-C plenum bulk velocity\n"
+    "  --profile-target-flow FLOAT     bound precursor inlet-face flow\n",
     stdout);
 }
 
@@ -190,15 +199,17 @@ static int internal_nozzle_validate_precursor_options
   }
 #ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
   if (internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START ||
-      !(internal_nozzle_profile_bulk_velocity > 0.)) {
+      !(internal_nozzle_profile_bulk_velocity > 0.) ||
+      !(internal_nozzle_profile_target_flow > 0.)) {
     fprintf(stderr,
-            "ERROR profile-controlled diagnostic requires precursor start and positive bulk velocity\n");
+            "ERROR profile-controlled diagnostic requires precursor start, positive bulk velocity, and positive target flow\n");
     return 0;
   }
 #else
-  if (internal_nozzle_profile_bulk_velocity > 0.) {
+  if (internal_nozzle_profile_bulk_velocity > 0. ||
+      internal_nozzle_profile_target_flow > 0.) {
     fprintf(stderr,
-            "ERROR --profile-bulk-velocity is only valid in profile-controlled build\n");
+            "ERROR profile target options are only valid in profile-controlled build\n");
     return 0;
   }
 #endif
@@ -252,7 +263,19 @@ static void internal_nozzle_configure_profile_normalization (void) {
   }
   internal_nozzle_profile_discrete_unit_bulk = unit_flow/area;
   internal_nozzle_profile_normalization =
-    1./internal_nozzle_profile_discrete_unit_bulk;
+    internal_nozzle_profile_target_flow/
+    (internal_nozzle_profile_bulk_velocity*unit_flow);
+  internal_nozzle_profile_inlet_area = area;
+  internal_nozzle_profile_achieved_flow =
+    internal_nozzle_profile_bulk_velocity*
+    internal_nozzle_profile_normalization*unit_flow;
+  if (!(internal_nozzle_profile_normalization > 0.) ||
+      !isfinite(internal_nozzle_profile_normalization) ||
+      !isfinite(internal_nozzle_profile_achieved_flow)) {
+    fprintf(stderr,
+            "ERROR sampled Poiseuille inlet flow normalization is invalid\n");
+    exit(2);
+  }
 }
 #endif
 
@@ -367,20 +390,31 @@ static void internal_nozzle_write_initialization_contract (void) {
   double profile_achieved_bulk_velocity = -1.;
   double profile_target_absolute_error = -1.;
   double profile_numerical_tolerance = -1.;
+  double profile_target_flow_absolute_error = -1.;
+  double profile_target_flow_numerical_tolerance = -1.;
+  double profile_flow_implied_bulk_velocity = -1.;
   int poiseuille_profile_validation_passed = 0;
 #ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
   profile_achieved_bulk_velocity = internal_nozzle_profile_bulk_velocity*
     internal_nozzle_profile_discrete_unit_bulk*
     internal_nozzle_profile_normalization;
+  profile_flow_implied_bulk_velocity =
+    internal_nozzle_profile_target_flow/internal_nozzle_profile_inlet_area;
   profile_target_absolute_error = fabs(profile_achieved_bulk_velocity -
-                                       internal_nozzle_profile_bulk_velocity);
+                                       profile_flow_implied_bulk_velocity);
   profile_numerical_tolerance = 64.*DBL_EPSILON*
-    max(1., fabs(internal_nozzle_profile_bulk_velocity));
+    max(1., fabs(profile_flow_implied_bulk_velocity));
+  profile_target_flow_absolute_error = fabs
+    (internal_nozzle_profile_achieved_flow - internal_nozzle_profile_target_flow);
+  profile_target_flow_numerical_tolerance = 64.*DBL_EPSILON*
+    max(1., fabs(internal_nozzle_profile_target_flow));
   poiseuille_profile_validation_passed =
     isfinite(profile_achieved_bulk_velocity) &&
     internal_nozzle_profile_discrete_unit_bulk > 0. &&
     internal_nozzle_profile_normalization > 0. &&
-    profile_target_absolute_error <= profile_numerical_tolerance;
+    profile_target_absolute_error <= profile_numerical_tolerance &&
+    internal_nozzle_profile_inlet_area > 0. &&
+    profile_target_flow_absolute_error <= profile_target_flow_numerical_tolerance;
   if (!poiseuille_profile_validation_passed) {
     fprintf(stderr, "ERROR sampled Poiseuille inlet does not preserve the bound bulk target\n");
     exit(2);
@@ -404,7 +438,7 @@ static void internal_nozzle_write_initialization_contract (void) {
   }
   fprintf(stream,
     "{\n"
-    "  \"schema\": \"internal_nozzle_initialization_v2\",\n"
+    "  \"schema\": \"internal_nozzle_initialization_v3\",\n"
     "  \"execution_id\": \"%s\",\n"
     "  \"segment_id\": \"%s\",\n"
     "  \"case_role\": \"%s\",\n"
@@ -425,8 +459,14 @@ static void internal_nozzle_write_initialization_contract (void) {
     "  \"profile_discrete_unit_bulk\": %.17g,\n"
     "  \"profile_normalization\": %.17g,\n"
     "  \"profile_achieved_bulk_velocity\": %.17g,\n"
+    "  \"profile_flow_implied_bulk_velocity\": %.17g,\n"
     "  \"profile_target_absolute_error\": %.17g,\n"
     "  \"profile_numerical_tolerance\": %.17g,\n"
+    "  \"profile_target_flow\": %.17g,\n"
+    "  \"profile_inlet_area\": %.17g,\n"
+    "  \"profile_achieved_flow\": %.17g,\n"
+    "  \"profile_target_flow_absolute_error\": %.17g,\n"
+    "  \"profile_target_flow_numerical_tolerance\": %.17g,\n"
     "  \"poiseuille_profile_validation_passed\": %s,\n"
     "  \"predecessor_segment_id\": \"%s\",\n"
     "  \"restore_checkpoint_sha256\": \"%s\",\n"
@@ -445,8 +485,14 @@ static void internal_nozzle_write_initialization_contract (void) {
     internal_nozzle_profile_bulk_velocity,
     internal_nozzle_profile_discrete_unit_bulk,
     internal_nozzle_profile_normalization,
-    profile_achieved_bulk_velocity, profile_target_absolute_error,
+    profile_achieved_bulk_velocity, profile_flow_implied_bulk_velocity,
+    profile_target_absolute_error,
     profile_numerical_tolerance,
+    internal_nozzle_profile_target_flow,
+    internal_nozzle_profile_inlet_area,
+    internal_nozzle_profile_achieved_flow,
+    profile_target_flow_absolute_error,
+    profile_target_flow_numerical_tolerance,
     poiseuille_profile_validation_passed ? "true" : "false",
     predecessor_segment_id,
     restore_checkpoint_sha256, restore_metadata_sha256,

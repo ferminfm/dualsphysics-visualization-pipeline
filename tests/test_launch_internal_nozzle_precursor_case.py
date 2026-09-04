@@ -104,7 +104,8 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
         history = root / "precursor_history.csv"
         row = {name: "0" for name in MODULE.PRECURSOR_HISTORY_FIELDS}
         row.update({"case_id": "precursor", "t_star": "4", "Q_l": "2",
-                    "exit_area": "4", "U_bulk": "0.5", "restart_state": "fresh"})
+                    "exit_area": "4", "U_bulk": "0.5",
+                    "inlet_boundary_face_flow": "1.8", "restart_state": "fresh"})
         with history.open("w", newline="", encoding="utf-8") as stream:
             writer = csv.DictWriter(stream, fieldnames=MODULE.PRECURSOR_HISTORY_FIELDS)
             writer.writeheader()
@@ -114,8 +115,8 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
         precursor_run_contract = root / "precursor-run-contract.json"
         precursor_run_contract.write_text(json.dumps({
             "schema": "internal_nozzle_precursor_run_v1",
-            "case_id": "precursor", "geometry_schema": "geometry-v1",
-            "geometry_fingerprint": "geometry-fingerprint-v1",
+            "case_id": "precursor", "geometry_schema": MODULE.W2_GEOMETRY_SCHEMA,
+            "geometry_fingerprint": MODULE.W2_GEOMETRY_FINGERPRINT,
             "source_commit": precursor_source_commit,
             "source_sha256": precursor_source_sha,
             "pressure_forcing": 351.48, "density_liquid": 1,
@@ -296,8 +297,46 @@ def test_role_specific_identity_and_schedule_are_injected(tmp_path: Path, role: 
         assert payload["precursor_transfer"]["precursor_source_commit"] == "b" * 40
         assert payload["scientific_source_commit"] == "a" * 40
     if role == "C":
-        assert MODULE.required_solver_option(argv, "--profile-bulk-velocity") == "0.5"
+        assert float(MODULE.required_solver_option(
+            argv, "--profile-bulk-velocity",
+        )) == pytest.approx(0.05)
+        assert payload["precursor_bulk_target"]["terminal_inlet_boundary_face_flow"] == 1.8
+        assert payload["precursor_bulk_target"]["profile_reference_inlet_area"] == 36.0
+        assert payload["precursor_bulk_target"]["profile_flow_match_basis"] == (
+            "terminal_precursor_inlet_boundary_face_flow_over_exact_w2_continuum_plenum_area"
+        )
         assert payload["poiseuille_profile_validation"]["pass"] is True
+
+
+def test_case_c_profile_target_uses_inlet_flow_not_exit_bulk_velocity(tmp_path: Path) -> None:
+    args = fixture(tmp_path, "C")
+    payload = MODULE.build_contract(args)
+    assert payload["precursor_bulk_target"]["bulk_velocity"] == 0.5
+    assert payload["precursor_bulk_target"]["profile_bulk_velocity"] == 0.05
+    assert float(MODULE.required_solver_option(
+        payload["solver_argv"], "--profile-bulk-velocity",
+    )) == pytest.approx(0.05)
+
+
+def test_precursor_geometry_mismatch_fails_closed(tmp_path: Path) -> None:
+    args = fixture(tmp_path, "C")
+    contract = json.loads(args.precursor_convergence_report.read_text())
+    run_path = Path(contract["inputs"][-1]["run_contract"]["resolved_path"])
+    run = json.loads(run_path.read_text())
+    run["geometry_fingerprint"] = "different-geometry"
+    run_path.write_text(json.dumps(run), encoding="utf-8")
+    contract["inputs"][-1]["run_contract"]["sha256"] = digest(run_path)
+    contract["inputs"][-1]["run_contract"]["size_bytes"] = run_path.stat().st_size
+    args.precursor_convergence_report.write_text(json.dumps(contract), encoding="utf-8")
+    report_sha = digest(args.precursor_convergence_report)
+    args.precursor_convergence_report_sha256 = report_sha
+    manifest = json.loads(args.transfer_manifest.read_text())
+    manifest["precursor_convergence_report_sha256"] = report_sha
+    manifest["final_run_contract_sha256"] = digest(run_path)
+    args.transfer_manifest.write_text(json.dumps(manifest), encoding="utf-8")
+    args.transfer_manifest_sha256 = digest(args.transfer_manifest)
+    with pytest.raises(ValueError, match="source identity mismatch"):
+        MODULE.build_contract(args)
 
 
 def test_schedule_and_convergence_tampering_fail_closed(tmp_path: Path) -> None:

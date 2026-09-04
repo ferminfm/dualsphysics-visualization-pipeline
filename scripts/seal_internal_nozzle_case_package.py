@@ -739,9 +739,10 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         if role == "A":
             if any(option_values(argv, option, context) for option in (
                 "--precursor-transfer", "--precursor-transfer-sha256",
-                "--precursor-convergence-sha256", "--precursor-history-sha256",
-                "--precursor-target-q", "--precursor-target-area",
-                "--precursor-target-velocity-tolerance", "--profile-bulk-velocity",
+                    "--precursor-convergence-sha256", "--precursor-history-sha256",
+                    "--precursor-target-q", "--precursor-target-area",
+                    "--precursor-target-velocity-tolerance", "--profile-bulk-velocity",
+                    "--profile-target-flow",
             )):
                 raise ValueError("Case A argv names a precursor transfer")
         else:
@@ -798,7 +799,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         init_path = regular_under(root, root / f"initialization_contract.{segment_id}.json", context)
         init = load_json(init_path, context + " initialization")
         for record, schema_name in ((runtime, "internal_nozzle_scientific_runtime_v1"),
-                                    (init, "internal_nozzle_initialization_v2")):
+                                    (init, "internal_nozzle_initialization_v3")):
             if (record.get("schema") != schema_name or record.get("execution_id") != execution_id or
                     record.get("segment_id") != segment_id or record.get("case_role") != role or
                     record.get("case_id") != case_id or record.get("solver_sha256") != solver_sha or
@@ -810,6 +811,17 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                 raise ValueError(f"{context}: role-specific {field} mismatch")
         if runtime.get("precursor_transfer_sha256") != transfer_sha or init.get("transfer_sha256") != transfer_sha:
             raise ValueError(f"{context}: transfer identity mismatch")
+        runtime_profile_bulk = finite(
+            runtime.get("profile_bulk_velocity"), context + " runtime profile bulk",
+        )
+        runtime_profile_target_flow = finite(
+            runtime.get("profile_target_flow"), context + " runtime profile target flow",
+        )
+        if role != "C":
+            if (runtime_profile_bulk != -1.0 or runtime_profile_target_flow != -1.0 or
+                    option_values(argv, "--profile-bulk-velocity", context) or
+                    option_values(argv, "--profile-target-flow", context)):
+                raise ValueError(f"{context}: profile-control state present outside Case C")
         if init.get("native_restore_unchanged") is not True:
             raise ValueError(f"{context}: native restore is not preserved")
         restore = bound.get("restore")
@@ -916,7 +928,9 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                     "convergence_report_sha256", "history_sha256",
                     "run_contract_sha256", "terminal_t_star",
                 "terminal_Q_l", "terminal_liquid_area", "reported_bulk_velocity",
-                "bulk_velocity", "absolute_consistency_tolerance",
+                "bulk_velocity", "terminal_inlet_boundary_face_flow",
+                "profile_reference_inlet_area", "profile_bulk_velocity",
+                "profile_flow_match_basis", "absolute_consistency_tolerance",
             }:
                 raise ValueError(f"{context}: precursor bulk-target key set mismatch")
             if (bulk.get("derivation") !=
@@ -994,7 +1008,38 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                 format(target_tolerance, ".17g"), context,
             )
             if role == "C":
-                exact_option(argv, "--profile-bulk-velocity", format(target_value, ".17g"), context)
+                profile_target_flow = finite(
+                    bulk.get("terminal_inlet_boundary_face_flow"),
+                    context + " profile target flow", positive=True,
+                )
+                profile_reference_inlet_area = finite(
+                    bulk.get("profile_reference_inlet_area"),
+                    context + " profile reference inlet area",
+                    positive=True,
+                )
+                profile_target_bulk = finite(
+                    bulk.get("profile_bulk_velocity"), context + " profile target bulk",
+                    positive=True,
+                )
+                if (bulk.get("profile_flow_match_basis") !=
+                        "terminal_precursor_inlet_boundary_face_flow_over_exact_w2_continuum_plenum_area" or
+                        not math.isclose(profile_target_bulk,
+                                         profile_target_flow/profile_reference_inlet_area,
+                                         rel_tol=5e-15, abs_tol=1e-15)):
+                    raise ValueError(f"{context}: profile inlet-flow target mismatch")
+                exact_option(
+                    argv, "--profile-bulk-velocity",
+                    format(profile_target_bulk, ".17g"), context,
+                )
+                exact_option(
+                    argv, "--profile-target-flow",
+                    format(profile_target_flow, ".17g"), context,
+                )
+                if (not math.isclose(runtime_profile_bulk, profile_target_bulk,
+                                     rel_tol=5e-15, abs_tol=1e-15) or
+                        not math.isclose(runtime_profile_target_flow, profile_target_flow,
+                                         rel_tol=5e-15, abs_tol=1e-15)):
+                    raise ValueError(f"{context}: runtime profile target mismatch")
                 profile_bulk = finite(init.get("profile_bulk_velocity"), context + " profile bulk")
                 unit_bulk = finite(
                     init.get("profile_discrete_unit_bulk"), context + " discrete unit bulk",
@@ -1008,22 +1053,62 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                     init.get("profile_achieved_bulk_velocity"), context + " achieved bulk",
                     positive=True,
                 )
+                flow_implied_bulk = finite(
+                    init.get("profile_flow_implied_bulk_velocity"),
+                    context + " flow-implied bulk", positive=True,
+                )
                 error = finite(init.get("profile_target_absolute_error"), context + " profile error")
                 tolerance = finite(
                     init.get("profile_numerical_tolerance"), context + " profile tolerance",
                     positive=True,
                 )
+                observed_profile_flow = finite(
+                    init.get("profile_achieved_flow"), context + " achieved profile flow",
+                    positive=True,
+                )
+                observed_profile_area = finite(
+                    init.get("profile_inlet_area"), context + " observed profile area",
+                    positive=True,
+                )
+                profile_flow_error = finite(
+                    init.get("profile_target_flow_absolute_error"),
+                    context + " profile flow error",
+                )
+                profile_flow_tolerance = finite(
+                    init.get("profile_target_flow_numerical_tolerance"),
+                    context + " profile flow tolerance", positive=True,
+                )
                 expected_numerical_tolerance = 64.0 * sys.float_info.epsilon * max(
-                    1.0, abs(profile_bulk),
+                    1.0, abs(flow_implied_bulk),
+                )
+                expected_flow_tolerance = 64.0 * sys.float_info.epsilon * max(
+                    1.0, abs(profile_target_flow),
                 )
                 if (init.get("poiseuille_profile_validation_passed") is not True or error < 0.0 or
-                        not math.isclose(profile_bulk, target_value, rel_tol=0.0,
+                        not math.isclose(profile_bulk, profile_target_bulk, rel_tol=0.0,
                                          abs_tol=target_tolerance) or
                         not math.isclose(achieved, profile_bulk * unit_bulk * normalization,
                                          rel_tol=5e-15, abs_tol=1e-15) or
-                        not math.isclose(error, abs(achieved - target_value),
+                        not math.isclose(flow_implied_bulk,
+                                         profile_target_flow/observed_profile_area,
+                                         rel_tol=5e-15, abs_tol=1e-15) or
+                        not math.isclose(error, abs(achieved - flow_implied_bulk),
                                          rel_tol=5e-15, abs_tol=1e-15) or error > tolerance):
                     raise ValueError(f"{context}: profile pass artifact is invalid")
+                if (not math.isclose(finite(init.get("profile_target_flow"),
+                                              context + " bound profile flow"),
+                                     profile_target_flow, rel_tol=5e-15, abs_tol=1e-15) or
+                        not math.isclose(observed_profile_flow,
+                                         profile_bulk*unit_bulk*normalization*
+                                         observed_profile_area,
+                                         rel_tol=5e-15, abs_tol=1e-15) or
+                        not math.isclose(profile_flow_error,
+                                         abs(observed_profile_flow-profile_target_flow),
+                                         rel_tol=5e-15, abs_tol=1e-15) or
+                        profile_flow_error > profile_flow_tolerance or
+                        not math.isclose(profile_flow_tolerance, expected_flow_tolerance,
+                                         rel_tol=5e-15, abs_tol=1e-18)):
+                    raise ValueError(f"{context}: profile flow-match artifact is invalid")
                 if not math.isclose(tolerance, expected_numerical_tolerance,
                                     rel_tol=5e-15, abs_tol=1e-18):
                     raise ValueError(f"{context}: profile numerical tolerance mismatch")
@@ -1342,7 +1427,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         "parent_checkpoint", "source_sha256", "schedule_version", "schedule_sha256",
         "master_tick", "target_time", "actual_time", "initial_state", "inlet_mode",
         "precursor_pressure_mode", "precursor_transfer_sha256",
-        "profile_bulk_velocity", "scientific_source_commit",
+        "profile_bulk_velocity", "profile_target_flow", "scientific_source_commit",
         "metadata_file", "prediction_closure_state_v4_file",
         "cumulative_nozzle_exit_net_volume", "cumulative_discharged_liquid_volume",
     }, "checkpoint index")
@@ -1369,7 +1454,12 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                 row["initial_state"] != ROLE_MODES[role]["initial_state"] or
                 row["inlet_mode"] != ROLE_MODES[role]["inlet_mode"] or
                 row["precursor_pressure_mode"] != ROLE_MODES[role]["precursor_pressure_mode"] or
-                row["precursor_transfer_sha256"] != transfer_sha):
+                row["precursor_transfer_sha256"] != transfer_sha or
+                not math.isclose(finite(row["profile_bulk_velocity"],
+                                        "checkpoint profile bulk"),
+                                 runtime_profile_bulk, rel_tol=5e-15, abs_tol=1e-15) or
+                not math.isclose(finite(row["profile_target_flow"], "checkpoint profile target flow"),
+                                 runtime_profile_target_flow, rel_tol=5e-15, abs_tol=1e-15)):
             raise ValueError("checkpoint row identity mismatch")
         if (checkpoint_index != expected_index or str(checkpoint_index) != row["checkpoint_index"] or
                 checkpoint_tick <= previous_checkpoint_tick or
@@ -1385,7 +1475,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         if dump in seen_checkpoint_paths:
             raise ValueError("checkpoint dump path is duplicated")
         seen_checkpoint_paths.add(dump)
-        if (values.get("schema") != "internal_nozzle_checkpoint_metadata_v6" or
+        if (values.get("schema") != "internal_nozzle_checkpoint_metadata_v7" or
                 values.get("case_id") != case_id or
                 values.get("execution_id") != execution_id or values.get("segment_id") != row["segment_id"] or
                 values.get("case_role") != role or values.get("solver_sha256") != row["solver_sha256"] or
@@ -1399,6 +1489,8 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                 values.get("inlet_mode") != row["inlet_mode"] or
                 values.get("precursor_pressure_mode") != row["precursor_pressure_mode"] or
                 values.get("precursor_transfer_sha256") != transfer_sha or
+                values.get("profile_bulk_velocity") != row["profile_bulk_velocity"] or
+                values.get("profile_target_flow") != row["profile_target_flow"] or
                 values.get("cumulative_nozzle_exit_discharge_definition") !=
                 "alias_of_cumulative_nozzle_exit_net_volume"):
             raise ValueError("checkpoint sidecar identity mismatch")
@@ -1510,8 +1602,16 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
             "task02_profile_evidence_sha256": profile_validation["evidence_sha256"],
             "task02_profile_acceptance_sha256": profile_validation["acceptance_sha256"],
             "task02_assessment_id": profile_validation["assessment_id"],
-            "target_bulk_velocity": final_init["profile_bulk_velocity"],
+            "continuum_reference_bulk_velocity": final_init["profile_bulk_velocity"],
+            "flow_implied_bulk_velocity": final_init["profile_flow_implied_bulk_velocity"],
             "achieved_bulk_velocity": final_init["profile_achieved_bulk_velocity"],
+            "target_flow": final_init["profile_target_flow"],
+            "sampled_inlet_area": final_init["profile_inlet_area"],
+            "achieved_flow": final_init["profile_achieved_flow"],
+            "flow_absolute_error": final_init["profile_target_flow_absolute_error"],
+            "flow_numerical_tolerance": final_init[
+                "profile_target_flow_numerical_tolerance"
+            ],
             "absolute_error": final_init["profile_target_absolute_error"],
             "numerical_tolerance": final_init["profile_numerical_tolerance"],
             "pass": True,

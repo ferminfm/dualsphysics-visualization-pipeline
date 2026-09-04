@@ -94,7 +94,7 @@ def checkpoint_metadata(
     dump.write_text(f"dump-{index}\n", encoding="utf-8")
     closure.write_text(f"closure-{index}\n", encoding="utf-8")
     metadata.write_text("\n".join([
-        "schema=internal_nozzle_checkpoint_metadata_v6",
+        "schema=internal_nozzle_checkpoint_metadata_v7",
         f"case_id={bound['case_id']}", f"execution_id={bound['execution_id']}",
         f"segment_id={segment}", f"case_role={role}",
         f"solver_sha256={bound['solver']['sha256']}",
@@ -107,6 +107,14 @@ def checkpoint_metadata(
         f"precursor_pressure_mode={modes['precursor_pressure_mode']}",
         "precursor_transfer_sha256=" + (
             "not_applicable" if role == "A" else str(bound["precursor_transfer"]["sha256"])
+        ),
+        "profile_bulk_velocity=" + (
+            str(bound["precursor_bulk_target"]["profile_bulk_velocity"])
+            if role == "C" else "-1"
+        ),
+        "profile_target_flow=" + (
+            str(bound["precursor_bulk_target"]["terminal_inlet_boundary_face_flow"])
+            if role == "C" else "-1"
         ),
         "cumulative_nozzle_exit_discharge_definition="
         "alias_of_cumulative_nozzle_exit_net_volume",
@@ -122,7 +130,9 @@ def checkpoint_metadata(
         bound["schedule"]["sha256"], tick, tick * dt, tick * dt,
         modes["initial_state"], modes["inlet_mode"], modes["precursor_pressure_mode"],
         "not_applicable" if role == "A" else bound["precursor_transfer"]["sha256"],
-        0.5 if role == "C" else "not_applicable",
+        bound["precursor_bulk_target"]["profile_bulk_velocity"] if role == "C" else -1,
+        (bound["precursor_bulk_target"]["terminal_inlet_boundary_face_flow"]
+         if role == "C" else -1),
         bound["scientific_source_commit"], metadata, closure, cumulative, cumulative,
     ]
 
@@ -133,7 +143,8 @@ CHECKPOINT_FIELDS = [
     "parent_checkpoint", "source_sha256", "schedule_version", "schedule_sha256",
     "master_tick", "target_time", "actual_time", "initial_state", "inlet_mode",
     "precursor_pressure_mode", "precursor_transfer_sha256", "profile_bulk_velocity",
-    "scientific_source_commit", "metadata_file", "prediction_closure_state_v4_file",
+    "profile_target_flow", "scientific_source_commit", "metadata_file",
+    "prediction_closure_state_v4_file",
     "cumulative_nozzle_exit_net_volume", "cumulative_discharged_liquid_volume",
 ]
 
@@ -188,6 +199,7 @@ def make_run(requested_root: Path, role: str = "B") -> tuple[Path, Path]:
         "density_liquid": 1.0, "initial_state": modes["initial_state"],
         "inlet_mode": modes["inlet_mode"],
         "precursor_pressure_mode": modes["precursor_pressure_mode"],
+        "profile_bulk_velocity": -1.0, "profile_target_flow": -1.0,
     }
     if role != "A":
         bulk = bound["precursor_bulk_target"]
@@ -203,14 +215,36 @@ def make_run(requested_root: Path, role: str = "B") -> tuple[Path, Path]:
     (root / f"scientific_runtime_contract.{segment}.json").write_text(
         json.dumps(runtime), encoding="utf-8",
     )
-    init = {**runtime, "schema": "internal_nozzle_initialization_v2",
+    init = {**runtime, "schema": "internal_nozzle_initialization_v3",
             "transfer_sha256": transfer_sha, "native_restore_unchanged": True}
     if role == "C":
+        runtime["profile_bulk_velocity"] = bulk["profile_bulk_velocity"]
+        runtime["profile_target_flow"] = bulk["terminal_inlet_boundary_face_flow"]
+        (root / f"scientific_runtime_contract.{segment}.json").write_text(
+            json.dumps(runtime), encoding="utf-8",
+        )
+        profile_target_flow = bulk["terminal_inlet_boundary_face_flow"]
+        profile_inlet_area = bulk["profile_reference_inlet_area"] - 0.1
+        profile_unit_bulk = 0.5
+        profile_normalization = profile_target_flow / (
+            bulk["profile_bulk_velocity"] * profile_unit_bulk * profile_inlet_area
+        )
+        profile_achieved_bulk = profile_target_flow / profile_inlet_area
         init.update({
-            "profile_bulk_velocity": 0.5, "profile_discrete_unit_bulk": 0.5,
-            "profile_normalization": 2.0, "profile_achieved_bulk_velocity": 0.5,
+            "profile_bulk_velocity": bulk["profile_bulk_velocity"],
+            "profile_discrete_unit_bulk": profile_unit_bulk,
+            "profile_normalization": profile_normalization,
+            "profile_achieved_bulk_velocity": profile_achieved_bulk,
+            "profile_flow_implied_bulk_velocity": profile_achieved_bulk,
             "profile_target_absolute_error": 0.0,
             "profile_numerical_tolerance": 64 * sys.float_info.epsilon,
+            "profile_target_flow": profile_target_flow,
+            "profile_inlet_area": profile_inlet_area,
+            "profile_achieved_flow": profile_target_flow,
+            "profile_target_flow_absolute_error": 0.0,
+            "profile_target_flow_numerical_tolerance": (
+                64 * sys.float_info.epsilon * max(1.0, abs(profile_target_flow))
+            ),
             "poiseuille_profile_validation_passed": True,
         })
     (root / f"initialization_contract.{segment}.json").write_text(
@@ -464,6 +498,26 @@ def test_rejects_false_case_c_profile_pass(tmp_path: Path) -> None:
     init["poiseuille_profile_validation_passed"] = False
     init_path.write_text(json.dumps(init))
     with pytest.raises(ValueError, match="profile pass artifact"):
+        MODULE.seal(root, "C", [evidence])
+
+
+def test_rejects_tampered_case_c_runtime_profile_target_flow(tmp_path: Path) -> None:
+    root, evidence = make_run(tmp_path / "C", "C")
+    runtime_path = root / f"scientific_runtime_contract.{evidence.name}.json"
+    runtime = json.loads(runtime_path.read_text())
+    runtime["profile_target_flow"] = 999.0
+    runtime_path.write_text(json.dumps(runtime))
+    with pytest.raises(ValueError, match="runtime profile target mismatch"):
+        MODULE.seal(root, "C", [evidence])
+
+
+def test_rejects_tampered_case_c_profile_flow_tolerance(tmp_path: Path) -> None:
+    root, evidence = make_run(tmp_path / "C", "C")
+    init_path = root / f"initialization_contract.{evidence.name}.json"
+    init = json.loads(init_path.read_text())
+    init["profile_target_flow_numerical_tolerance"] = 1e9
+    init_path.write_text(json.dumps(init))
+    with pytest.raises(ValueError, match="profile flow-match artifact"):
         MODULE.seal(root, "C", [evidence])
 
 

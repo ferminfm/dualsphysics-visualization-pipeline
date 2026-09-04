@@ -286,8 +286,8 @@ def test_two_phase_source_projects_homogeneous_transfer_correction_and_binds_clo
     assert "grid_maxdepth=%d" in source
     assert "ERROR duplicate two-phase checkpoint metadata key" in source
     assert "ERROR unknown or malformed two-phase checkpoint metadata key" in source
-    # The v2 restart sidecar binds 58 exact keys, including execution,
-    # segment, role, solver, predecessor, and cumulative-volume identity.
-    assert "seen != ((1ULL << 58) - 1)" in source
+    # The v7 restart sidecar binds 59 exact keys, including execution,
+    # segment, role, solver, predecessor, profile-flow, and cumulative-volume identity.
+    assert "seen != ((1ULL << 59) - 1)" in source
     assert "internal_nozzle_verify_prediction_closure_identity_v4" in source
     assert "prediction-closure checkpoint/sidecar/domain identity mismatch" in closure

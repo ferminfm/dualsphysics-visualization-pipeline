@@ -399,6 +399,7 @@ static void write_scientific_runtime_contract (void) {
           "  \"precursor_target_bulk_velocity\": %.17g,\n"
           "  \"precursor_target_velocity_tolerance\": %.17g,\n"
           "  \"profile_bulk_velocity\": %.17g,\n"
+          "  \"profile_target_flow\": %.17g,\n"
           "  \"restore_checkpoint_sha256\": \"%s\",\n"
           "  \"restore_metadata_sha256\": \"%s\",\n"
           "  \"restore_closure_sha256\": \"%s\",\n"
@@ -447,6 +448,7 @@ static void write_scientific_runtime_contract (void) {
           precursor_target_area > 0. ? precursor_target_q/precursor_target_area : -1.,
           precursor_target_velocity_tolerance,
           internal_nozzle_profile_bulk_velocity,
+          internal_nozzle_profile_target_flow,
           restore_checkpoint_sha256, restore_metadata_sha256,
           restore_closure_sha256, predecessor_segment_id,
           schedule_version, schedule_sha, schedule_tick_dt,
@@ -1031,6 +1033,7 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   int found_tick = -1, found_iteration = -1, found_level = -1;
   int found_grid_maxdepth = -1;
   double found_target = -1., found_actual = -1., found_profile_bulk = HUGE;
+  double found_profile_target_flow = HUGE;
   double found_solver_dt = HUGE, found_solver_dtmax = HUGE;
   double found_timestep_previous = HUGE;
   double found_domain_x0 = HUGE, found_domain_y0 = HUGE;
@@ -1107,6 +1110,7 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     TWO_PHASE_META_SCAN(55, sscanf(line, "cumulative_nozzle_exit_net_volume=%lf", &found_net_volume));
     TWO_PHASE_META_SCAN(56, sscanf(line, "cumulative_discharged_liquid_volume=%lf", &found_discharged_volume));
     TWO_PHASE_META_SCAN(57, sscanf(line, "cumulative_nozzle_exit_discharge_definition=%127s", found_legacy_definition));
+    TWO_PHASE_META_SCAN(58, sscanf(line, "profile_target_flow=%lf", &found_profile_target_flow));
     fprintf(stderr, "ERROR unknown or malformed two-phase checkpoint metadata key: %s", line);
     exit(2);
   }
@@ -1121,8 +1125,8 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   }
   const char * accepted_restore_source = restore_source_sha[0] ?
     restore_source_sha : source_sha;
-  if (seen != ((1ULL << 58) - 1) ||
-      strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v6") ||
+  if (seen != ((1ULL << 59) - 1) ||
+      strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v7") ||
       strcmp(found_case, case_id) || found_level != maxlevel ||
       strcmp(found_execution_id, execution_id) ||
       strcmp(found_segment_id, predecessor_segment_id) ||
@@ -1159,7 +1163,10 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
       strcmp(found_closure_state, expected_closure_state) ||
       !isfinite(found_profile_bulk) ||
       fabs(found_profile_bulk - internal_nozzle_profile_bulk_velocity) >
-      64.*DBL_EPSILON*max(1., fabs(internal_nozzle_profile_bulk_velocity))) {
+      64.*DBL_EPSILON*max(1., fabs(internal_nozzle_profile_bulk_velocity)) ||
+      !isfinite(found_profile_target_flow) ||
+      fabs(found_profile_target_flow - internal_nozzle_profile_target_flow) >
+      64.*DBL_EPSILON*max(1., fabs(internal_nozzle_profile_target_flow))) {
     fprintf(stderr,
             "ERROR checkpoint case/initialization identity mismatch in %s\n",
             meta);
@@ -2241,17 +2248,19 @@ static void rewrite_checkpoint_manifest (void) {
       char row_role[8], row_solver[128];
       int idx = 0, iter_value = 0, level_value = 0, tick = -1;
       double tt = 0., target = 0., actual = 0., profile_bulk = 0.;
+      double profile_target_flow = 0.;
       double net_volume = 0., discharged_volume = 0.;
       if (sscanf(line,
                  "%127[^,],%31[^,],%d,%lf,%d,%d,%511[^,],%511[^,],"
                  "%127[^,],%127[^,],%127[^,],%d,%lf,%lf,%511[^,],"
-                 "%127[^,],%127[^,],%127[^,],%127[^,],%lf,%63[^,],"
+                 "%127[^,],%127[^,],%127[^,],%127[^,],%lf,%lf,%63[^,],"
                  "%1199[^,],%127[^,],%127[^,],%7[^,],%127[^,],%lf,%lf",
                  ccase, mode, &idx, &tt, &iter_value, &level_value, filename,
                  parent, source, version, schedule_hash, &tick, &target, &actual,
                  metadata_file, initial, inlet, pressure_mode, transfer_hash,
-                 &profile_bulk, commit, closure, row_execution, row_segment,
-                 row_role, row_solver, &net_volume, &discharged_volume) == 28) {
+                 &profile_bulk, &profile_target_flow, commit, closure,
+                 row_execution, row_segment, row_role, row_solver,
+                 &net_volume, &discharged_volume) == 29) {
         copy_string(latest, sizeof(latest), filename);
         if (count)
           fputs(",\n", out);
@@ -2403,7 +2412,7 @@ static void initialize_output_files (void) {
   output_path(path, sizeof(path), "surface_manifest.csv");
   write_header_if_missing(path, "case_id,domain_mode,surface_index,t,i,filename,facet_cell_count,nozzle_exit_x,Dh,maxlevel,source_frame_id,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,pressure_provenance,gravity_enabled,restart_lineage\n");
   output_path(path, sizeof(path), "checkpoint_index.csv");
-  write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,metadata_file,initial_state,inlet_mode,precursor_pressure_mode,precursor_transfer_sha256,profile_bulk_velocity,scientific_source_commit,prediction_closure_state_v4_file,execution_id,segment_id,case_role,solver_sha256,cumulative_nozzle_exit_net_volume,cumulative_discharged_liquid_volume\n");
+  write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,metadata_file,initial_state,inlet_mode,precursor_pressure_mode,precursor_transfer_sha256,profile_bulk_velocity,profile_target_flow,scientific_source_commit,prediction_closure_state_v4_file,execution_id,segment_id,case_role,solver_sha256,cumulative_nozzle_exit_net_volume,cumulative_discharged_liquid_volume\n");
   output_path(path, sizeof(path), "field_frame_manifest.csv");
   write_header_if_missing(path, "case_id,domain_mode,field_frame_index,t,i,filename,sample_count,p_min,p_max,p_range,pressure_nonzero,f_min,f_max,velocity_magnitude_min,velocity_magnitude_max,vorticity_magnitude_min,vorticity_magnitude_max,pressure_provenance,event_provenance,pressure_gauge_context,gravity_enabled,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,maxlevel,restart_lineage,field_list\n");
   output_path(path, sizeof(path), "hydraulic_plane_metrics.csv");
@@ -2574,7 +2583,7 @@ static void write_checkpoint_dump (int iter_value) {
     exit(2);
   }
   fprintf(metadata,
-          "schema=internal_nozzle_checkpoint_metadata_v6\n"
+          "schema=internal_nozzle_checkpoint_metadata_v7\n"
           "case_id=%s\n"
           "execution_id=%s\n"
           "segment_id=%s\n"
@@ -2603,6 +2612,7 @@ static void write_checkpoint_dump (int iter_value) {
           "precursor_transfer_sha256=%s\n"
           "precursor_pressure_mode=%s\n"
           "profile_bulk_velocity=%.17g\n"
+          "profile_target_flow=%.17g\n"
           "pressure_provenance=runtime_cell_centered_p_after_centered_projection\n"
           "gravity_enabled=false\n"
           "restored_from=%s\n"
@@ -2644,6 +2654,7 @@ static void write_checkpoint_dump (int iter_value) {
           internal_nozzle_transfer_sha256,
           internal_nozzle_precursor_pressure_mode_label(),
           internal_nozzle_profile_bulk_velocity,
+          internal_nozzle_profile_target_flow,
           parent, initial_liquid_volume,
           cumulative_liquid_inflow, cumulative_liquid_outflow,
           cumulative_nozzle_exit_discharge,
@@ -2664,7 +2675,7 @@ static void write_checkpoint_dump (int iter_value) {
     fprintf(stderr, "ERROR cannot append %s\n", csv);
     exit(2);
   }
-  fprintf(fp, "%s,%s,%d,%.17g,%d,%d,%s,%s,%s,%s,%s,%d,%.17g,%.17g,%s,%s,%s,%s,%s,%.17g,%s,%s,%s,%s,%s,%s,%.17g,%.17g\n",
+  fprintf(fp, "%s,%s,%d,%.17g,%d,%d,%s,%s,%s,%s,%s,%d,%.17g,%.17g,%s,%s,%s,%s,%s,%.17g,%.17g,%s,%s,%s,%s,%s,%s,%.17g,%.17g\n",
           case_id, domain_label(), checkpoint_index, t, iter_value, maxlevel, path, parent,
           source_sha, schedule_version, schedule_sha, current_master_tick,
           current_target_time, current_actual_time, meta,
@@ -2672,7 +2683,8 @@ static void write_checkpoint_dump (int iter_value) {
           internal_nozzle_inlet_mode_label(),
           internal_nozzle_precursor_pressure_mode_label(),
           internal_nozzle_transfer_sha256,
-          internal_nozzle_profile_bulk_velocity, scientific_source_commit,
+          internal_nozzle_profile_bulk_velocity,
+          internal_nozzle_profile_target_flow, scientific_source_commit,
           closure_state, execution_id, segment_id, case_role, solver_sha256,
           cumulative_nozzle_exit_net_volume,
           cumulative_discharged_liquid_volume);
@@ -2728,14 +2740,6 @@ int main (int argc, char **argv) {
       fprintf(stderr, "ERROR Cases B/C require precursor Q/A evidence\n");
       return 2;
     }
-#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
-    double derived_bulk = precursor_target_q/precursor_target_area;
-    if (fabs(internal_nozzle_profile_bulk_velocity - derived_bulk) >
-        precursor_target_velocity_tolerance) {
-      fprintf(stderr, "ERROR Case C bulk target does not equal precursor Q/A\n");
-      return 2;
-    }
-#endif
   }
   if (restore_requested) {
     if (!internal_nozzle_sha256_string(restore_checkpoint_sha256) ||
