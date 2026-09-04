@@ -109,6 +109,27 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
             writer = csv.DictWriter(stream, fieldnames=MODULE.PRECURSOR_HISTORY_FIELDS)
             writer.writeheader()
             writer.writerow(row)
+        precursor_source_commit = "b" * 40
+        precursor_source_sha = "c" * 64
+        precursor_run_contract = root / "precursor-run-contract.json"
+        precursor_run_contract.write_text(json.dumps({
+            "schema": "internal_nozzle_precursor_run_v1",
+            "case_id": "precursor", "geometry_schema": "geometry-v1",
+            "geometry_fingerprint": "geometry-fingerprint-v1",
+            "source_commit": precursor_source_commit,
+            "source_sha256": precursor_source_sha,
+            "pressure_forcing": 351.48, "density_liquid": 1,
+            "viscosity_liquid": 1,
+            "initial_velocity": "zero_everywhere_fresh_start",
+            "boundary_contract": "pressure-driven",
+            "equations": "unsteady_single_liquid_centered_navier_stokes",
+            "maxlevel": 7, "baselevel": 4, "delta_min_Dh": 0.1,
+            "accepted_physical_L7_delta_Dh": 0.14, "end_time": 1.0,
+            "dt_cap": 0.001, "metric_stride": 1,
+            "target_template": "/fixture/target.csv",
+            "restore_checkpoint": "not_applicable",
+            "restore_metadata": "not_applicable",
+        }, sort_keys=True), encoding="utf-8")
         report = root / "convergence.json"
         report.write_text(json.dumps({
             "schema": "internal_nozzle_precursor_convergence_v1",
@@ -122,6 +143,11 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
                 "rows": 1,
                 "first_t_star": 4.0,
                 "last_t_star": 4.0,
+            }, "run_contract": {
+                "path": str(precursor_run_contract.resolve()),
+                "resolved_path": str(precursor_run_contract.resolve()),
+                "sha256": digest(precursor_run_contract),
+                "size_bytes": precursor_run_contract.stat().st_size,
             }}],
             "combined_unique_sample_count": 3,
             "window": {"end_t_star": 4.0}, "fixed_scientific_thresholds": {},
@@ -131,9 +157,9 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
         report_sha = digest(report)
         manifest = root / "transfer.json"
         hashes = {name: "c" * 64 for name in (
-            "source_sha256", "producer_unsealed_metadata_sha256",
+            "producer_unsealed_metadata_sha256",
             "precursor_checkpoint_sha256", "precursor_checkpoint_sidecar_sha256",
-            "precursor_checkpoint_closure_sha256", "final_run_contract_sha256",
+            "precursor_checkpoint_closure_sha256",
             "source_table_sha256", "target_template_sha256",
         )}
         manifest.write_text(json.dumps({
@@ -142,9 +168,12 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
             "target_exit_clamp_rule": MODULE.TARGET_CLAMP_RULE,
             "additional_interpolation_by_preparer": False,
             "precursor_convergence_classification": "precursor_converged",
-            "source_commit": "a" * 40, "transfer_table_sha256": digest(transfer),
+            "source_commit": precursor_source_commit,
+            "source_sha256": precursor_source_sha,
+            "transfer_table_sha256": digest(transfer),
             "precursor_convergence_report_sha256": report_sha,
             "final_history_sha256": digest(history), "coverage_fraction": 1.0,
+            "final_run_contract_sha256": digest(precursor_run_contract),
             "target_leaf_count": 1, "loaded_leaf_count": 1,
             "unused_source_rows": 0, "target_exit_clamp_count": 0, **hashes,
         }, sort_keys=True), encoding="utf-8")
@@ -160,9 +189,9 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
             "projection_pressure_adjustment_l2": acceptance.PROJECTION_PRESSURE_SCALE,
         }
         projection_criteria.write_text(json.dumps({
-            "schema": "internal_nozzle_transfer_projection_criteria_v1",
+            "schema": acceptance.PROJECTION_CRITERIA_SCHEMA,
             "criteria_id": "task04-fixed-test", "applicable_case_roles": ["B", "C"],
-            "phase_selection": "records_0_and_1_immediate_transfer_projection_only",
+            "phase_selection": acceptance.PROJECTION_SELECTION,
             "divergence_convention":
                 "basilisk_face_flux_difference_over_Delta;uf_already_contains_face_metric",
             "normalization": {
@@ -170,7 +199,7 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
                 "velocity_scale": velocity_scale,
                 "pressure_scale": acceptance.PROJECTION_PRESSURE_SCALE,
             },
-            "metrics": {metric: {"aggregation": "max_over_selected_records",
+            "metrics": {metric: {"aggregation": "selected_named_record",
                                   "operator": "<=",
                                   "limit": acceptance.PROJECTION_NORMALIZED_LIMITS[metric] *
                                   dimensional_scales[metric]}
@@ -264,6 +293,8 @@ def test_role_specific_identity_and_schedule_are_injected(tmp_path: Path, role: 
     else:
         assert MODULE.required_solver_option(argv, "--precursor-transfer") == str(args.transfer.resolve())
         assert payload["precursor_bulk_target"]["bulk_velocity"] == 0.5
+        assert payload["precursor_transfer"]["precursor_source_commit"] == "b" * 40
+        assert payload["scientific_source_commit"] == "a" * 40
     if role == "C":
         assert MODULE.required_solver_option(argv, "--profile-bulk-velocity") == "0.5"
         assert payload["poiseuille_profile_validation"]["pass"] is True
@@ -328,6 +359,19 @@ def test_projection_velocity_scale_must_equal_precursor_bulk_state(tmp_path: Pat
     args = fixture(tmp_path / "second")
     args.precursor_convergence_report_sha256 = "0" * 64
     with pytest.raises(ValueError, match="convergence report SHA-256"):
+        MODULE.build_contract(args)
+
+
+def test_precursor_and_target_commits_may_differ_but_lineage_is_bound(tmp_path: Path) -> None:
+    args = fixture(tmp_path)
+    contract = MODULE.build_contract(args)
+    assert contract["scientific_source_commit"] == "a" * 40
+    assert contract["precursor_transfer"]["precursor_source_commit"] == "b" * 40
+    manifest = json.loads(args.transfer_manifest.read_text(encoding="utf-8"))
+    manifest["source_commit"] = "d" * 40
+    args.transfer_manifest.write_text(json.dumps(manifest), encoding="utf-8")
+    args.transfer_manifest_sha256 = digest(args.transfer_manifest)
+    with pytest.raises(ValueError, match="run-contract source identity mismatch"):
         MODULE.build_contract(args)
 
 

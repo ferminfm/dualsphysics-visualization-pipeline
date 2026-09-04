@@ -18,7 +18,7 @@ from typing import Sequence
 
 
 TRANSFER_SCHEMA = "internal_nozzle_exact_target_transfer_v1"
-LAUNCH_SCHEMA = "internal_nozzle_bound_launch_v2"
+LAUNCH_SCHEMA = "internal_nozzle_bound_launch_v3"
 SCHEDULE_SCHEMA = "internal_nozzle_launch_schedule_v1"
 TRANSFER_METHOD = "exact_target_leaf_join_of_precursor_interpolated_samples"
 TARGET_SAMPLING_METHOD = (
@@ -361,7 +361,8 @@ PRECURSOR_HISTORY_FIELDS = (
 
 def load_convergence_bulk_target(
     path: Path, expected_sha256: str, manifest: dict[str, object],
-) -> tuple[Path, Path, dict[str, object]]:
+    precursor_source_commit: str, precursor_source_sha256: str,
+) -> tuple[Path, Path, Path, dict[str, object]]:
     """Derive U=Q/A from the terminal row already accepted as converged."""
     resolved, report = load_object(path, "precursor convergence report")
     if sha256(resolved) != expected_sha256:
@@ -384,8 +385,11 @@ def load_convergence_bulk_target(
     if not isinstance(inputs, list) or not inputs or not isinstance(inputs[-1], dict):
         raise ValueError("precursor convergence report has no terminal segment")
     history_record = inputs[-1].get("history")
+    run_contract_record = inputs[-1].get("run_contract")
     if not isinstance(history_record, dict):
         raise ValueError("precursor convergence report has no terminal history")
+    if not isinstance(run_contract_record, dict):
+        raise ValueError("precursor convergence report has no terminal run contract")
     exact_keys(history_record, {
         "path", "resolved_path", "sha256", "size_bytes", "rows",
         "first_t_star", "last_t_star",
@@ -404,6 +408,45 @@ def load_convergence_bulk_target(
     )
     if sha256(history) != history_sha or history.stat().st_size != history_size:
         raise ValueError("precursor terminal history identity mismatch")
+    exact_keys(run_contract_record, {
+        "path", "resolved_path", "sha256", "size_bytes",
+    }, "precursor terminal run-contract record")
+    run_contract_sha = canonical_hex(
+        str(run_contract_record.get("sha256")), 64,
+        "precursor terminal run-contract SHA-256",
+    )
+    if run_contract_sha != manifest.get("final_run_contract_sha256"):
+        raise ValueError("transfer manifest/terminal run-contract SHA-256 mismatch")
+    run_contract_path = regular(
+        Path(str(run_contract_record.get("resolved_path"))),
+        "precursor terminal run contract",
+    )
+    if str(run_contract_record.get("path")) != str(run_contract_path):
+        raise ValueError("precursor terminal run-contract path identity mismatch")
+    run_contract_size = exact_int(
+        run_contract_record.get("size_bytes"),
+        "precursor terminal run-contract size_bytes",
+    )
+    if (sha256(run_contract_path) != run_contract_sha or
+            run_contract_path.stat().st_size != run_contract_size):
+        raise ValueError("precursor terminal run-contract identity mismatch")
+    _, run_contract = load_object(
+        run_contract_path, "precursor terminal run contract",
+    )
+    exact_keys(run_contract, {
+        "schema", "case_id", "geometry_schema", "geometry_fingerprint",
+        "source_commit", "source_sha256", "pressure_forcing",
+        "density_liquid", "viscosity_liquid", "initial_velocity",
+        "boundary_contract", "equations", "maxlevel", "baselevel",
+        "delta_min_Dh", "accepted_physical_L7_delta_Dh", "end_time",
+        "dt_cap", "metric_stride", "target_template",
+        "restore_checkpoint", "restore_metadata",
+    }, "precursor terminal run contract")
+    if (run_contract.get("schema") != "internal_nozzle_precursor_run_v1" or
+            run_contract.get("case_id") != report.get("case_id") or
+            run_contract.get("source_commit") != precursor_source_commit or
+            run_contract.get("source_sha256") != precursor_source_sha256):
+        raise ValueError("precursor terminal run-contract source identity mismatch")
     with history.open(newline="", encoding="utf-8") as stream:
         reader = csv.DictReader(stream)
         if tuple(reader.fieldnames or ()) != PRECURSOR_HISTORY_FIELDS:
@@ -447,7 +490,7 @@ def load_convergence_bulk_target(
     tolerance = max(1e-14, 1e-12 * abs(derived))
     if not math.isclose(bulk, derived, rel_tol=0.0, abs_tol=tolerance):
         raise ValueError("precursor terminal U_bulk is inconsistent with Q_l/exit_area")
-    return resolved, history, {
+    return resolved, history, run_contract_path, {
         "derivation": "terminal_converged_precursor_exit_Q_l_over_liquid_area",
         "conservation_equivalence": (
             "passing precursor mass-flow-imbalance bound makes the straight-duct "
@@ -456,6 +499,7 @@ def load_convergence_bulk_target(
         "precursor_case_id": report["case_id"],
         "convergence_report_sha256": expected_sha256,
         "history_sha256": history_sha,
+        "run_contract_sha256": run_contract_sha,
         "terminal_t_star": terminal_t_star,
         "terminal_Q_l": flow,
         "terminal_liquid_area": area,
@@ -673,8 +717,10 @@ def build_contract(args: argparse.Namespace) -> dict[str, object]:
         )
         if sha256(manifest_path) != manifest_sha:
             raise ValueError("transfer manifest SHA-256 mismatch")
-        if manifest.get("source_commit") != source_commit:
-            raise ValueError("transfer manifest source commit mismatch")
+        precursor_source_commit = canonical_hex(
+            str(manifest.get("source_commit")), 40,
+            "precursor transfer source commit",
+        )
         precursor_source_sha = validate_manifest_semantics(manifest)
         transfer_sha = sha256(transfer)
         if manifest.get("transfer_table_sha256") != transfer_sha:
@@ -683,14 +729,19 @@ def build_contract(args: argparse.Namespace) -> dict[str, object]:
             str(args.precursor_convergence_report_sha256), 64,
             "precursor convergence report SHA-256",
         )
-        convergence, history, bulk_target = load_convergence_bulk_target(
-            args.precursor_convergence_report, convergence_sha, manifest,
+        convergence, history, precursor_run_contract, bulk_target = (
+            load_convergence_bulk_target(
+                args.precursor_convergence_report, convergence_sha, manifest,
+                precursor_source_commit, precursor_source_sha,
+            )
         )
         verified.extend((
             (transfer, transfer_sha, "precursor_transfer"),
             (manifest_path, manifest_sha, "precursor_transfer_manifest"),
             (convergence, convergence_sha, "precursor_convergence_report"),
             (history, str(bulk_target["history_sha256"]), "precursor_terminal_history"),
+            (precursor_run_contract, str(bulk_target["run_contract_sha256"]),
+             "precursor_final_run_contract"),
         ))
         acceptance = acceptance_module()
         projection_criteria_sha = canonical_hex(
@@ -721,7 +772,12 @@ def build_contract(args: argparse.Namespace) -> dict[str, object]:
             "manifest_path": str(manifest_path), "manifest_sha256": manifest_sha,
             "producer_unsealed_metadata_sha256":
                 manifest.get("producer_unsealed_metadata_sha256"),
+            "precursor_source_commit": precursor_source_commit,
             "precursor_source_sha256": precursor_source_sha,
+            "precursor_final_run_contract": {
+                "path": str(precursor_run_contract),
+                "sha256": bulk_target["run_contract_sha256"],
+            },
             "projection_criteria": {
                 "path": str(projection_criteria),
                 "sha256": projection_criteria_sha,

@@ -46,8 +46,14 @@ PROJECTION_METRICS = (
     "cell_pressure_change_l2", "projection_pressure_adjustment_l2",
 )
 PROJECTION_PHASES = (
-    "pre_projection_input", "pre_advection_closure",
+    "pre_projection_input", "post_initial_projection",
     "post_timestep_projection", "post_timestep_projection",
+)
+PROJECTION_STATS = (
+    "projection_iterations", "projection_residual_before",
+    "projection_residual_after", "projection_nrelax",
+    "projection_nitermin_before", "projection_nitermin_during",
+    "projection_nitermin_after", "projection_nitermax",
 )
 
 BOUND_LAUNCH_KEYS = {
@@ -408,64 +414,6 @@ def validate_bound_build(
         raise ValueError(f"{context}: observable qcc build identity mismatch")
 
 
-def validate_projection_acceptance(
-    root: Path, execution_id: str, role: str, case_id: str,
-    projection_path: Path, rows: list[dict[str, str]],
-) -> tuple[Path, dict[str, object]]:
-    path = regular_under(
-        root, root / "precursor_transfer_projection_acceptance.json",
-        "projection acceptance",
-    )
-    payload = load_json(path, "projection acceptance")
-    if set(payload) != {
-        "schema", "assessment_id", "execution_id", "case_id", "case_role",
-        "acceptance_basis", "projection_evidence", "predicates", "pass",
-        "claim_boundary",
-    } or payload.get("schema") != "internal_nozzle_transfer_projection_acceptance_v1":
-        raise ValueError("projection acceptance schema/key set mismatch")
-    if (payload.get("execution_id") != execution_id or payload.get("case_id") != case_id or
-            payload.get("case_role") != role or
-            payload.get("acceptance_basis") != "task04_predeclared_projection_thresholds_v1" or
-            payload.get("pass") is not True):
-        raise ValueError("projection acceptance identity/pass mismatch")
-    required_text(payload.get("assessment_id"), "projection assessment_id")
-    required_text(payload.get("claim_boundary"), "projection claim_boundary")
-    evidence = payload.get("projection_evidence")
-    if (not isinstance(evidence, dict) or set(evidence) != {"path", "sha256"} or
-            evidence.get("path") != "precursor_transfer_projection.csv" or
-            evidence.get("sha256") != sha256_file(projection_path)):
-        raise ValueError("projection acceptance does not bind exact projection evidence")
-    predicates = payload.get("predicates")
-    if not isinstance(predicates, list) or len(predicates) != len(PROJECTION_METRICS):
-        raise ValueError("projection acceptance predicate cardinality mismatch")
-    expected_observed = {
-        metric: max(finite(row[metric], f"projection {metric}") for row in rows)
-        for metric in PROJECTION_METRICS
-    }
-    seen: set[str] = set()
-    for predicate in predicates:
-        if not isinstance(predicate, dict) or set(predicate) != {
-            "metric", "aggregation", "operator", "observed", "limit", "passed",
-        }:
-            raise ValueError("projection acceptance predicate key set mismatch")
-        metric = required_text(predicate.get("metric"), "projection predicate metric")
-        if metric not in expected_observed or metric in seen:
-            raise ValueError("projection acceptance predicate metric mismatch")
-        seen.add(metric)
-        if (predicate.get("aggregation") != "max_over_ordered_records" or
-                predicate.get("operator") != "<="):
-            raise ValueError("projection acceptance predicate operation mismatch")
-        observed = finite(predicate.get("observed"), f"projection {metric} observed")
-        limit = finite(predicate.get("limit"), f"projection {metric} limit")
-        if observed < 0.0 or limit < 0.0:
-            raise ValueError("projection acceptance values must be nonnegative")
-        expected = expected_observed[metric]
-        if (not math.isclose(observed, expected, rel_tol=5e-13, abs_tol=1e-15) or
-                predicate.get("passed") is not True or observed > limit):
-            raise ValueError(f"projection acceptance predicate failed: {metric}")
-    return path, payload
-
-
 def validate_profile_acceptance(
     root: Path, source_sha: str, evidence_path: Path, acceptance_path: Path,
 ) -> tuple[dict[str, object], list[dict[str, str]]]:
@@ -709,7 +657,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         bound = load_json(bound_path, context + " bound launch")
         if set(bound) != BOUND_LAUNCH_KEYS:
             raise ValueError(f"{context}: bound launch key set mismatch")
-        if (bound.get("schema") != "internal_nozzle_bound_launch_v2" or
+        if (bound.get("schema") != "internal_nozzle_bound_launch_v3" or
                 bound.get("execution_id") != execution_id or
                 bound.get("segment_id") != segment_id or
                 bound.get("case_role") != role or bound.get("case_id") != case_id or
@@ -878,7 +826,8 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         else:
             if not isinstance(transfer_contract, dict) or set(transfer_contract) != {
                     "path", "sha256", "manifest_path", "manifest_sha256",
-                    "producer_unsealed_metadata_sha256", "precursor_source_sha256",
+                    "producer_unsealed_metadata_sha256", "precursor_source_commit",
+                    "precursor_source_sha256", "precursor_final_run_contract",
                     "projection_criteria",
             }:
                 raise ValueError(f"{context}: precursor transfer contract is malformed")
@@ -896,9 +845,37 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
                 context + " producer metadata SHA",
             )
             canonical_hash(
+                transfer_contract.get("precursor_source_commit"), 40,
+                context + " precursor source commit",
+            )
+            canonical_hash(
                 transfer_contract.get("precursor_source_sha256"), 64,
                 context + " precursor source SHA",
             )
+            precursor_run_contract = transfer_contract.get(
+                "precursor_final_run_contract"
+            )
+            if (not isinstance(precursor_run_contract, dict) or
+                    set(precursor_run_contract) != {"path", "sha256"} or
+                    input_map.get("precursor_final_run_contract") !=
+                    precursor_run_contract):
+                raise ValueError(
+                    f"{context}: precursor run-contract launch binding mismatch"
+                )
+            run_contract = load_json(
+                Path(required_text(
+                    precursor_run_contract.get("path"),
+                    context + " precursor run-contract path",
+                )),
+                context + " precursor run contract",
+            )
+            if (run_contract.get("source_commit") !=
+                    transfer_contract.get("precursor_source_commit") or
+                    run_contract.get("source_sha256") !=
+                    transfer_contract.get("precursor_source_sha256")):
+                raise ValueError(
+                    f"{context}: precursor run-contract source lineage mismatch"
+                )
         expected_labels = {
             "solver_executable", "source_bundle_manifest",
             "observable_qcc_build_manifest", "launch_schedule", "supervisor",
@@ -907,7 +884,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
             expected_labels |= {
                 "precursor_transfer", "precursor_transfer_manifest",
                 "precursor_convergence_report", "precursor_terminal_history",
-                "transfer_projection_criteria",
+                "precursor_final_run_contract", "transfer_projection_criteria",
             }
         if role == "C":
             expected_labels |= {
@@ -935,8 +912,9 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         if role in "BC":
             bulk = bound.get("precursor_bulk_target")
             if not isinstance(bulk, dict) or set(bulk) != {
-                "derivation", "conservation_equivalence", "precursor_case_id",
-                "convergence_report_sha256", "history_sha256", "terminal_t_star",
+                    "derivation", "conservation_equivalence", "precursor_case_id",
+                    "convergence_report_sha256", "history_sha256",
+                    "run_contract_sha256", "terminal_t_star",
                 "terminal_Q_l", "terminal_liquid_area", "reported_bulk_velocity",
                 "bulk_velocity", "absolute_consistency_tolerance",
             }:
@@ -1275,7 +1253,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
             "divergence_l2", "divergence_max", "velocity_impulse_l2",
             "cell_pressure_change_l2", "projection_pressure_adjustment_l2",
             "fluid_volume", "initial_state", "inlet_mode", "precursor_pressure_mode",
-            "transfer_sha256",
+            "transfer_sha256", *PROJECTION_STATS,
         }, "transfer projection")
         if (len(projection) != len(PROJECTION_PHASES) or
                 tuple(row["phase"] for row in projection) != PROJECTION_PHASES):
@@ -1508,6 +1486,7 @@ def seal(run_root: Path, role: str, supervision_dirs: list[Path]) -> dict[str, o
         runtime_projection["precursor_convergence_evidence"] = {
             "report_sha256": bulk["convergence_report_sha256"],
             "terminal_history_sha256": bulk["history_sha256"],
+            "terminal_run_contract_sha256": bulk["run_contract_sha256"],
             "derivation": bulk["derivation"],
             "terminal_Q_l": bulk["terminal_Q_l"],
             "terminal_liquid_area": bulk["terminal_liquid_area"],

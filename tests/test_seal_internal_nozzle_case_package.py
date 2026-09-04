@@ -261,8 +261,15 @@ def make_run(requested_root: Path, role: str = "B") -> tuple[Path, Path]:
         projection = root / "precursor_transfer_projection.csv"
         projection_rows = []
         for index, phase in enumerate(ACCEPTANCE.PROJECTION_PHASES):
+            stats = ([4, 1.0, 0.001, 2, 2, 4, 2, 100]
+                     if index == ACCEPTANCE.PROJECTION_SELECTED_INDEX else
+                     ["not_applicable"] * len(ACCEPTANCE.PROJECTION_STATS))
+            metrics = [99.0, 99.0, 0, 0, 0] if index == 0 else [0, 0, 0, 0, 0]
+            times = [0, 0, 0, schedule_dt]
+            iterations = [0, 0, 0, 1]
             projection_rows.append([
-                case, index, phase, index * schedule_dt, index, 0, 0, 0, 0, 0, 1,
+                case, index, phase, times[index], iterations[index], *metrics, 1,
+                *stats,
                 modes["initial_state"], modes["inlet_mode"],
                 modes["precursor_pressure_mode"], transfer_sha, execution, segment, role,
             ])

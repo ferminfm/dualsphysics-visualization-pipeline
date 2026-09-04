@@ -41,6 +41,7 @@ event init (i = 0) {
 scalar un[];
 scalar internal_nozzle_import_u_x[], internal_nozzle_import_u_y[];
 scalar internal_nozzle_import_u_z[], internal_nozzle_import_p[];
+scalar internal_nozzle_transfer_projection_correction[];
 
 int maxlevel = 6;
 int baselevel = 4;
@@ -65,6 +66,12 @@ int checkpoint_index = 0;
 int surface_frame_index = 0;
 int recovered_checkpoint_iteration = -1;
 int internal_nozzle_initial_projection_records = 0;
+int internal_nozzle_initial_projection_stats_available = 0;
+int internal_nozzle_projection_nitermin_before = -1;
+int internal_nozzle_projection_nitermin_during = -1;
+int internal_nozzle_projection_nitermin_after = -1;
+int internal_nozzle_projection_nitermax = -1;
+mgstats internal_nozzle_initial_projection_stats;
 
 double official_r = 1./12.;
 double A0, D0, Wrect, Hrect, Dhrect;
@@ -1555,6 +1562,17 @@ pf[left] = dirichlet(pressure_value);
 #endif
 p[right] = dirichlet(0.);
 pf[right] = dirichlet(0.);
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+internal_nozzle_transfer_projection_correction[left] = neumann(0.);
+#else
+internal_nozzle_transfer_projection_correction[left] = dirichlet(0.);
+#endif
+internal_nozzle_transfer_projection_correction[right] = dirichlet(0.);
+internal_nozzle_transfer_projection_correction[bottom] = neumann(0.);
+internal_nozzle_transfer_projection_correction[top] = neumann(0.);
+internal_nozzle_transfer_projection_correction[back] = neumann(0.);
+internal_nozzle_transfer_projection_correction[front] = neumann(0.);
+internal_nozzle_transfer_projection_correction[embed] = neumann(0.);
 f[left] = dirichlet(1.);
 f[right] = neumann(0.);
 
@@ -2932,7 +2950,7 @@ static void internal_nozzle_record_transfer_projection (const char *phase) {
       velocity_delta_l2 += du2*volume;
       pressure_delta_l2 += sq(p[] - internal_nozzle_import_p[])*volume;
       projection_pressure_delta_l2 +=
-        sq(pf[] - internal_nozzle_import_p[])*volume;
+        sq(internal_nozzle_transfer_projection_correction[])*volume;
       fluid_volume += volume;
     }
   }
@@ -2945,8 +2963,8 @@ static void internal_nozzle_record_transfer_projection (const char *phase) {
     exit(2);
   }
   if (!exists)
-    fputs("case_id,record_index,phase,t,i,divergence_l2,divergence_max,velocity_impulse_l2,cell_pressure_change_l2,projection_pressure_adjustment_l2,fluid_volume,initial_state,inlet_mode,precursor_pressure_mode,transfer_sha256,execution_id,segment_id,case_role\n", stream);
-  fprintf(stream, "%s,%d,%s,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%s,%s,%s,%s,%s,%s\n",
+    fputs("case_id,record_index,phase,t,i,divergence_l2,divergence_max,velocity_impulse_l2,cell_pressure_change_l2,projection_pressure_adjustment_l2,fluid_volume,projection_iterations,projection_residual_before,projection_residual_after,projection_nrelax,projection_nitermin_before,projection_nitermin_during,projection_nitermin_after,projection_nitermax,initial_state,inlet_mode,precursor_pressure_mode,transfer_sha256,execution_id,segment_id,case_role\n", stream);
+  fprintf(stream, "%s,%d,%s,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g",
           case_id, internal_nozzle_initial_projection_records, phase, t, iter,
           fluid_volume > 0. ? sqrt(divergence_l2/fluid_volume) : HUGE,
           divergence_max,
@@ -2954,7 +2972,22 @@ static void internal_nozzle_record_transfer_projection (const char *phase) {
           fluid_volume > 0. ? sqrt(pressure_delta_l2/fluid_volume) : HUGE,
           fluid_volume > 0. ?
           sqrt(projection_pressure_delta_l2/fluid_volume) : HUGE,
-          fluid_volume, internal_nozzle_initial_state_label(),
+          fluid_volume);
+  if (internal_nozzle_initial_projection_stats_available &&
+      !strcmp(phase, "post_initial_projection"))
+    fprintf(stream, ",%d,%.17g,%.17g,%d,%d,%d,%d,%d",
+            internal_nozzle_initial_projection_stats.i,
+            internal_nozzle_initial_projection_stats.resb,
+            internal_nozzle_initial_projection_stats.resa,
+            internal_nozzle_initial_projection_stats.nrelax,
+            internal_nozzle_projection_nitermin_before,
+            internal_nozzle_projection_nitermin_during,
+            internal_nozzle_projection_nitermin_after,
+            internal_nozzle_projection_nitermax);
+  else
+    fputs(",not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable,not_applicable", stream);
+  fprintf(stream, ",%s,%s,%s,%s,%s,%s,%s\n",
+          internal_nozzle_initial_state_label(),
           internal_nozzle_inlet_mode_label(),
           internal_nozzle_precursor_pressure_mode_label(),
           internal_nozzle_transfer_sha256,
@@ -2968,9 +3001,42 @@ static void internal_nozzle_post_centered_init (void) {
       internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START)
     return;
   /* centered's generic init has now built the exact face velocity that would
-   * otherwise be consumed by the first VOF/advection event. */
+   * otherwise be consumed by the first VOF/advection event.  Project a
+   * homogeneous correction, not the transferred physical pressure field:
+   * applying the latter here would add the imposed pressure forcing a second
+   * time before the first physical timestep. */
+  foreach()
+    internal_nozzle_transfer_projection_correction[] = 0.;
+  boundary({internal_nozzle_transfer_projection_correction});
   internal_nozzle_record_transfer_projection("pre_projection_input");
-  mgpf = project(uf, pf, alpha, dt, mgpf.nrelax);
+  internal_nozzle_projection_nitermin_before = NITERMIN;
+  internal_nozzle_projection_nitermin_during = max(NITERMIN, 4);
+  internal_nozzle_projection_nitermax = NITERMAX;
+  NITERMIN = internal_nozzle_projection_nitermin_during;
+  internal_nozzle_initial_projection_stats = project
+    (uf, internal_nozzle_transfer_projection_correction,
+     alpha, 1., mgpf.nrelax);
+  NITERMIN = internal_nozzle_projection_nitermin_before;
+  internal_nozzle_projection_nitermin_after = NITERMIN;
+  internal_nozzle_initial_projection_stats_available = 1;
+  if (internal_nozzle_projection_nitermin_before < 1 ||
+      internal_nozzle_projection_nitermin_during != 4 ||
+      internal_nozzle_projection_nitermin_after !=
+      internal_nozzle_projection_nitermin_before ||
+      internal_nozzle_initial_projection_stats.i <
+      internal_nozzle_projection_nitermin_during ||
+      internal_nozzle_initial_projection_stats.i > NITERMAX ||
+      internal_nozzle_initial_projection_stats.nrelax <= 0 ||
+      !isfinite(internal_nozzle_initial_projection_stats.resb) ||
+      !isfinite(internal_nozzle_initial_projection_stats.resa) ||
+      internal_nozzle_initial_projection_stats.resb < 0. ||
+      internal_nozzle_initial_projection_stats.resa < 0. ||
+      internal_nozzle_initial_projection_stats.resa >
+      internal_nozzle_initial_projection_stats.resb) {
+    fprintf(stderr, "ERROR invalid zero-time transfer projection closure\n");
+    exit(2);
+  }
+  mgpf = internal_nozzle_initial_projection_stats;
   foreach() {
     foreach_dimension()
       u.x[] = (uf.x[] + uf.x[1])/(fm.x[] + fm.x[1] + SEPS);
@@ -2978,7 +3044,7 @@ static void internal_nozzle_post_centered_init (void) {
   }
   centered_gradient(p, g);
   boundary({u, un, p, pf, g});
-  internal_nozzle_record_transfer_projection("pre_advection_closure");
+  internal_nozzle_record_transfer_projection("post_initial_projection");
 }
 
 /* Continue the closure record through the first two completed timesteps. */

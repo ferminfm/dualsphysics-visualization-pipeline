@@ -248,7 +248,7 @@ def test_precursor_source_uses_keyed_closure_and_bound_sidecar() -> None:
     assert "iter = expected_restore_iteration" not in source
 
 
-def test_two_phase_source_projects_after_centered_init_and_binds_closure() -> None:
+def test_two_phase_source_projects_homogeneous_transfer_correction_and_binds_closure() -> None:
     root = Path(__file__).resolve().parents[1]
     source = (root / "cases" / "basilisk" /
               "rectangular_internal_nozzle_convergence_visual.c").read_text(
@@ -262,7 +262,24 @@ def test_two_phase_source_projects_after_centered_init_and_binds_closure() -> No
         "static void internal_nozzle_post_centered_init (void) {")
     assert pre_centered_event < centered_include < case_init < post_centered_hook
     assert '"pre_projection_input"' in source
-    assert '"pre_advection_closure"' in source
+    assert '"post_initial_projection"' in source
+    assert "project(uf, pf, alpha, dt" not in source
+    assert source.count("internal_nozzle_initial_projection_stats = project") == 1
+    assert "internal_nozzle_transfer_projection_correction[left] = dirichlet(0.);" in source
+    assert "internal_nozzle_transfer_projection_correction[right] = dirichlet(0.);" in source
+    assert "internal_nozzle_transfer_projection_correction[left] = neumann(0.);" in source
+    saved = source.index(
+        "internal_nozzle_projection_nitermin_before = NITERMIN;", post_centered_hook,
+    )
+    raised = source.index("NITERMIN = internal_nozzle_projection_nitermin_during;", saved)
+    projected = source.index("internal_nozzle_initial_projection_stats = project", raised)
+    restored = source.index("NITERMIN = internal_nozzle_projection_nitermin_before;", projected)
+    assert saved < raised < projected < restored
+    assert "internal_nozzle_projection_nitermin_during = max(NITERMIN, 4);" in source
+    assert "TOLERANCE = 1e-5;" in source
+    assert "p[left] = dirichlet(pressure_value);" in source
+    assert "p[left] = neumann(0.);" in source
+    assert "p[right] = dirichlet(0.);" in source
     assert "centered_gradient(p, g);" in source
     assert "native_restore_iteration != found_iteration" in source
     assert "solver_dtmax=%.17g" in source

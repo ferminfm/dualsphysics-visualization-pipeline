@@ -19,18 +19,26 @@ import re
 from pathlib import Path
 
 
-PROJECTION_CRITERIA_SCHEMA = "internal_nozzle_transfer_projection_criteria_v1"
-PROJECTION_ACCEPTANCE_SCHEMA = "internal_nozzle_transfer_projection_acceptance_v2"
+PROJECTION_CRITERIA_SCHEMA = "internal_nozzle_transfer_projection_criteria_v2"
+PROJECTION_ACCEPTANCE_SCHEMA = "internal_nozzle_transfer_projection_acceptance_v3"
 PROFILE_ACCEPTANCE_SCHEMA = "internal_nozzle_poiseuille_profile_acceptance_v2"
 PROJECTION_PHASES = (
-    "pre_projection_input", "pre_advection_closure",
+    "pre_projection_input", "post_initial_projection",
     "post_timestep_projection", "post_timestep_projection",
 )
 PROJECTION_METRICS = (
     "divergence_l2", "divergence_max", "velocity_impulse_l2",
     "cell_pressure_change_l2", "projection_pressure_adjustment_l2",
 )
-PROJECTION_SELECTION = "records_0_and_1_immediate_transfer_projection_only"
+PROJECTION_SELECTION = "named_post_initial_projection_record_only"
+PROJECTION_SELECTED_INDEX = 1
+PROJECTION_CONTEXT_INDICES = (0, 2, 3)
+PROJECTION_STATS = (
+    "projection_iterations", "projection_residual_before",
+    "projection_residual_after", "projection_nrelax",
+    "projection_nitermin_before", "projection_nitermin_during",
+    "projection_nitermin_after", "projection_nitermax",
+)
 PROJECTION_DIVERGENCE = (
     "basilisk_face_flux_difference_over_Delta;uf_already_contains_face_metric"
 )
@@ -210,7 +218,7 @@ def load_projection_criteria(path: Path, expected_sha256: str) -> tuple[Path, di
             raise ValueError("projection criterion must be an object")
         exact_keys(specification, {"aggregation", "operator", "limit"},
                    f"projection criterion {metric}")
-        if (specification.get("aggregation") != "max_over_selected_records" or
+        if (specification.get("aggregation") != "selected_named_record" or
                 specification.get("operator") != "<="):
             raise ValueError("projection criterion operation mismatch")
         limit = finite(specification.get("limit"), f"projection criterion {metric}",
@@ -225,7 +233,8 @@ def load_projection_criteria(path: Path, expected_sha256: str) -> tuple[Path, di
 PROJECTION_HEADER = (
     "case_id", "record_index", "phase", "t", "i", "divergence_l2",
     "divergence_max", "velocity_impulse_l2", "cell_pressure_change_l2",
-    "projection_pressure_adjustment_l2", "fluid_volume", "initial_state",
+    "projection_pressure_adjustment_l2", "fluid_volume", *PROJECTION_STATS,
+    "initial_state",
     "inlet_mode", "precursor_pressure_mode", "transfer_sha256", "execution_id",
     "segment_id", "case_role",
 )
@@ -252,12 +261,51 @@ def projection_measurements(path: Path) -> tuple[list[dict[str, str]], dict[str,
                 iteration < 0 or row["phase"] != phase or
                 any(row[key] != value for key, value in identity.items())):
             raise ValueError("projection evidence order/identity mismatch")
-        finite(row["t"], "projection time", nonnegative=True)
+        record_time = finite(row["t"], "projection time", nonnegative=True)
+        if expected_index in {0, PROJECTION_SELECTED_INDEX} and (
+            record_time != 0.0 or iteration != 0
+        ):
+            raise ValueError("projection zero-time closure record mismatch")
         if finite(row["fluid_volume"], "projection volume") <= 0.0:
             raise ValueError("projection fluid volume must be positive")
         for metric in PROJECTION_METRICS:
             finite(row[metric], f"projection {metric}", nonnegative=True)
-    selected = rows[:2]
+        if expected_index == PROJECTION_SELECTED_INDEX:
+            integer_stats: dict[str, int] = {}
+            for key in (
+                "projection_iterations", "projection_nrelax",
+                "projection_nitermin_before", "projection_nitermin_during",
+                "projection_nitermin_after", "projection_nitermax",
+            ):
+                try:
+                    value = int(row[key])
+                except ValueError as error:
+                    raise ValueError(f"projection {key} is invalid") from error
+                if str(value) != row[key]:
+                    raise ValueError(f"projection {key} is not a canonical integer")
+                integer_stats[key] = value
+            residual_before = finite(
+                row["projection_residual_before"],
+                "projection residual before", nonnegative=True,
+            )
+            residual_after = finite(
+                row["projection_residual_after"],
+                "projection residual after", nonnegative=True,
+            )
+            if (
+                integer_stats["projection_nitermin_before"] != 2
+                or integer_stats["projection_nitermin_during"] != 4
+                or integer_stats["projection_nitermin_after"] != 2
+                or integer_stats["projection_nitermax"] != 100
+                or integer_stats["projection_nrelax"] <= 0
+                or integer_stats["projection_iterations"] < 4
+                or integer_stats["projection_iterations"] > 100
+                or residual_after > residual_before
+            ):
+                raise ValueError("projection solver-stat closure mismatch")
+        elif any(row[key] != "not_applicable" for key in PROJECTION_STATS):
+            raise ValueError("projection context record carries solver stats")
+    selected = [rows[PROJECTION_SELECTED_INDEX]]
     observed = {
         metric: max(float(row[metric]) for row in selected)
         for metric in PROJECTION_METRICS
@@ -281,7 +329,7 @@ def expected_projection_acceptance(
         passed = passed and metric_passed
         predicates.append({
             "metric": metric,
-            "aggregation": "max_over_selected_records",
+            "aggregation": "selected_named_record",
             "operator": "<=",
             "observed": observed[metric],
             "limit": limit,
@@ -294,7 +342,7 @@ def expected_projection_acceptance(
             f"{identity['segment_id']}:{identity['case_role']}"
         ),
         **identity,
-        "acceptance_basis": "hash_bound_pre_run_projection_criteria_v1",
+        "acceptance_basis": "hash_bound_pre_run_projection_criteria_v2",
         "criteria": {
             "path": str(criteria_path), "sha256": criteria_sha256,
             "criteria_id": criteria["criteria_id"],
@@ -302,13 +350,14 @@ def expected_projection_acceptance(
         "projection_evidence": {
             "path": evidence_path.name, "sha256": sha256_file(evidence_path),
         },
-        "selected_record_indices": [0, 1],
-        "context_record_indices": [2, 3],
+        "selected_record_indices": [PROJECTION_SELECTED_INDEX],
+        "context_record_indices": list(PROJECTION_CONTEXT_INDICES),
         "predicates": predicates,
         "pass": passed,
         "claim_boundary": (
-            "immediate transfer/projection numerical acceptance only; records 2-3 are "
-            "early physical-evolution context and are not acceptance inputs"
+            "zero-time homogeneous transfer-projection closure acceptance only; "
+            "record 0 is raw unprojected context and records 2-3 are early "
+            "physical-evolution context"
         ),
     }
 
