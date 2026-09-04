@@ -207,6 +207,18 @@ def test_precursor_source_prevents_duplicate_terminal_metric_rows():
     assert "last_metric_iteration != i" in terminal_event
 
 
+def test_precursor_mass_balance_uses_projected_boundary_face_fluxes():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "cases" / "basilisk" /
+              "rectangular_internal_nozzle_steady_precursor.c").read_text(
+                  encoding="utf-8")
+    assert "static void measure_boundary_face_flows" in source
+    assert "inlet += uf.x[]*sq(Delta);" in source
+    assert "outlet += uf.x[1]*sq(Delta);" in source
+    assert "inlet_boundary_face_flow,outlet_boundary_face_flow" in source
+    assert "fabs(upstream.flow - exit_plane.flow)" not in source
+
+
 def analyze(paths: tuple[Path, ...], **overrides: object) -> dict[str, object]:
     arguments = {
         "contracts": tuple(path.with_suffix(path.suffix + ".contract.json") for path in paths),

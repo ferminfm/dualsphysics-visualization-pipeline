@@ -456,6 +456,22 @@ static PlaneMetrics measure_plane (double plane_dh) {
   return result;
 }
 
+/* `uf` already includes the embedded face metric (`fm`) in centered.h.
+ * Integrating it on the two physical boundaries therefore gives the
+ * conservative volume flux used by the precursor mass-balance gate.  The
+ * cell-centred plane quadrature above remains useful for profile moments, but
+ * its coarse wide-plenum bias must not be mistaken for continuity error. */
+static void measure_boundary_face_flows (double *inlet_flow,
+                                         double *outlet_flow) {
+  double inlet = 0., outlet = 0.;
+  foreach_boundary(left, reduction(+:inlet))
+    inlet += uf.x[]*sq(Delta);
+  foreach_boundary(right, reduction(+:outlet))
+    outlet += uf.x[1]*sq(Delta);
+  *inlet_flow = inlet;
+  *outlet_flow = outlet;
+}
+
 static double update_exit_profile_change (double bulk_velocity) {
   const double plane_x = plane_locations_dh[PRECURSOR_PLANE_COUNT - 1]*
     geometry.hydraulic_diameter;
@@ -489,14 +505,16 @@ static void write_metric_row (int iter_value) {
   PlaneMetrics planes[PRECURSOR_PLANE_COUNT];
   for (int plane = 0; plane < PRECURSOR_PLANE_COUNT; plane++)
     planes[plane] = measure_plane(plane_locations_dh[plane]);
-  const PlaneMetrics upstream = planes[0];
   const PlaneMetrics exit_plane = planes[PRECURSOR_PLANE_COUNT - 1];
   const double profile_change =
     update_exit_profile_change(exit_plane.bulk_velocity);
-  const double imbalance_scale =
-    fabs(exit_plane.flow) > 1e-30 ? fabs(exit_plane.flow) : 1.;
+  double inlet_boundary_flow = 0., outlet_boundary_flow = 0.;
+  measure_boundary_face_flows(&inlet_boundary_flow, &outlet_boundary_flow);
+  const double imbalance_scale = max(fabs(inlet_boundary_flow),
+                                     fabs(outlet_boundary_flow));
   const double mass_imbalance =
-    fabs(upstream.flow - exit_plane.flow)/imbalance_scale;
+    imbalance_scale > 1e-30 ?
+    fabs(inlet_boundary_flow - outlet_boundary_flow)/imbalance_scale : 0.;
   double maximum_change = 0., cell_count = 0.;
   foreach(reduction(max:maximum_change) reduction(+:cell_count)) {
     if (cs[] > 1e-10) {
@@ -517,13 +535,15 @@ static void write_metric_row (int iter_value) {
   }
   fprintf(stream,
           "%s,%.17g,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,"
-          "%.17g,%.17g,%.17g,%.17g,%.17g,%d,%d,%.17g,%.17g,%d,%s\n",
+          "%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%d,%d,%.17g,"
+          "%.17g,%d,%s\n",
           case_id, t, t/geometry.hydraulic_diameter, iter_value,
           exit_plane.flow, density_liquid*exit_plane.flow,
           exit_plane.kinetic_flux,
           pressure_forcing - exit_plane.pressure_mean,
           exit_plane.area, exit_plane.bulk_velocity,
-          exit_plane.beta, exit_plane.alpha, mass_imbalance,
+          exit_plane.beta, exit_plane.alpha, inlet_boundary_flow,
+          outlet_boundary_flow, mass_imbalance,
           profile_change, maximum_change, mgp.i, mgu.i,
           mgp.resa, mgu.resa, (int)cell_count,
           restored ? "restored" : "fresh");
@@ -559,7 +579,8 @@ static void initialize_outputs (void) {
     exit(2);
   }
   fputs("case_id,t,t_star,i,Q_l,mdot_l,J_k,pressure_drop,exit_area,U_bulk,"
-        "beta,alpha,mass_flow_imbalance,profile_l2_change,max_ux_change,"
+        "beta,alpha,inlet_boundary_face_flow,outlet_boundary_face_flow,"
+        "mass_flow_imbalance,profile_l2_change,max_ux_change,"
         "mgp_iterations,mgu_iterations,mgp_residual,mgu_residual,cell_count,"
         "restart_state\n", stream);
   fclose(stream);
