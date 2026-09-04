@@ -40,6 +40,40 @@ class CompareRestartControlsTests(unittest.TestCase):
             result = MODULE.compare_fields(self._field(root, "a.csv", 2.0), self._field(root, "b.csv", 2.2))
         self.assertAlmostEqual(result["per_field"]["ux"]["relative_l2"], 0.1)
 
+    def test_hydraulic_difference_above_tolerance_fails(self):
+        fields = {
+            "left_time_iteration": ("1", "5"),
+            "right_time_iteration": ("1", "5"),
+            "left_only_rows": 0,
+            "right_only_rows": 0,
+            "field_relative_l2_max": 0.0,
+        }
+        hydraulics = {
+            "left_only_planes": [],
+            "right_only_planes": [],
+            "relative_difference_max": 2e-6,
+        }
+        passed, endpoint_equal = MODULE.comparison_passes(fields, hydraulics, 1e-7)
+        self.assertTrue(endpoint_equal)
+        self.assertFalse(passed)
+
+    def test_identical_hydraulic_and_field_endpoints_pass(self):
+        fields = {
+            "left_time_iteration": ("1", "5"),
+            "right_time_iteration": ("1", "5"),
+            "left_only_rows": 0,
+            "right_only_rows": 0,
+            "field_relative_l2_max": 0.0,
+        }
+        hydraulics = {
+            "left_only_planes": [],
+            "right_only_planes": [],
+            "relative_difference_max": 0.0,
+        }
+        passed, endpoint_equal = MODULE.comparison_passes(fields, hydraulics, 1e-7)
+        self.assertTrue(endpoint_equal)
+        self.assertTrue(passed)
+
 
 if __name__ == "__main__":
     unittest.main()

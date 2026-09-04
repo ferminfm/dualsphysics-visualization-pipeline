@@ -361,6 +361,50 @@ static void internal_nozzle_read_closure_v4
   *faces_out = faces;
 }
 
+static int internal_nozzle_same_double_v4 (double left, double right)
+{
+  return isfinite(left) && isfinite(right) &&
+    fabs(left - right) <=
+    64.*DBL_EPSILON*(1. + fabs(left) + fabs(right));
+}
+
+/* Bind a prediction closure to the native dump sidecar before its payload can
+ * overwrite any restored field.  Payload/topology hashes alone cannot detect
+ * an otherwise valid closure copied from a different checkpoint of the same
+ * source and schedule. */
+static void internal_nozzle_verify_prediction_closure_identity_v4
+  (const char * path, const char * accepted_source_sha,
+   double expected_t, int expected_iteration, int expected_grid_maxdepth,
+   double expected_dt, double expected_dtmax,
+   double expected_timestep_previous)
+{
+  InternalNozzleCheckpointHeaderV4 header;
+  InternalNozzleCellRecordV4 * cells = NULL;
+  InternalNozzleFaceRecordV4 * faces = NULL;
+  internal_nozzle_read_closure_v4
+    (path, &header, &cells, &faces, accepted_source_sha);
+  if (!internal_nozzle_same_double_v4(header.checkpoint_t, expected_t) ||
+      header.checkpoint_iteration != expected_iteration ||
+      header.grid_maxdepth != expected_grid_maxdepth ||
+      grid->maxdepth != expected_grid_maxdepth ||
+      !internal_nozzle_same_double_v4(header.checkpoint_dt, expected_dt) ||
+      !internal_nozzle_same_double_v4(header.checkpoint_dtmax,
+                                      expected_dtmax) ||
+      !internal_nozzle_same_double_v4(header.timestep_previous,
+                                      expected_timestep_previous) ||
+      !internal_nozzle_same_double_v4(header.domain_x0, X0) ||
+      !internal_nozzle_same_double_v4(header.domain_y0, Y0) ||
+      !internal_nozzle_same_double_v4(header.domain_z0, Z0) ||
+      !internal_nozzle_same_double_v4(header.domain_l0, L0)) {
+    fprintf(stderr,
+            "ERROR prediction-closure checkpoint/sidecar/domain identity mismatch %s\n",
+            path);
+    exit(2);
+  }
+  free(cells);
+  free(faces);
+}
+
 static void internal_nozzle_validate_current_keys_v4
   (const InternalNozzleCheckpointHeaderV4 * header,
    const InternalNozzleCellRecordV4 * expected_cells,

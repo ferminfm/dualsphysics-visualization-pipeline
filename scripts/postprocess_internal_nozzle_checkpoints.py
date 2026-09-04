@@ -49,6 +49,7 @@ CHECKPOINT_COMMON_COLUMNS = (
 CHECKPOINT_STATE_COLUMN = {
     "legacy_face_state": "face_velocity_state_file",
     "v4": "prediction_closure_state_file",
+    "v5": "prediction_closure_state_v5_file",
 }
 CHECKPOINT_METADATA_SCHEMA = {
     "legacy_face_state": (
@@ -57,7 +58,16 @@ CHECKPOINT_METADATA_SCHEMA = {
         "internal_nozzle_checkpoint_metadata_v3",
     ),
     "v4": "internal_nozzle_checkpoint_metadata_v4",
+    "v5": "internal_nozzle_checkpoint_metadata_v5",
 }
+CHECKPOINT_V5_IDENTITY_COLUMNS = (
+    "initial_state",
+    "inlet_mode",
+    "precursor_pressure_mode",
+    "precursor_transfer_sha256",
+    "profile_bulk_velocity",
+    "scientific_source_commit",
+)
 LEGACY_BASIC_COLUMNS = CHECKPOINT_COMMON_COLUMNS[:8]
 LEGACY_PROFILE_COLUMNS = (
     "case_id",
@@ -98,7 +108,12 @@ def read_checkpoint_index(path: Path) -> tuple[str, list[dict[str, str]]]:
                 for version, name in CHECKPOINT_STATE_COLUMN.items()
                 if name == state_columns[0]
             )
-            expected_columns = (*CHECKPOINT_COMMON_COLUMNS, CHECKPOINT_STATE_COLUMN[schema_version])
+            expected_columns = (
+                (*CHECKPOINT_COMMON_COLUMNS, *CHECKPOINT_V5_IDENTITY_COLUMNS,
+                 CHECKPOINT_STATE_COLUMN[schema_version])
+                if schema_version == "v5"
+                else (*CHECKPOINT_COMMON_COLUMNS, CHECKPOINT_STATE_COLUMN[schema_version])
+            )
         elif set(header) == set(LEGACY_BASIC_COLUMNS):
             schema_version = "legacy_basic"
             expected_columns = LEGACY_BASIC_COLUMNS
@@ -130,7 +145,10 @@ def read_checkpoint_index(path: Path) -> tuple[str, list[dict[str, str]]]:
         declared = {
             read_checkpoint_metadata(Path(row["metadata_file"])).get("schema") for row in rows
         }
-        if "internal_nozzle_checkpoint_metadata_v4" in declared:
+        if declared & {
+            "internal_nozzle_checkpoint_metadata_v4",
+            "internal_nozzle_checkpoint_metadata_v5",
+        }:
             if len(declared) != 1:
                 raise ValueError("mixed declared checkpoint metadata schemas")
             raise ValueError("missing checkpoint-index schema state column")
@@ -196,8 +214,10 @@ def require_metadata_identity(
         else "prediction_closure_state"
     )
     expected[state_key] = row[state_column]
-    if schema_version == "v4":
+    if schema_version in ("v4", "v5"):
         expected["prediction_closure_schema"] = "internal_nozzle_prediction_closure_v4"
+    if schema_version == "v5":
+        expected.update({key: row[key] for key in CHECKPOINT_V5_IDENTITY_COLUMNS})
     for key, value in expected.items():
         if metadata.get(key) != value:
             raise ValueError(
@@ -226,7 +246,7 @@ def validate_parent_identity(row: dict[str, str], schema_version: str) -> dict[s
     require_metadata_identity(parent_row, parent_metadata, parent_schema)
     state_column = CHECKPOINT_STATE_COLUMN[parent_schema]
     parent_state = require_absolute_nonzero(parent_row[state_column], "parent checkpoint state")
-    if parent_schema == "v4":
+    if parent_schema in ("v4", "v5"):
         validate_checkpoint_v4(parent_state)
     return {
         "kind": "checkpoint",
@@ -251,7 +271,7 @@ def validate_checkpoint_records(
         require_metadata_identity(row, metadata, schema_version)
         parent = validate_parent_identity(row, schema_version)
         container: dict[str, object] | None = None
-        if schema_version == "v4":
+        if schema_version in ("v4", "v5"):
             container = validate_checkpoint_v4(state)
             expected_container = {
                 "source_sha256": row["source_sha256"],
@@ -274,6 +294,7 @@ def validate_checkpoint_records(
             "state_file": str(state),
             "parent_checkpoint": parent,
             "valid": True,
+            "metadata_schema": metadata["schema"],
         }
         if container is not None:
             item["prediction_closure_validation"] = container
@@ -401,7 +422,7 @@ def validate_run_dir(run_dir: Path) -> dict[str, object]:
     checkpoint_schema, checkpoints = read_checkpoint_index(run_dir / "checkpoint_index.csv")
     checkpoint_validations = (
         validate_checkpoint_records(checkpoints, checkpoint_schema)
-        if checkpoint_schema in ("legacy_face_state", "v4")
+        if checkpoint_schema in ("legacy_face_state", "v4", "v5")
         else []
     )
     checkpoint_files = [checkpoint_path(run_dir, row["filename"]) for row in checkpoints if row.get("filename")]
@@ -415,8 +436,11 @@ def validate_run_dir(run_dir: Path) -> dict[str, object]:
         "surface_files_nonzero": all(path.exists() and path.stat().st_size > 0 for path in surface_files),
         "surface_facet_cells_positive": all(int(float(row.get("facet_cell_count", "0"))) > 0 for row in surfaces) if surfaces else False,
     }
-    if checkpoint_schema == "v4":
-        result["checkpoint_schema"] = "internal_nozzle_checkpoint_metadata_v4"
+    if checkpoint_schema in ("v4", "v5"):
+        result["checkpoint_schema"] = (
+            checkpoint_validations[-1]["metadata_schema"]
+            if checkpoint_validations else "not_applicable"
+        )
         result["checkpoint_contract_valid"] = all(item["valid"] for item in checkpoint_validations)
         result["reconstructed_checkpoint_manifest"] = reconstruct_checkpoint_manifest(
             checkpoints, checkpoint_schema, checkpoint_validations

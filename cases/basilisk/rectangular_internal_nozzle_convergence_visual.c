@@ -3,6 +3,14 @@
 #ifdef INTERNAL_NOZZLE_PROJECTION_TRACE
 # include "internal_nozzle_projection_trace.h"
 #endif
+/* This init overload is intentionally declared before centered.h.  Basilisk
+ * chains later same-name declarations ahead of earlier ones, so the order is:
+ * case-specific init (declared below), centered's generic init, then this
+ * post-centered hook, all before the first timestep event. */
+static void internal_nozzle_post_centered_init (void);
+event init (i = 0) {
+  internal_nozzle_post_centered_init();
+}
 #ifndef INTERNAL_NOZZLE_RESTARTABLE_TIMESTEP
 # error "compile through the hash-gated restartable centered-header preparation path"
 #endif
@@ -12,8 +20,10 @@
 #include "tension.h"
 #include "tag.h"
 #include "view.h"
+#include "internal_nozzle_precursor_geometry.h"
 #include <ctype.h>
 #include <errno.h>
+#include <float.h>
 #include <sys/stat.h>
 #include <string.h>
 
@@ -29,6 +39,8 @@
  */
 
 scalar un[];
+scalar internal_nozzle_import_u_x[], internal_nozzle_import_u_y[];
+scalar internal_nozzle_import_u_z[], internal_nozzle_import_p[];
 
 int maxlevel = 6;
 int baselevel = 4;
@@ -52,6 +64,7 @@ int hydraulic_metric_index = 0;
 int checkpoint_index = 0;
 int surface_frame_index = 0;
 int recovered_checkpoint_iteration = -1;
+int internal_nozzle_initial_projection_records = 0;
 
 double official_r = 1./12.;
 double A0, D0, Wrect, Hrect, Dhrect;
@@ -100,6 +113,11 @@ double cumulative_liquid_outflow = 0.;
 double previous_liquid_inflow_rate = 0.;
 double previous_liquid_outflow_rate = 0.;
 double last_mass_balance_time = -1.;
+double cumulative_nozzle_exit_discharge = 0.;
+double cumulative_discharged_liquid_volume = 0.;
+#define cumulative_nozzle_exit_net_volume cumulative_nozzle_exit_discharge
+double previous_nozzle_exit_flow = 0.;
+double last_nozzle_discharge_time = -1.;
 double liquid_inventory_change_fraction = 0.;
 double liquid_mass_balance_residual = 0.;
 double liquid_mass_balance_relative_error = 0.;
@@ -118,6 +136,21 @@ char sanitized_case_id[128] = "W2_visual_pipeline";
 char schedule_version[128] = "legacy_unspecified";
 char schedule_sha[128] = "legacy_unspecified";
 char source_sha[128] = "unresolved";
+char scientific_source_commit[64] = "unresolved";
+char execution_id[128] = "unresolved";
+char segment_id[128] = "unresolved";
+char case_role[8] = "unresolved";
+char solver_sha256[128] = "unresolved";
+char requested_build_variant[64] = "unresolved";
+char precursor_convergence_sha256[128] = "not_applicable";
+char precursor_history_sha256[128] = "not_applicable";
+double precursor_target_q = -1.;
+double precursor_target_area = -1.;
+double precursor_target_velocity_tolerance = -1.;
+char restore_checkpoint_sha256[128] = "not_applicable";
+char restore_metadata_sha256[128] = "not_applicable";
+char restore_closure_sha256[128] = "not_applicable";
+char predecessor_segment_id[128] = "not_applicable";
 char restore_source_sha[128] = "";
 char pending_prediction_closure_path[1200] = "";
 int pending_prediction_closure_restore = 0;
@@ -154,6 +187,17 @@ static double clamp01_local (double a) {
 static double smoothstep (double a) {
   a = clamp01_local(a);
   return a*a*(3. - 2.*a);
+}
+
+static int canonical_identifier_string (const char *value) {
+  if (!value || !value[0] || strlen(value) > 127 ||
+      !isalnum((unsigned char)value[0]))
+    return 0;
+  for (size_t k = 1; value[k]; k++)
+    if (!isalnum((unsigned char)value[k]) && value[k] != '.' &&
+        value[k] != '_' && value[k] != '-')
+      return 0;
+  return 1;
 }
 
 static double exit_x (void) {
@@ -235,9 +279,11 @@ static void subdir_path (char *buf, int n, const char *dir, const char *leaf) {
 
 static void atomic_rename (const char *tmp, const char *dst);
 
+#include "internal_nozzle_precursor_start.h"
+
 static int file_exists_nonzero (const char *path) {
   struct stat st;
-  return stat(path, &st) == 0 && st.st_size > 0;
+  return lstat(path, &st) == 0 && S_ISREG(st.st_mode) && st.st_size > 0;
 }
 
 static int canonical_schedule_enabled (void) {
@@ -294,17 +340,28 @@ static int text_file_contains (const char *path, const char *needle) {
 }
 
 static void write_schedule_contract (void) {
-  char path[1024], tmp[1024], expected_version[320], expected_sha[320];
+  char path[1024];
   output_path(path, sizeof(path), "run_schedule_contract.json");
-  snprintf(expected_version, sizeof(expected_version), "\"schedule_version\": \"%s\"", schedule_version);
-  snprintf(expected_sha, sizeof(expected_sha), "\"schedule_sha256\": \"%s\"", schedule_sha);
-  if (file_exists_nonzero(path) &&
-      (!text_file_contains(path, expected_version) || !text_file_contains(path, expected_sha))) {
-    fprintf(stderr, "ERROR schedule migration denied: existing contract does not match %s %s\n",
-            schedule_version, schedule_sha);
+  if (!file_exists_nonzero(path)) {
+    fprintf(stderr,
+            "ERROR canonical launch-schedule input is missing or incompatible: %s\n",
+            path);
     exit(2);
   }
-  output_path(tmp, sizeof(tmp), "run_schedule_contract.json.tmp");
+}
+
+static void write_scientific_runtime_contract (void) {
+  char leaf[320], path[1024], tmp[1032];
+  snprintf(leaf, sizeof(leaf), "scientific_runtime_contract.%s.json", segment_id);
+  output_path(path, sizeof(path), leaf);
+  if (lstat(path, &(struct stat){0}) == 0) {
+    fprintf(stderr, "ERROR refusing to overwrite immutable runtime contract %s\n", path);
+    exit(2);
+  }
+  if (snprintf(tmp, sizeof(tmp), "%s.tmp", path) >= (int)sizeof(tmp)) {
+    fprintf(stderr, "ERROR runtime-contract path exceeds buffer\n");
+    exit(2);
+  }
   FILE *fp = fopen(tmp, "w");
   if (!fp) {
     fprintf(stderr, "ERROR cannot write %s\n", tmp);
@@ -312,22 +369,87 @@ static void write_schedule_contract (void) {
   }
   fprintf(fp,
           "{\n"
-          "  \"schema\": \"internal_nozzle_runtime_schedule_v1\",\n"
+          "  \"schema\": \"internal_nozzle_scientific_runtime_v1\",\n"
+          "  \"execution_id\": \"%s\",\n"
+          "  \"segment_id\": \"%s\",\n"
+          "  \"case_role\": \"%s\",\n"
+          "  \"case_id\": \"%s\",\n"
+          "  \"scientific_source_commit\": \"%s\",\n"
+          "  \"source_sha256\": \"%s\",\n"
+          "  \"solver_sha256\": \"%s\",\n"
+          "  \"build_variant\": \"%s\",\n"
+          "  \"domain_mode\": \"%s\",\n"
+          "  \"segment_start\": \"%s\",\n"
+          "  \"initial_state\": \"%s\",\n"
+          "  \"inlet_mode\": \"%s\",\n"
+          "  \"precursor_pressure_mode\": \"%s\",\n"
+          "  \"precursor_transfer_sha256\": \"%s\",\n"
+          "  \"precursor_convergence_sha256\": \"%s\",\n"
+          "  \"precursor_history_sha256\": \"%s\",\n"
+          "  \"precursor_target_derivation\": \"terminal_converged_precursor_exit_Q_l_over_liquid_area\",\n"
+          "  \"precursor_target_Q_l\": %.17g,\n"
+          "  \"precursor_target_liquid_area\": %.17g,\n"
+          "  \"precursor_target_bulk_velocity\": %.17g,\n"
+          "  \"precursor_target_velocity_tolerance\": %.17g,\n"
+          "  \"profile_bulk_velocity\": %.17g,\n"
+          "  \"restore_checkpoint_sha256\": \"%s\",\n"
+          "  \"restore_metadata_sha256\": \"%s\",\n"
+          "  \"restore_closure_sha256\": \"%s\",\n"
+          "  \"predecessor_segment_id\": \"%s\",\n"
           "  \"schedule_version\": \"%s\",\n"
           "  \"schedule_sha256\": \"%s\",\n"
-          "  \"source_sha256\": \"%s\",\n"
           "  \"master_tick_dt\": %.17g,\n"
           "  \"event_time_tolerance\": %.17g,\n"
-          "  \"lightweight\": {\"base_stride\": %d, \"dense_stride\": %d},\n"
-          "  \"full_field\": {\"base_stride\": %d, \"dense_stride\": %d},\n"
+          "  \"light_base_stride\": %d,\n"
+          "  \"light_dense_stride\": %d,\n"
+          "  \"field_base_stride\": %d,\n"
+          "  \"field_dense_stride\": %d,\n"
           "  \"checkpoint_stride\": %d,\n"
-          "  \"dense_window\": {\"start_tick\": %d, \"end_tick\": %d},\n"
-          "  \"restart_policy\": \"schedule identity mismatch fails closed; completed target times are skipped\"\n"
+          "  \"dense_start_tick\": %d,\n"
+          "  \"dense_end_tick\": %d,\n"
+          "  \"maxlevel\": %d,\n"
+          "  \"baselevel\": %d,\n"
+          "  \"pressure_value\": %.17g,\n"
+          "  \"perturb_amp\": %.17g,\n"
+          "  \"perturb_period\": %.17g,\n"
+          "  \"end_time\": %.17g,\n"
+          "  \"dt_cap\": %.17g,\n"
+          "  \"mass_balance_tolerance\": %.17g,\n"
+          "  \"external_Dh\": %.17g,\n"
+          "  \"refine_external_Dh\": %.17g,\n"
+          "  \"density_liquid\": %.17g,\n"
+          "  \"density_gas\": %.17g,\n"
+          "  \"viscosity_liquid\": %.17g,\n"
+          "  \"viscosity_gas\": %.17g,\n"
+          "  \"surface_tension\": %.17g,\n"
+          "  \"width\": %.17g,\n"
+          "  \"height\": %.17g,\n"
+          "  \"hydraulic_diameter\": %.17g,\n"
+          "  \"plenum_Dh\": %.17g,\n"
+          "  \"contraction_Dh\": %.17g,\n"
+          "  \"straight_Dh\": %.17g\n"
           "}\n",
-          schedule_version, schedule_sha, source_sha, schedule_tick_dt,
+          execution_id, segment_id, case_role, case_id,
+          scientific_source_commit, source_sha, solver_sha256,
+          requested_build_variant, domain_label(),
+          restore_requested ? "native_restore" : "fresh_initialization",
+          internal_nozzle_initial_state_label(), internal_nozzle_inlet_mode_label(),
+          internal_nozzle_precursor_pressure_mode_label(),
+          internal_nozzle_transfer_sha256, precursor_convergence_sha256,
+          precursor_history_sha256, precursor_target_q, precursor_target_area,
+          precursor_target_area > 0. ? precursor_target_q/precursor_target_area : -1.,
+          precursor_target_velocity_tolerance,
+          internal_nozzle_profile_bulk_velocity,
+          restore_checkpoint_sha256, restore_metadata_sha256,
+          restore_closure_sha256, predecessor_segment_id,
+          schedule_version, schedule_sha, schedule_tick_dt,
           schedule_time_tolerance, light_base_stride, light_dense_stride,
           field_base_stride, field_dense_stride, checkpoint_stride,
-          dense_start_tick, dense_end_tick);
+          dense_start_tick, dense_end_tick, maxlevel, baselevel, pressure_value,
+          perturb_amp, perturb_period, end_time, dt_cap,
+          mass_balance_tolerance, external_Dh, refine_external_Dh,
+          rho1, rho2, mu1, mu2, f.sigma, Wrect, Hrect, Dhrect,
+          plenum_Dh, contraction_Dh, straight_Dh);
   fclose(fp);
   atomic_rename(tmp, path);
 }
@@ -871,6 +993,8 @@ static double checkpoint_time_from_index (const char *checkpoint) {
 }
 
 static void recover_checkpoint_metadata (const char *checkpoint) {
+  const double native_restore_time = t;
+  const int native_restore_iteration = iter;
   char meta[1200];
   snprintf(meta, sizeof(meta), "%s.meta", checkpoint);
   FILE *fp = fopen(meta, "r");
@@ -881,64 +1005,184 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     }
     return;
   }
-  char line[2048], found_version[128] = "", found_sha[128] = "";
-  char found_source_sha[128] = "";
-  int found_tick = -1, found_iteration = -1;
-  double found_target = -1., found_actual = -1.;
+  char line[2048], found_schema[128] = "", found_case[128] = "";
+  char found_version[128] = "", found_sha[128] = "";
+  char found_source_sha[128] = "", found_source_commit[64] = "";
+  char found_initial_state[128] = "";
+  char found_inlet_mode[128] = "", found_transfer_sha[128] = "";
+  char found_pressure_mode[128] = "";
+  char found_execution_id[128] = "", found_segment_id[128] = "";
+  char found_case_role[8] = "", found_solver_sha256[128] = "";
+  char found_predecessor_segment_id[128] = "";
+  char found_restore_checkpoint_sha256[128] = "";
+  char found_restore_metadata_sha256[128] = "";
+  char found_restore_closure_sha256[128] = "";
+  char found_legacy_definition[128] = "";
+  char found_pressure_provenance[128] = "", found_gravity[32] = "";
+  char found_restored_from[1024] = "";
+  char found_closure_schema[128] = "", found_closure_state[1200] = "";
+  int found_tick = -1, found_iteration = -1, found_level = -1;
+  int found_grid_maxdepth = -1;
+  double found_target = -1., found_actual = -1., found_profile_bulk = HUGE;
+  double found_solver_dt = HUGE, found_solver_dtmax = HUGE;
+  double found_timestep_previous = HUGE;
+  double found_domain_x0 = HUGE, found_domain_y0 = HUGE;
+  double found_domain_z0 = HUGE, found_domain_l0 = HUGE;
+  double found_legacy_discharge = HUGE, found_net_volume = HUGE;
+  double found_discharged_volume = HUGE;
+  unsigned long long seen = 0;
+#define TWO_PHASE_META_SCAN(bit, expression) do { \
+    if ((expression) == 1) { \
+      if (seen & (1ULL << (bit))) { \
+        fprintf(stderr, "ERROR duplicate two-phase checkpoint metadata key\n"); \
+        exit(2); \
+      } \
+      seen |= 1ULL << (bit); \
+      continue; \
+    } \
+  } while (0)
   while (fgets(line, sizeof(line), fp)) {
-    if (sscanf(line, "schedule_version=%127s", found_version) == 1)
-      continue;
-    if (sscanf(line, "schedule_sha256=%127s", found_sha) == 1)
-      continue;
-    if (sscanf(line, "source_sha256=%127s", found_source_sha) == 1)
-      continue;
-    if (sscanf(line, "master_tick=%d", &found_tick) == 1)
-      continue;
-    if (sscanf(line, "iteration=%d", &found_iteration) == 1)
-      continue;
-    if (sscanf(line, "target_time=%lf", &found_target) == 1)
-      continue;
-    if (sscanf(line, "actual_time=%lf", &found_actual) == 1)
-      continue;
-    if (sscanf(line, "initial_liquid_volume=%lf", &initial_liquid_volume) == 1)
-      continue;
-    if (sscanf(line, "cumulative_liquid_inflow=%lf", &cumulative_liquid_inflow) == 1)
-      continue;
-    if (sscanf(line, "cumulative_liquid_outflow=%lf", &cumulative_liquid_outflow) == 1)
-      continue;
-    if (sscanf(line, "previous_liquid_inflow_rate=%lf", &previous_liquid_inflow_rate) == 1)
-      continue;
-    if (sscanf(line, "previous_liquid_outflow_rate=%lf", &previous_liquid_outflow_rate) == 1)
-      continue;
-    if (sscanf(line, "last_mass_balance_time=%lf", &last_mass_balance_time) == 1)
-      continue;
-    if (sscanf(line, "timestep_previous=%lf", &internal_nozzle_timestep_previous) == 1)
-      continue;
-    if (sscanf(line, "mgp_nrelax=%d", &mgp.nrelax) == 1)
-      continue;
-    if (sscanf(line, "mgpf_nrelax=%d", &mgpf.nrelax) == 1)
-      continue;
-    if (sscanf(line, "mgu_nrelax=%d", &mgu.nrelax) == 1)
-      continue;
-    if (sscanf(line, "initial_interface_proxy=%lf", &initial_interface_proxy) == 1)
-      continue;
-    if (sscanf(line, "max_interface_growth=%lf", &max_interface_growth) == 1)
-      continue;
-    if (sscanf(line, "max_active_front=%lf", &max_active_front) == 1)
-      continue;
-    if (sscanf(line, "max_post_tag_count=%d", &max_post_tag_count) == 1)
-      continue;
-    if (sscanf(line, "max_detached_proxy_count=%d", &max_detached_proxy_count) == 1)
-      continue;
-    sscanf(line, "max_one_cell_debris_count=%d", &max_one_cell_debris_count);
+    TWO_PHASE_META_SCAN(0, sscanf(line, "schema=%127s", found_schema));
+    TWO_PHASE_META_SCAN(1, sscanf(line, "case_id=%127s", found_case));
+    TWO_PHASE_META_SCAN(2, sscanf(line, "source_sha256=%127s", found_source_sha));
+    TWO_PHASE_META_SCAN(3, sscanf(line, "scientific_source_commit=%63s", found_source_commit));
+    TWO_PHASE_META_SCAN(4, sscanf(line, "schedule_version=%127s", found_version));
+    TWO_PHASE_META_SCAN(5, sscanf(line, "schedule_sha256=%127s", found_sha));
+    TWO_PHASE_META_SCAN(6, sscanf(line, "master_tick=%d", &found_tick));
+    TWO_PHASE_META_SCAN(7, sscanf(line, "target_time=%lf", &found_target));
+    TWO_PHASE_META_SCAN(8, sscanf(line, "actual_time=%lf", &found_actual));
+    TWO_PHASE_META_SCAN(9, sscanf(line, "iteration=%d", &found_iteration));
+    TWO_PHASE_META_SCAN(10, sscanf(line, "maxlevel=%d", &found_level));
+    TWO_PHASE_META_SCAN(11, sscanf(line, "grid_maxdepth=%d", &found_grid_maxdepth));
+    TWO_PHASE_META_SCAN(12, sscanf(line, "domain_x0=%lf", &found_domain_x0));
+    TWO_PHASE_META_SCAN(13, sscanf(line, "domain_y0=%lf", &found_domain_y0));
+    TWO_PHASE_META_SCAN(14, sscanf(line, "domain_z0=%lf", &found_domain_z0));
+    TWO_PHASE_META_SCAN(15, sscanf(line, "domain_l0=%lf", &found_domain_l0));
+    TWO_PHASE_META_SCAN(16, sscanf(line, "initial_state=%127s", found_initial_state));
+    TWO_PHASE_META_SCAN(17, sscanf(line, "inlet_mode=%127s", found_inlet_mode));
+    TWO_PHASE_META_SCAN(18, sscanf(line, "precursor_transfer_sha256=%127s", found_transfer_sha));
+    TWO_PHASE_META_SCAN(19, sscanf(line, "precursor_pressure_mode=%127s", found_pressure_mode));
+    TWO_PHASE_META_SCAN(20, sscanf(line, "profile_bulk_velocity=%lf", &found_profile_bulk));
+    TWO_PHASE_META_SCAN(21, sscanf(line, "pressure_provenance=%127s", found_pressure_provenance));
+    TWO_PHASE_META_SCAN(22, sscanf(line, "gravity_enabled=%31s", found_gravity));
+    TWO_PHASE_META_SCAN(23, sscanf(line, "restored_from=%1023s", found_restored_from));
+    TWO_PHASE_META_SCAN(24, sscanf(line, "initial_liquid_volume=%lf", &initial_liquid_volume));
+    TWO_PHASE_META_SCAN(25, sscanf(line, "cumulative_liquid_inflow=%lf", &cumulative_liquid_inflow));
+    TWO_PHASE_META_SCAN(26, sscanf(line, "cumulative_liquid_outflow=%lf", &cumulative_liquid_outflow));
+    TWO_PHASE_META_SCAN(27, sscanf(line, "cumulative_nozzle_exit_discharge=%lf", &found_legacy_discharge));
+    TWO_PHASE_META_SCAN(28, sscanf(line, "previous_liquid_inflow_rate=%lf", &previous_liquid_inflow_rate));
+    TWO_PHASE_META_SCAN(29, sscanf(line, "previous_liquid_outflow_rate=%lf", &previous_liquid_outflow_rate));
+    TWO_PHASE_META_SCAN(30, sscanf(line, "previous_nozzle_exit_flow=%lf", &previous_nozzle_exit_flow));
+    TWO_PHASE_META_SCAN(31, sscanf(line, "last_mass_balance_time=%lf", &last_mass_balance_time));
+    TWO_PHASE_META_SCAN(32, sscanf(line, "last_nozzle_discharge_time=%lf", &last_nozzle_discharge_time));
+    TWO_PHASE_META_SCAN(33, sscanf(line, "solver_dt=%lf", &found_solver_dt));
+    TWO_PHASE_META_SCAN(34, sscanf(line, "solver_dtmax=%lf", &found_solver_dtmax));
+    TWO_PHASE_META_SCAN(35, sscanf(line, "timestep_previous=%lf", &found_timestep_previous));
+    TWO_PHASE_META_SCAN(36, sscanf(line, "mgp_nrelax=%d", &mgp.nrelax));
+    TWO_PHASE_META_SCAN(37, sscanf(line, "mgpf_nrelax=%d", &mgpf.nrelax));
+    TWO_PHASE_META_SCAN(38, sscanf(line, "mgu_nrelax=%d", &mgu.nrelax));
+    TWO_PHASE_META_SCAN(39, sscanf(line, "initial_interface_proxy=%lf", &initial_interface_proxy));
+    TWO_PHASE_META_SCAN(40, sscanf(line, "max_interface_growth=%lf", &max_interface_growth));
+    TWO_PHASE_META_SCAN(41, sscanf(line, "max_active_front=%lf", &max_active_front));
+    TWO_PHASE_META_SCAN(42, sscanf(line, "max_post_tag_count=%d", &max_post_tag_count));
+    TWO_PHASE_META_SCAN(43, sscanf(line, "max_detached_proxy_count=%d", &max_detached_proxy_count));
+    TWO_PHASE_META_SCAN(44, sscanf(line, "max_one_cell_debris_count=%d", &max_one_cell_debris_count));
+    TWO_PHASE_META_SCAN(45, sscanf(line, "prediction_closure_schema=%127s", found_closure_schema));
+    TWO_PHASE_META_SCAN(46, sscanf(line, "prediction_closure_state=%1199s", found_closure_state));
+    TWO_PHASE_META_SCAN(47, sscanf(line, "execution_id=%127s", found_execution_id));
+    TWO_PHASE_META_SCAN(48, sscanf(line, "segment_id=%127s", found_segment_id));
+    TWO_PHASE_META_SCAN(49, sscanf(line, "case_role=%7s", found_case_role));
+    TWO_PHASE_META_SCAN(50, sscanf(line, "solver_sha256=%127s", found_solver_sha256));
+    TWO_PHASE_META_SCAN(51, sscanf(line, "predecessor_segment_id=%127s", found_predecessor_segment_id));
+    TWO_PHASE_META_SCAN(52, sscanf(line, "restore_checkpoint_sha256=%127s", found_restore_checkpoint_sha256));
+    TWO_PHASE_META_SCAN(53, sscanf(line, "restore_metadata_sha256=%127s", found_restore_metadata_sha256));
+    TWO_PHASE_META_SCAN(54, sscanf(line, "restore_closure_sha256=%127s", found_restore_closure_sha256));
+    TWO_PHASE_META_SCAN(55, sscanf(line, "cumulative_nozzle_exit_net_volume=%lf", &found_net_volume));
+    TWO_PHASE_META_SCAN(56, sscanf(line, "cumulative_discharged_liquid_volume=%lf", &found_discharged_volume));
+    TWO_PHASE_META_SCAN(57, sscanf(line, "cumulative_nozzle_exit_discharge_definition=%127s", found_legacy_definition));
+    fprintf(stderr, "ERROR unknown or malformed two-phase checkpoint metadata key: %s", line);
+    exit(2);
   }
+#undef TWO_PHASE_META_SCAN
   fclose(fp);
+  char expected_closure_state[1200];
+  if (snprintf(expected_closure_state, sizeof(expected_closure_state),
+               "%s.prediction-closure-v4", checkpoint) >=
+      (int)sizeof(expected_closure_state)) {
+    fprintf(stderr, "ERROR checkpoint closure path is too long\n");
+    exit(2);
+  }
   const char * accepted_restore_source = restore_source_sha[0] ?
     restore_source_sha : source_sha;
+  if (seen != ((1ULL << 58) - 1) ||
+      strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v6") ||
+      strcmp(found_case, case_id) || found_level != maxlevel ||
+      strcmp(found_execution_id, execution_id) ||
+      strcmp(found_segment_id, predecessor_segment_id) ||
+      strcmp(found_case_role, case_role) ||
+      strcmp(found_solver_sha256, solver_sha256) ||
+      !canonical_identifier_string(found_segment_id) ||
+      (strcmp(found_predecessor_segment_id, "not_applicable") &&
+       !canonical_identifier_string(found_predecessor_segment_id)) ||
+      strcmp(found_legacy_definition,
+             "alias_of_cumulative_nozzle_exit_net_volume") ||
+      !isfinite(found_legacy_discharge) || !isfinite(found_net_volume) ||
+      !internal_nozzle_same_double_v4(found_legacy_discharge, found_net_volume) ||
+      !isfinite(found_discharged_volume) || found_discharged_volume < 0. ||
+      strcmp(found_initial_state, internal_nozzle_initial_state_label()) ||
+      strcmp(found_inlet_mode, internal_nozzle_inlet_mode_label()) ||
+      strcmp(found_transfer_sha, internal_nozzle_transfer_sha256) ||
+      strcmp(found_pressure_mode,
+             internal_nozzle_precursor_pressure_mode_label()) ||
+      found_iteration < 0 || found_grid_maxdepth < 0 ||
+      !isfinite(found_target) || !isfinite(found_actual) ||
+      !(found_solver_dt > 0.) || !(found_solver_dtmax > 0.) ||
+      !(found_timestep_previous >= 0.) ||
+      !internal_nozzle_same_double_v4(native_restore_time, found_actual) ||
+      native_restore_iteration != found_iteration ||
+      !internal_nozzle_same_double_v4(found_domain_x0, X0) ||
+      !internal_nozzle_same_double_v4(found_domain_y0, Y0) ||
+      !internal_nozzle_same_double_v4(found_domain_z0, Z0) ||
+      !internal_nozzle_same_double_v4(found_domain_l0, L0) ||
+      grid->maxdepth != found_grid_maxdepth ||
+      strcmp(found_pressure_provenance,
+             "runtime_cell_centered_p_after_centered_projection") ||
+      strcmp(found_gravity, "false") || !found_restored_from[0] ||
+      strcmp(found_closure_schema, "internal_nozzle_prediction_closure_v4") ||
+      strcmp(found_closure_state, expected_closure_state) ||
+      !isfinite(found_profile_bulk) ||
+      fabs(found_profile_bulk - internal_nozzle_profile_bulk_velocity) >
+      64.*DBL_EPSILON*max(1., fabs(internal_nozzle_profile_bulk_velocity))) {
+    fprintf(stderr,
+            "ERROR checkpoint case/initialization identity mismatch in %s\n",
+            meta);
+    exit(2);
+  }
+  cumulative_nozzle_exit_net_volume = found_net_volume;
+  cumulative_discharged_liquid_volume = found_discharged_volume;
+  int found_fresh_segment = !strcmp(found_predecessor_segment_id, "not_applicable");
+  if ((found_fresh_segment &&
+       (strcmp(found_restore_checkpoint_sha256, "not_applicable") ||
+        strcmp(found_restore_metadata_sha256, "not_applicable") ||
+        strcmp(found_restore_closure_sha256, "not_applicable"))) ||
+      (!found_fresh_segment &&
+       (!internal_nozzle_sha256_string(found_restore_checkpoint_sha256) ||
+        !internal_nozzle_sha256_string(found_restore_metadata_sha256) ||
+        !internal_nozzle_sha256_string(found_restore_closure_sha256)))) {
+    fprintf(stderr, "ERROR checkpoint predecessor identity is malformed\n");
+    exit(2);
+  }
+  internal_nozzle_timestep_previous = found_timestep_previous;
   if (strcmp(found_source_sha, accepted_restore_source)) {
     fprintf(stderr,
             "ERROR checkpoint source migration denied: found %s, accepted %s\n",
             found_source_sha, accepted_restore_source);
+    exit(2);
+  }
+  if (strcmp(found_source_commit, scientific_source_commit)) {
+    fprintf(stderr,
+            "ERROR checkpoint scientific commit mismatch: found %s, requested %s\n",
+            found_source_commit, scientific_source_commit);
     exit(2);
   }
   if (canonical_schedule_enabled() &&
@@ -977,6 +1221,10 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
             pending_prediction_closure_path);
     exit(2);
   }
+  internal_nozzle_verify_prediction_closure_identity_v4
+    (pending_prediction_closure_path, accepted_restore_source,
+     found_actual, found_iteration, found_grid_maxdepth,
+     found_solver_dt, found_solver_dtmax, found_timestep_previous);
   pending_prediction_closure_restore = 1;
 }
 
@@ -1069,6 +1317,7 @@ static void print_usage (const char *prog) {
           "  --schedule-version STR     canonical schedule version (required with schedule)\n"
           "  --schedule-sha STR         canonical schedule SHA-256 (required with schedule)\n"
           "  --source-sha STR           source SHA-256 recorded in every output manifest\n"
+          "  --source-commit SHA40      exact scientific Git commit for the source bundle\n"
           "  --restore-source-sha HASH  explicit predecessor source accepted only for restore\n"
           "  --schedule-tolerance FLOAT event-time acceptance tolerance\n"
           "  --light-base-stride INT    lightweight base stride in master ticks\n"
@@ -1095,6 +1344,7 @@ static void print_usage (const char *prog) {
           "\n"
           "The source preserves pressure-driven injection and does not impose an exit velocity.\n",
           prog, prog);
+  internal_nozzle_print_precursor_usage();
 }
 
 static int parse_bool_arg (const char *s) {
@@ -1121,6 +1371,43 @@ static void parse_args (int argc, char **argv) {
       print_usage(argv[0]);
       exit(0);
     }
+    else if (!strcmp(argv[a], "--execution-id"))
+      copy_string(execution_id, sizeof(execution_id), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--segment-id"))
+      copy_string(segment_id, sizeof(segment_id), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--case-role"))
+      copy_string(case_role, sizeof(case_role), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--solver-sha256"))
+      copy_string(solver_sha256, sizeof(solver_sha256), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--build-variant"))
+      copy_string(requested_build_variant, sizeof(requested_build_variant),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--precursor-convergence-sha256"))
+      copy_string(precursor_convergence_sha256,
+                  sizeof(precursor_convergence_sha256),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--precursor-history-sha256"))
+      copy_string(precursor_history_sha256, sizeof(precursor_history_sha256),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--precursor-target-q"))
+      precursor_target_q = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--precursor-target-area"))
+      precursor_target_area = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--precursor-target-velocity-tolerance"))
+      precursor_target_velocity_tolerance =
+        atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--restore-sha256"))
+      copy_string(restore_checkpoint_sha256, sizeof(restore_checkpoint_sha256),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--restore-metadata-sha256"))
+      copy_string(restore_metadata_sha256, sizeof(restore_metadata_sha256),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--restore-closure-sha256"))
+      copy_string(restore_closure_sha256, sizeof(restore_closure_sha256),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--predecessor-segment-id"))
+      copy_string(predecessor_segment_id, sizeof(predecessor_segment_id),
+                  require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--case-id"))
       copy_string(case_id, sizeof(case_id), require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--domain")) {
@@ -1166,6 +1453,9 @@ static void parse_args (int argc, char **argv) {
       copy_string(schedule_sha, sizeof(schedule_sha), require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--source-sha"))
       copy_string(source_sha, sizeof(source_sha), require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--source-commit"))
+      copy_string(scientific_source_commit, sizeof(scientific_source_commit),
+                  require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--restore-source-sha"))
       copy_string(restore_source_sha, sizeof(restore_source_sha),
                   require_value(argc, argv, &a));
@@ -1221,6 +1511,8 @@ static void parse_args (int argc, char **argv) {
       perturb_amp = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--perturb-period"))
       perturb_period = atof(require_value(argc, argv, &a));
+    else if (internal_nozzle_parse_precursor_option(argc, argv, &a))
+      ;
     else {
       fprintf(stderr, "ERROR unknown option %s\n", argv[a]);
       print_usage(argv[0]);
@@ -1242,14 +1534,25 @@ u.n[embed] = dirichlet(0.);
 u.t[embed] = dirichlet(0.);
 u.r[embed] = dirichlet(0.);
 
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+u.n[left] = dirichlet(internal_nozzle_profile_inlet_velocity(y, z));
+u.t[left] = dirichlet(0.);
+u.r[left] = dirichlet(0.);
+#else
 u.n[left] = neumann(0.);
 u.t[left] = neumann(0.);
 u.r[left] = neumann(0.);
+#endif
 u.n[right] = neumann(0.);
 u.t[right] = neumann(0.);
 u.r[right] = neumann(0.);
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+p[left] = neumann(0.);
+pf[left] = neumann(0.);
+#else
 p[left] = dirichlet(pressure_value);
 pf[left] = dirichlet(pressure_value);
+#endif
 p[right] = dirichlet(0.);
 pf[right] = dirichlet(0.);
 f[left] = dirichlet(1.);
@@ -1339,15 +1642,16 @@ static void compute_exit_metrics (double *mean_u, double *flow, double *area, do
   *profile_sanity = profile_den > 0. ? profile_num/profile_den : 0.;
 }
 
-#define HYDRAULIC_PLANE_COUNT 6
+#define HYDRAULIC_PLANE_COUNT 8
 
 static const double hydraulic_plane_dh[HYDRAULIC_PLANE_COUNT] = {
-  0.5, 1.75, 5.25, 14.5, 15.0, 15.25
+  0.0, 0.5, 1.75, 5.25, 10.0, 14.5, 15.0, 15.25
 };
 
 static const char * hydraulic_plane_label[HYDRAULIC_PLANE_COUNT] = {
-  "upstream_plenum", "pre_contraction", "post_contraction",
-  "legacy_exit_inner", "geometric_nozzle_exit", "near_exit_projected_aperture"
+  "inlet_boundary_adjacent", "upstream_plenum", "pre_contraction", "post_contraction",
+  "mid_straight", "legacy_exit_inner", "geometric_nozzle_exit",
+  "near_exit_projected_aperture"
 };
 
 static double interval_overlap (double alo, double ahi, double blo, double bhi) {
@@ -1373,6 +1677,54 @@ static double hydraulic_aperture_overlap
 
 static double liquid_volume_total (void);
 
+static void hydraulic_plane_flow_and_pressure
+  (int plane_index, double * liquid_flow, double * mean_pressure)
+{
+  const double xp = x_origin_nozzle +
+    hydraulic_plane_dh[plane_index]*Dhrect;
+  const double mirror = domain_quarter ? 4. : 1.;
+  double area = 0., flow = 0., pressure_integral = 0.;
+  foreach(reduction(+:area) reduction(+:flow)
+          reduction(+:pressure_integral)) {
+    if (cs[] > 1e-8 && x - 0.5*Delta <= xp && xp < x + 0.5*Delta) {
+      const double aw = mirror*hydraulic_aperture_overlap
+        (hydraulic_plane_dh[plane_index], y, z, Delta);
+      if (aw > 0.) {
+        area += aw;
+        flow += clamp(f[], 0., 1.)*u.x[]*aw;
+        pressure_integral += p[]*aw;
+      }
+    }
+  }
+  if (!(area > 0.)) {
+    fprintf(stderr, "ERROR hydraulic reference plane has zero area: %s\n",
+            hydraulic_plane_label[plane_index]);
+    exit(2);
+  }
+  *liquid_flow = flow;
+  *mean_pressure = pressure_integral/area;
+}
+
+static void integrate_nozzle_exit_discharge_to_time
+  (double actual_time, double exit_flow)
+{
+  if (last_nozzle_discharge_time >= 0.) {
+    if (actual_time < last_nozzle_discharge_time - schedule_time_tolerance) {
+      fprintf(stderr, "ERROR nonmonotone nozzle-discharge integration time\n");
+      exit(2);
+    }
+    if (actual_time > last_nozzle_discharge_time + schedule_time_tolerance) {
+      const double interval = actual_time - last_nozzle_discharge_time;
+      cumulative_nozzle_exit_net_volume +=
+        0.5*(previous_nozzle_exit_flow + exit_flow)*interval;
+      cumulative_discharged_liquid_volume +=
+        0.5*(max(previous_nozzle_exit_flow, 0.) + max(exit_flow, 0.))*interval;
+    }
+  }
+  previous_nozzle_exit_flow = exit_flow;
+  last_nozzle_discharge_time = actual_time;
+}
+
 static void append_hydraulic_plane_metrics (int iter_value) {
   char path[1024];
   output_path(path, sizeof(path), "hydraulic_plane_metrics.csv");
@@ -1383,13 +1735,22 @@ static void append_hydraulic_plane_metrics (int iter_value) {
   }
   double mirror = domain_quarter ? 4. : 1.;
   double liquid_volume = liquid_volume_total();
+  double exit_flow_reference = 0., exit_pressure_unused = 0.;
+  double inlet_flow_unused = 0., inlet_mean_pressure = 0.;
+  hydraulic_plane_flow_and_pressure
+    (0, &inlet_flow_unused, &inlet_mean_pressure);
+  hydraulic_plane_flow_and_pressure
+    (6, &exit_flow_reference, &exit_pressure_unused);
+  integrate_nozzle_exit_discharge_to_time(t, exit_flow_reference);
   for (int n = 0; n < HYDRAULIC_PLANE_COUNT; n++) {
     double xp = x_origin_nozzle + hydraulic_plane_dh[n]*Dhrect;
     double area = 0., liquid_area = 0., ql = 0., qg = 0.;
+    double i2_liquid = 0., i3_liquid = 0.;
     double jk_liquid = 0., jk_mixture = 0., jp = 0.;
     int cells = 0;
     foreach(reduction(+:area) reduction(+:liquid_area) reduction(+:ql)
-            reduction(+:qg) reduction(+:jk_liquid) reduction(+:jk_mixture)
+            reduction(+:qg) reduction(+:i2_liquid) reduction(+:i3_liquid)
+            reduction(+:jk_liquid) reduction(+:jk_mixture)
             reduction(+:jp) reduction(+:cells)) {
       if (cs[] > 1e-8 && x - 0.5*Delta <= xp && xp < x + 0.5*Delta) {
         double aw = mirror*hydraulic_aperture_overlap
@@ -1402,6 +1763,8 @@ static void append_hydraulic_plane_metrics (int iter_value) {
           liquid_area += ff*aw;
           ql += ff*ux*aw;
           qg += (1. - ff)*ux*aw;
+          i2_liquid += ff*sq(ux)*aw;
+          i3_liquid += ff*ux*sq(ux)*aw;
           jk_liquid += rho1*ff*sq(ux)*aw;
           jk_mixture += rhomix*sq(ux)*aw;
           jp += p[]*aw;
@@ -1414,19 +1777,43 @@ static void append_hydraulic_plane_metrics (int iter_value) {
     double u_flux = fabs(ql) > 1e-30 ? jk_liquid/(rho1*ql) : 0.;
     double mdot_liquid = rho1*ql;
     double mdot_mixture = rho1*ql + rho2*qg;
+    double beta = liquid_area > 0. && fabs(ql) > 1e-30 ?
+      i2_liquid*liquid_area/sq(ql) : 0.;
+    double alpha = liquid_area > 0. && fabs(ql) > 1e-30 ?
+      i3_liquid*sq(liquid_area)/(ql*sq(ql)) : 0.;
+    double momentum_equivalent_velocity = liquid_area > 0. ?
+      sqrt(max(0., i2_liquid/liquid_area)) : 0.;
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+    double declared_pressure_forcing = NAN;
+#else
+    double declared_pressure_forcing = pressure_value;
+#endif
+    double forcing_to_plane_drop = inlet_mean_pressure - mean_pressure;
     fprintf(fp,
-            "%s,%.12g,%d,%d,%s,%.12g,%.12g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%s,%s,%d,%s\n",
+            "%s,%.17g,%d,%d,%s,%.17g,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%s,%s,%d,%s,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%s,%s,%s,%.17g,%.17g,%s,%d,%.17g,%.17g,%s,%s,%s\n",
             case_id, t, hydraulic_metric_index, iter_value, hydraulic_plane_label[n],
             hydraulic_plane_dh[n], xp, cells, area, liquid_area, ql,
             mdot_liquid, mdot_mixture, jk_liquid, jk_mixture, jp,
             jk_mixture + jp, u_area, u_flux, mean_pressure,
-            pressure_value - mean_pressure, ql*u_area,
+            forcing_to_plane_drop, ql*u_area,
             cumulative_liquid_inflow, cumulative_liquid_outflow,
-            liquid_volume, pressure_value,
+            cumulative_nozzle_exit_discharge, liquid_volume,
+            declared_pressure_forcing,
             "rho_mix=rho2+f*(rho1-rho2)",
             "exact_rectangular_aperture_leaf_overlap_v1",
             "runtime_cell_centered_p_after_centered_projection", maxlevel,
-            restored_from[0] ? restored_from : "fresh");
+            restored_from[0] ? restored_from : "fresh",
+            i2_liquid, i3_liquid, beta, alpha,
+            momentum_equivalent_velocity,
+            internal_nozzle_initial_state_label(),
+            internal_nozzle_inlet_mode_label(),
+            internal_nozzle_precursor_pressure_mode_label(),
+            internal_nozzle_transfer_sha256,
+            cumulative_nozzle_exit_net_volume,
+            cumulative_discharged_liquid_volume,
+            "alias_of_cumulative_nozzle_exit_net_volume",
+            current_master_tick, current_target_time, current_actual_time,
+            execution_id, segment_id, case_role);
   }
   fclose(fp);
 }
@@ -1440,16 +1827,17 @@ static void append_solver_health_metrics (int iter_value) {
     exit(2);
   }
   fprintf(fp,
-          "%s,%.12g,%d,%d,%.17g,%.17g,%.17g,%.17g,%d,%ld,"
+          "%s,%.17g,%d,%d,%.17g,%.17g,%.17g,%.17g,%d,%ld,"
           "%d,%.17g,%.17g,%d,%d,%.17g,%.17g,%d,"
-          "%d,%.17g,%.17g,%d,%.17g,%.17g,%d,%s\n",
+          "%d,%.17g,%.17g,%d,%.17g,%.17g,%d,%s,%s,%s,%s\n",
           case_id, t, hydraulic_metric_index, iter_value, dt, DT, dtmax, CFL,
           grid->maxdepth, grid->tn,
           mgp.i, mgp.resb, mgp.resa, mgp.nrelax,
           mgpf.i, mgpf.resb, mgpf.resa, mgpf.nrelax,
           mgu.i, mgu.resb, mgu.resa, mgu.nrelax,
           perf.t, perf.speed, maxlevel,
-          restored_from[0] ? restored_from : "fresh");
+          restored_from[0] ? restored_from : "fresh",
+          execution_id, segment_id, case_role);
   fclose(fp);
 }
 
@@ -1470,11 +1858,12 @@ static void append_hydraulic_plane_profiles (int iter_value) {
           (hydraulic_plane_dh[n], y, z, Delta);
         if (aw > 0.)
           fprintf(fp,
-                  "%s,%.12g,%d,%d,%s,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.17g,%.12g,%d,%.12g,%.12g,%s\n",
+                  "%s,%.17g,%d,%d,%s,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%d,%.17g,%.17g,%s,%s,%s,%s\n",
                   case_id, t, field_frame_index, iter_value,
                   hydraulic_plane_label[n], hydraulic_plane_dh[n], xp,
                   x, y, z, f[], u.x[], u.y[], u.z[], p[], cs[], level, Delta,
-                  aw, restored_from[0] ? restored_from : "fresh");
+                  aw, restored_from[0] ? restored_from : "fresh",
+                  execution_id, segment_id, case_role);
       }
     }
   }
@@ -1812,11 +2201,15 @@ static void rewrite_checkpoint_manifest (void) {
   }
   fprintf(out,
           "{\n"
+          "  \"schema\": \"internal_nozzle_checkpoint_manifest_v1\",\n"
+          "  \"execution_id\": \"%s\",\n"
+          "  \"final_segment_id\": \"%s\",\n"
+          "  \"case_role\": \"%s\",\n"
           "  \"case_id\": \"%s\",\n"
           "  \"checkpoint_restore_supported\": true,\n"
           "  \"latest_valid_checkpoint\": null,\n"
           "  \"provenance_chain\": [\n",
-          case_id);
+          execution_id, segment_id, case_role, case_id);
   int count = 0;
   char latest[512] = "";
   if (in) {
@@ -1824,16 +2217,32 @@ static void rewrite_checkpoint_manifest (void) {
     fgets(line, sizeof(line), in);
     while (fgets(line, sizeof(line), in)) {
       char ccase[128], mode[32], filename[512], parent[512];
-      int idx = 0, iter_value = 0, level_value = 0;
-      double tt = 0.;
-      if (sscanf(line, "%127[^,],%31[^,],%d,%lf,%d,%d,%511[^,],%511[^\n]",
-                 ccase, mode, &idx, &tt, &iter_value, &level_value, filename, parent) >= 7) {
+      char source[128], version[128], schedule_hash[128], metadata_file[512];
+      char initial[128], inlet[128], pressure_mode[128], transfer_hash[128];
+      char commit[64], closure[1200], row_execution[128], row_segment[128];
+      char row_role[8], row_solver[128];
+      int idx = 0, iter_value = 0, level_value = 0, tick = -1;
+      double tt = 0., target = 0., actual = 0., profile_bulk = 0.;
+      double net_volume = 0., discharged_volume = 0.;
+      if (sscanf(line,
+                 "%127[^,],%31[^,],%d,%lf,%d,%d,%511[^,],%511[^,],"
+                 "%127[^,],%127[^,],%127[^,],%d,%lf,%lf,%511[^,],"
+                 "%127[^,],%127[^,],%127[^,],%127[^,],%lf,%63[^,],"
+                 "%1199[^,],%127[^,],%127[^,],%7[^,],%127[^,],%lf,%lf",
+                 ccase, mode, &idx, &tt, &iter_value, &level_value, filename,
+                 parent, source, version, schedule_hash, &tick, &target, &actual,
+                 metadata_file, initial, inlet, pressure_mode, transfer_hash,
+                 &profile_bulk, commit, closure, row_execution, row_segment,
+                 row_role, row_solver, &net_volume, &discharged_volume) == 28) {
         copy_string(latest, sizeof(latest), filename);
         if (count)
           fputs(",\n", out);
         fprintf(out,
-                "    {\"checkpoint_index\": %d, \"time\": %.12g, \"iteration\": %d, \"maxlevel\": %d, \"domain_mode\": \"%s\", \"filename\": \"%s\", \"parent_checkpoint\": \"%s\", \"verified_nonzero\": %s}",
-                idx, tt, iter_value, level_value, mode, filename, parent, file_exists_nonzero(filename) ? "true" : "false");
+                "    {\"checkpoint_index\": %d, \"time\": %.17g, \"iteration\": %d, \"maxlevel\": %d, \"domain_mode\": \"%s\", \"filename\": \"%s\", \"parent_checkpoint\": \"%s\", \"metadata_file\": \"%s\", \"prediction_closure_file\": \"%s\", \"execution_id\": \"%s\", \"segment_id\": \"%s\", \"case_role\": \"%s\", \"solver_sha256\": \"%s\", \"cumulative_nozzle_exit_net_volume\": %.17g, \"cumulative_discharged_liquid_volume\": %.17g, \"verified_nonzero\": %s}",
+                idx, tt, iter_value, level_value, mode, filename, parent,
+                metadata_file, closure, row_execution, row_segment, row_role,
+                row_solver, net_volume, discharged_volume,
+                file_exists_nonzero(filename) ? "true" : "false");
         count++;
       }
     }
@@ -1859,17 +2268,24 @@ static void write_field_export_contract (void) {
           "  \"selected_case\": \"W2_longer_duration\",\n"
           "  \"pressure_provenance\": \"runtime_cell_centered_p_after_centered_projection\",\n"
           "  \"event_provenance\": \"canonical_master_tick_post_projection_i_plus_plus_last\",\n"
-          "  \"pressure_gauge_context\": \"Dirichlet p=pressure_value at left and p=0 at right; values are outlet-gauge-relative\",\n"
+          "  \"pressure_gauge_context\": \"%s\",\n"
           "  \"gravity_enabled\": false,\n"
           "  \"fields\": [\"phase_fraction\", \"velocity_x\", \"velocity_y\", \"velocity_z\", \"velocity_magnitude\", \"vorticity_magnitude\", \"pressure\", \"embedded_fluid_fraction\"],\n"
           "  \"coordinate_convention\": \"x_streamwise_y_width_z_height_origin_nozzle_inlet\",\n"
           "  \"frame_naming\": \"field_tTTTTTT.TTTTTT_iIIIIIII_fFFFF.csv\",\n"
           "  \"station_frame_join\": \"case_id+schedule_sha256+master_tick; frame index is local\",\n"
           "  \"source_sha256\": \"%s\",\n"
+          "  \"scientific_source_commit\": \"%s\",\n"
           "  \"schedule_version\": \"%s\",\n"
           "  \"schedule_sha256\": \"%s\",\n"
           "  \"instrumentation_changes_solver_state\": false\n"
-          "}\n", source_sha, schedule_version, schedule_sha);
+          "}\n",
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+          "flow-controlled inlet uses pressure Neumann; p=0 at right; values are outlet-gauge-relative",
+#else
+          "Dirichlet p=pressure_value at left and p=0 at right; values are outlet-gauge-relative",
+#endif
+          source_sha, scientific_source_commit, schedule_version, schedule_sha);
   fclose(fp);
   atomic_rename(tmp, path);
 }
@@ -1969,15 +2385,15 @@ static void initialize_output_files (void) {
   output_path(path, sizeof(path), "surface_manifest.csv");
   write_header_if_missing(path, "case_id,domain_mode,surface_index,t,i,filename,facet_cell_count,nozzle_exit_x,Dh,maxlevel,source_frame_id,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,pressure_provenance,gravity_enabled,restart_lineage\n");
   output_path(path, sizeof(path), "checkpoint_index.csv");
-  write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,metadata_file,prediction_closure_state_file\n");
+  write_header_if_missing(path, "case_id,domain_mode,checkpoint_index,t,i,maxlevel,filename,parent_checkpoint,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,metadata_file,initial_state,inlet_mode,precursor_pressure_mode,precursor_transfer_sha256,profile_bulk_velocity,scientific_source_commit,prediction_closure_state_v4_file,execution_id,segment_id,case_role,solver_sha256,cumulative_nozzle_exit_net_volume,cumulative_discharged_liquid_volume\n");
   output_path(path, sizeof(path), "field_frame_manifest.csv");
   write_header_if_missing(path, "case_id,domain_mode,field_frame_index,t,i,filename,sample_count,p_min,p_max,p_range,pressure_nonzero,f_min,f_max,velocity_magnitude_min,velocity_magnitude_max,vorticity_magnitude_min,vorticity_magnitude_max,pressure_provenance,event_provenance,pressure_gauge_context,gravity_enabled,source_sha256,schedule_version,schedule_sha256,master_tick,target_time,actual_time,maxlevel,restart_lineage,field_list\n");
   output_path(path, sizeof(path), "hydraulic_plane_metrics.csv");
-  write_header_if_missing(path, "case_id,t,metric_frame_index,i,plane_label,plane_x_Dh,plane_x,intersecting_leaf_count,fluid_area,liquid_area,Q_l,mdot_l,mdot_mix,J_k_liquid,J_k_mixture,J_p,J_total,area_weighted_liquid_velocity,flux_weighted_liquid_velocity,area_mean_pressure,forcing_to_plane_pressure_drop,legacy_Q_l_times_area_weighted_velocity,cumulative_liquid_inflow,cumulative_liquid_outflow,liquid_volume,pressure_forcing,density_convention,quadrature,pressure_provenance,maxlevel,restart_lineage\n");
+  write_header_if_missing(path, "case_id,t,metric_frame_index,i,plane_label,plane_x_Dh,plane_x,intersecting_leaf_count,fluid_area,liquid_area,Q_l,mdot_l,mdot_mix,J_k_liquid,J_k_mixture,J_p,J_total,area_weighted_liquid_velocity,flux_weighted_liquid_velocity,area_mean_pressure,forcing_to_plane_pressure_drop,legacy_Q_l_times_area_weighted_velocity,cumulative_liquid_inflow,cumulative_liquid_outflow,cumulative_nozzle_exit_discharge,liquid_volume,pressure_forcing,density_convention,quadrature,pressure_provenance,maxlevel,restart_lineage,I2_liquid,I3_liquid,beta,alpha,momentum_equivalent_velocity,initial_state,inlet_mode,precursor_pressure_mode,precursor_transfer_sha256,cumulative_nozzle_exit_net_volume,cumulative_discharged_liquid_volume,cumulative_nozzle_exit_discharge_definition,master_tick,target_time,actual_time,execution_id,segment_id,case_role\n");
   output_path(path, sizeof(path), "hydraulic_plane_profiles.csv");
-  write_header_if_missing(path, "case_id,t,field_frame_index,i,plane_label,plane_x_Dh,plane_x,x,y,z,f,ux,uy,uz,p,cs,level,Delta,intersection_area,restart_lineage\n");
+  write_header_if_missing(path, "case_id,t,field_frame_index,i,plane_label,plane_x_Dh,plane_x,x,y,z,f,ux,uy,uz,p,cs,level,Delta,intersection_area,restart_lineage,execution_id,segment_id,case_role\n");
   output_path(path, sizeof(path), "solver_health_metrics.csv");
-  write_header_if_missing(path, "case_id,t,metric_frame_index,i,dt,DT,dtmax,CFL,grid_maxdepth,total_grid_cells,mgp_i,mgp_resb,mgp_resa,mgp_nrelax,mgpf_i,mgpf_resb,mgpf_resa,mgpf_nrelax,mgu_i,mgu_resb,mgu_resa,mgu_nrelax,perf_elapsed,perf_speed,maxlevel,restart_lineage\n");
+  write_header_if_missing(path, "case_id,t,metric_frame_index,i,dt,DT,dtmax,CFL,grid_maxdepth,total_grid_cells,mgp_i,mgp_resb,mgp_resa,mgp_nrelax,mgpf_i,mgpf_resb,mgpf_resa,mgpf_nrelax,mgu_i,mgu_resb,mgu_resa,mgu_nrelax,perf_elapsed,perf_speed,maxlevel,restart_lineage,execution_id,segment_id,case_role\n");
   write_field_export_contract();
   rewrite_visual_manifest();
   rewrite_surface_manifest();
@@ -2140,9 +2556,18 @@ static void write_checkpoint_dump (int iter_value) {
     exit(2);
   }
   fprintf(metadata,
-          "schema=internal_nozzle_checkpoint_metadata_v4\n"
+          "schema=internal_nozzle_checkpoint_metadata_v6\n"
           "case_id=%s\n"
+          "execution_id=%s\n"
+          "segment_id=%s\n"
+          "case_role=%s\n"
+          "solver_sha256=%s\n"
+          "predecessor_segment_id=%s\n"
+          "restore_checkpoint_sha256=%s\n"
+          "restore_metadata_sha256=%s\n"
+          "restore_closure_sha256=%s\n"
           "source_sha256=%s\n"
+          "scientific_source_commit=%s\n"
           "schedule_version=%s\n"
           "schedule_sha256=%s\n"
           "master_tick=%d\n"
@@ -2150,16 +2575,33 @@ static void write_checkpoint_dump (int iter_value) {
           "actual_time=%.17g\n"
           "iteration=%d\n"
           "maxlevel=%d\n"
+          "grid_maxdepth=%d\n"
+          "domain_x0=%.17g\n"
+          "domain_y0=%.17g\n"
+          "domain_z0=%.17g\n"
+          "domain_l0=%.17g\n"
+          "initial_state=%s\n"
+          "inlet_mode=%s\n"
+          "precursor_transfer_sha256=%s\n"
+          "precursor_pressure_mode=%s\n"
+          "profile_bulk_velocity=%.17g\n"
           "pressure_provenance=runtime_cell_centered_p_after_centered_projection\n"
           "gravity_enabled=false\n"
           "restored_from=%s\n"
           "initial_liquid_volume=%.17g\n"
           "cumulative_liquid_inflow=%.17g\n"
           "cumulative_liquid_outflow=%.17g\n"
+          "cumulative_nozzle_exit_discharge=%.17g\n"
+          "cumulative_nozzle_exit_net_volume=%.17g\n"
+          "cumulative_discharged_liquid_volume=%.17g\n"
+          "cumulative_nozzle_exit_discharge_definition=alias_of_cumulative_nozzle_exit_net_volume\n"
           "previous_liquid_inflow_rate=%.17g\n"
           "previous_liquid_outflow_rate=%.17g\n"
+          "previous_nozzle_exit_flow=%.17g\n"
           "last_mass_balance_time=%.17g\n"
+          "last_nozzle_discharge_time=%.17g\n"
           "solver_dt=%.17g\n"
+          "solver_dtmax=%.17g\n"
           "timestep_previous=%.17g\n"
           "mgp_nrelax=%d\n"
           "mgpf_nrelax=%d\n"
@@ -2172,12 +2614,27 @@ static void write_checkpoint_dump (int iter_value) {
           "max_one_cell_debris_count=%d\n"
           "prediction_closure_schema=internal_nozzle_prediction_closure_v4\n"
           "prediction_closure_state=%s\n",
-          case_id, source_sha, schedule_version, schedule_sha,
+          case_id, execution_id, segment_id, case_role, solver_sha256,
+          predecessor_segment_id, restore_checkpoint_sha256,
+          restore_metadata_sha256, restore_closure_sha256,
+          source_sha, scientific_source_commit,
+          schedule_version, schedule_sha,
           current_master_tick, current_target_time, current_actual_time,
-          iter_value, maxlevel, parent, initial_liquid_volume,
+          iter_value, maxlevel, grid->maxdepth, X0, Y0, Z0, L0,
+          internal_nozzle_initial_state_label(),
+          internal_nozzle_inlet_mode_label(),
+          internal_nozzle_transfer_sha256,
+          internal_nozzle_precursor_pressure_mode_label(),
+          internal_nozzle_profile_bulk_velocity,
+          parent, initial_liquid_volume,
           cumulative_liquid_inflow, cumulative_liquid_outflow,
+          cumulative_nozzle_exit_discharge,
+          cumulative_nozzle_exit_net_volume,
+          cumulative_discharged_liquid_volume,
           previous_liquid_inflow_rate, previous_liquid_outflow_rate,
-          last_mass_balance_time, dt, internal_nozzle_timestep_previous,
+          previous_nozzle_exit_flow, last_mass_balance_time,
+          last_nozzle_discharge_time, dt, dtmax,
+          internal_nozzle_timestep_previous,
           mgp.nrelax, mgpf.nrelax, mgu.nrelax, initial_interface_proxy,
           max_interface_growth, max_active_front, max_post_tag_count,
           max_detached_proxy_count, max_one_cell_debris_count, closure_state);
@@ -2189,10 +2646,18 @@ static void write_checkpoint_dump (int iter_value) {
     fprintf(stderr, "ERROR cannot append %s\n", csv);
     exit(2);
   }
-  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%s,%s,%s,%s,%s,%d,%.17g,%.17g,%s,%s\n",
+  fprintf(fp, "%s,%s,%d,%.17g,%d,%d,%s,%s,%s,%s,%s,%d,%.17g,%.17g,%s,%s,%s,%s,%s,%.17g,%s,%s,%s,%s,%s,%s,%.17g,%.17g\n",
           case_id, domain_label(), checkpoint_index, t, iter_value, maxlevel, path, parent,
           source_sha, schedule_version, schedule_sha, current_master_tick,
-          current_target_time, current_actual_time, meta, closure_state);
+          current_target_time, current_actual_time, meta,
+          internal_nozzle_initial_state_label(),
+          internal_nozzle_inlet_mode_label(),
+          internal_nozzle_precursor_pressure_mode_label(),
+          internal_nozzle_transfer_sha256,
+          internal_nozzle_profile_bulk_velocity, scientific_source_commit,
+          closure_state, execution_id, segment_id, case_role, solver_sha256,
+          cumulative_nozzle_exit_net_volume,
+          cumulative_discharged_liquid_volume);
   fclose(fp);
   rewrite_checkpoint_manifest();
   checkpoint_index++;
@@ -2200,8 +2665,85 @@ static void write_checkpoint_dump (int iter_value) {
 
 int main (int argc, char **argv) {
   parse_args(argc, argv);
+  if (!canonical_identifier_string(execution_id) ||
+      !canonical_identifier_string(segment_id) ||
+      !internal_nozzle_sha256_string(solver_sha256) ||
+      domain_quarter || auto_restore) {
+    fprintf(stderr,
+            "ERROR canonical run requires execution/segment IDs, solver SHA-256, full domain, and explicit restore identity\n");
+    return 2;
+  }
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+  if (strcmp(case_role, "C") ||
+      strcmp(requested_build_variant, "profile_controlled")) {
+    fprintf(stderr, "ERROR profile-controlled binary is reserved for Case C\n");
+    return 2;
+  }
+#else
+  if ((strcmp(case_role, "A") && strcmp(case_role, "B")) ||
+      strcmp(requested_build_variant, "pressure_driven")) {
+    fprintf(stderr, "ERROR pressure-driven binary accepts only Case A or B\n");
+    return 2;
+  }
+#endif
+  if ((!strcmp(case_role, "A") &&
+       internal_nozzle_initial_state != INTERNAL_NOZZLE_REST_START) ||
+      ((!strcmp(case_role, "B") || !strcmp(case_role, "C")) &&
+       internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START)) {
+    fprintf(stderr, "ERROR case role and initial-state contract disagree\n");
+    return 2;
+  }
+  if (!strcmp(case_role, "A")) {
+    if (strcmp(precursor_convergence_sha256, "not_applicable") ||
+        strcmp(precursor_history_sha256, "not_applicable") ||
+        precursor_target_q > 0. || precursor_target_area > 0. ||
+        precursor_target_velocity_tolerance > 0.) {
+      fprintf(stderr, "ERROR Case A forbids precursor bulk-target evidence\n");
+      return 2;
+    }
+  }
+  else {
+    if (!internal_nozzle_sha256_string(precursor_convergence_sha256) ||
+        !internal_nozzle_sha256_string(precursor_history_sha256) ||
+        !(precursor_target_q > 0.) || !(precursor_target_area > 0.) ||
+        !(precursor_target_velocity_tolerance > 0.)) {
+      fprintf(stderr, "ERROR Cases B/C require precursor Q/A evidence\n");
+      return 2;
+    }
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+    double derived_bulk = precursor_target_q/precursor_target_area;
+    if (fabs(internal_nozzle_profile_bulk_velocity - derived_bulk) >
+        precursor_target_velocity_tolerance) {
+      fprintf(stderr, "ERROR Case C bulk target does not equal precursor Q/A\n");
+      return 2;
+    }
+#endif
+  }
+  if (restore_requested) {
+    if (!internal_nozzle_sha256_string(restore_checkpoint_sha256) ||
+        !internal_nozzle_sha256_string(restore_metadata_sha256) ||
+        !internal_nozzle_sha256_string(restore_closure_sha256) ||
+        !canonical_identifier_string(predecessor_segment_id) ||
+        !strcmp(predecessor_segment_id, segment_id)) {
+      fprintf(stderr, "ERROR restart requires a distinct predecessor and three hashes\n");
+      return 2;
+    }
+  }
+  else if (strcmp(restore_checkpoint_sha256, "not_applicable") ||
+           strcmp(restore_metadata_sha256, "not_applicable") ||
+           strcmp(restore_closure_sha256, "not_applicable") ||
+           strcmp(predecessor_segment_id, "not_applicable")) {
+    fprintf(stderr, "ERROR fresh segment forbids predecessor checkpoint identity\n");
+    return 2;
+  }
   base_pressure_value = pressure_value;
-  if (restore_source_sha[0] && !restore_requested && !auto_restore) {
+  if (auto_restore && !restore_requested &&
+      discover_latest_checkpoint(restore_path, sizeof(restore_path)))
+    restore_requested = 1;
+  if (!internal_nozzle_validate_precursor_options
+      (restore_requested))
+    return 2;
+  if (restore_source_sha[0] && !restore_requested) {
     fprintf(stderr,
             "ERROR --restore-source-sha requires --restore or --auto-restore\n");
     return 2;
@@ -2217,8 +2759,10 @@ int main (int argc, char **argv) {
   if (canonical_schedule_enabled()) {
     if (!strcmp(schedule_version, "legacy_unspecified") ||
         !strcmp(schedule_sha, "legacy_unspecified") ||
-        !strcmp(source_sha, "unresolved")) {
-      fprintf(stderr, "ERROR canonical schedule requires --schedule-version, --schedule-sha, and --source-sha\n");
+        !strcmp(source_sha, "unresolved") ||
+        !internal_nozzle_sha256_string(source_sha) ||
+        !internal_nozzle_hex_string(scientific_source_commit, 40)) {
+      fprintf(stderr, "ERROR canonical schedule requires schedule identity, source SHA-256, and scientific source commit\n");
       return 2;
     }
     if (schedule_time_tolerance <= 0. || light_base_stride <= 0 ||
@@ -2251,11 +2795,18 @@ int main (int argc, char **argv) {
     return 2;
   }
 
-  A0 = pi*sq(official_r);
+  const InternalNozzleGeometry shared_geometry =
+    internal_nozzle_w2_geometry();
+  official_r = shared_geometry.official_r;
+  A0 = shared_geometry.area;
   D0 = 2.*official_r;
-  Wrect = sqrt(2.*A0);
-  Hrect = Wrect/2.;
-  Dhrect = 2.*Wrect*Hrect/(Wrect + Hrect);
+  Wrect = shared_geometry.width;
+  Hrect = shared_geometry.height;
+  Dhrect = shared_geometry.hydraulic_diameter;
+  plenum_Dh = shared_geometry.plenum_dh;
+  contraction_Dh = shared_geometry.contraction_dh;
+  straight_Dh = shared_geometry.straight_dh;
+  plenum_scale = shared_geometry.plenum_scale;
 
   Ldomain = (plenum_Dh + contraction_Dh + straight_Dh + external_Dh)*Dhrect;
   x_origin_nozzle = 0.;
@@ -2278,16 +2829,22 @@ int main (int argc, char **argv) {
 
   ensure_output_dirs();
   write_schedule_contract();
-  if (auto_restore && !restore_requested && discover_latest_checkpoint(restore_path, sizeof(restore_path)))
-    restore_requested = 1;
+  write_scientific_runtime_contract();
   initialize_output_files();
   run();
 }
+
+static void internal_nozzle_record_transfer_projection (const char *phase);
 
 event init (t = 0) {
   p.nodump = pf.nodump = false;
   for (scalar s in {u, p, pf})
     s.third = true;
+  for (scalar audit in {internal_nozzle_import_u_x,
+                        internal_nozzle_import_u_y,
+                        internal_nozzle_import_u_z,
+                        internal_nozzle_import_p})
+    audit.nodump = true;
   f.refine = f.prolongation = fraction_refine;
 
   if (restore_requested) {
@@ -2298,6 +2855,9 @@ event init (t = 0) {
     restored_ok = 1;
     copy_string(restored_from, sizeof(restored_from), restore_path);
     build_geometry();
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+    internal_nozzle_configure_profile_normalization();
+#endif
     /* Generic dumps contain cell-centered interior values, not ghost-cell
      * state. Reconstruct every persisted solver field boundary before the
      * centered init event consumes g, p, or pf on the resumed step. */
@@ -2307,8 +2867,7 @@ event init (t = 0) {
     double indexed_time = checkpoint_time_from_index(restore_path);
     restore_time = indexed_time >= 0. ? indexed_time : t;
     recover_checkpoint_metadata(restore_path);
-    if (canonical_schedule_enabled() && recovered_checkpoint_iteration >= 0)
-      iter = recovered_checkpoint_iteration;
+    internal_nozzle_write_initialization_contract();
     next_field_export_time = restore_time + field_dt;
     write_forensic_probe("post_restore_pre_centered", i);
     fprintf(stderr, "restored checkpoint %s at t %.12g i %d next_visual %d next_raw %d next_surface %d next_checkpoint %d mg_nrelax=%d/%d/%d\n",
@@ -2325,12 +2884,110 @@ event init (t = 0) {
   f.refine = f.prolongation = fraction_refine;
   restriction ({f});
 
+  boundary ({f});
+  if (internal_nozzle_transfer_template_path[0]) {
+    internal_nozzle_write_transfer_template();
+    return 1;
+  }
+
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+  internal_nozzle_configure_profile_normalization();
+#endif
+
   foreach() {
     foreach_dimension()
       u.x[] = 0.;
     un[] = u.x[];
   }
-  boundary ({f, u, un});
+  if (internal_nozzle_initial_state == INTERNAL_NOZZLE_PRECURSOR_START)
+    internal_nozzle_load_precursor_transfer();
+  foreach() {
+    internal_nozzle_import_u_x[] = u.x[];
+    internal_nozzle_import_u_y[] = u.y[];
+    internal_nozzle_import_u_z[] = u.z[];
+    internal_nozzle_import_p[] = p[];
+  }
+  boundary ({f, u, un, p, pf});
+  internal_nozzle_write_initialization_contract();
+
+}
+
+static void internal_nozzle_record_transfer_projection (const char *phase) {
+  double divergence_l2 = 0., divergence_max = 0., fluid_volume = 0.;
+  double velocity_delta_l2 = 0., pressure_delta_l2 = 0.;
+  double projection_pressure_delta_l2 = 0.;
+  foreach(reduction(+:divergence_l2) reduction(max:divergence_max)
+          reduction(+:fluid_volume) reduction(+:velocity_delta_l2)
+          reduction(+:pressure_delta_l2)
+          reduction(+:projection_pressure_delta_l2)) {
+    if (cs[] > 1e-10) {
+      double divergence = (uf.x[1] - uf.x[] + uf.y[0,1] - uf.y[] +
+                           uf.z[0,0,1] - uf.z[])/Delta;
+      double volume = cm[]*cube(Delta);
+      double du2 = sq(u.x[] - internal_nozzle_import_u_x[]) +
+        sq(u.y[] - internal_nozzle_import_u_y[]) +
+        sq(u.z[] - internal_nozzle_import_u_z[]);
+      divergence_l2 += sq(divergence)*volume;
+      divergence_max = max(divergence_max, fabs(divergence));
+      velocity_delta_l2 += du2*volume;
+      pressure_delta_l2 += sq(p[] - internal_nozzle_import_p[])*volume;
+      projection_pressure_delta_l2 +=
+        sq(pf[] - internal_nozzle_import_p[])*volume;
+      fluid_volume += volume;
+    }
+  }
+  char path[1024];
+  output_path(path, sizeof(path), "precursor_transfer_projection.csv");
+  int exists = file_exists_nonzero(path);
+  FILE *stream = fopen(path, "a");
+  if (!stream) {
+    fprintf(stderr, "ERROR cannot append precursor transfer projection audit\n");
+    exit(2);
+  }
+  if (!exists)
+    fputs("case_id,record_index,phase,t,i,divergence_l2,divergence_max,velocity_impulse_l2,cell_pressure_change_l2,projection_pressure_adjustment_l2,fluid_volume,initial_state,inlet_mode,precursor_pressure_mode,transfer_sha256,execution_id,segment_id,case_role\n", stream);
+  fprintf(stream, "%s,%d,%s,%.17g,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%s,%s,%s,%s,%s,%s\n",
+          case_id, internal_nozzle_initial_projection_records, phase, t, iter,
+          fluid_volume > 0. ? sqrt(divergence_l2/fluid_volume) : HUGE,
+          divergence_max,
+          fluid_volume > 0. ? sqrt(velocity_delta_l2/fluid_volume) : HUGE,
+          fluid_volume > 0. ? sqrt(pressure_delta_l2/fluid_volume) : HUGE,
+          fluid_volume > 0. ?
+          sqrt(projection_pressure_delta_l2/fluid_volume) : HUGE,
+          fluid_volume, internal_nozzle_initial_state_label(),
+          internal_nozzle_inlet_mode_label(),
+          internal_nozzle_precursor_pressure_mode_label(),
+          internal_nozzle_transfer_sha256,
+          execution_id, segment_id, case_role);
+  fclose(stream);
+  internal_nozzle_initial_projection_records++;
+}
+
+static void internal_nozzle_post_centered_init (void) {
+  if (restore_requested ||
+      internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START)
+    return;
+  /* centered's generic init has now built the exact face velocity that would
+   * otherwise be consumed by the first VOF/advection event. */
+  internal_nozzle_record_transfer_projection("pre_projection_input");
+  mgpf = project(uf, pf, alpha, dt, mgpf.nrelax);
+  foreach() {
+    foreach_dimension()
+      u.x[] = (uf.x[] + uf.x[1])/(fm.x[] + fm.x[1] + SEPS);
+    un[] = u.x[];
+  }
+  centered_gradient(p, g);
+  boundary({u, un, p, pf, g});
+  internal_nozzle_record_transfer_projection("pre_advection_closure");
+}
+
+/* Continue the closure record through the first two completed timesteps. */
+event precursor_transfer_projection_audit (i++, last) {
+  if (restored_ok ||
+      internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START ||
+      internal_nozzle_initial_projection_records >= 4)
+    return 0;
+  internal_nozzle_record_transfer_projection("post_timestep_projection");
 }
 
 /* Validate and apply the complete keyed prediction-read closure only after
@@ -2446,6 +3103,11 @@ event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
   last_iter = i;
   double mean_u = 0., flow = 0., area = 0., ps = 0., lv = 0., af = 0., ip = 0., growth = 1.;
   update_metrics(&mean_u, &flow, &area, &ps, &lv, &af, &ip, &growth);
+  double terminal_exit_flow = 0., terminal_exit_pressure = 0.;
+  hydraulic_plane_flow_and_pressure(6, &terminal_exit_flow, &terminal_exit_pressure);
+  (void) terminal_exit_pressure;
+  integrate_nozzle_exit_discharge_to_time(t, terminal_exit_flow);
+  integrate_liquid_flux_to_time(t);
   int nt = 0, nd = 0, debris = 0;
   char path[1024];
   output_path(path, sizeof(path), "raw_component_summary.csv");
@@ -2601,8 +3263,8 @@ event end (t = end_time) {
   char path[1024];
   output_path(path, sizeof(path), "visual_pipeline_case_summary.csv");
   FILE *fp = fopen(path, "w");
-  fprintf(fp, "case_id,domain_mode,case_mode,t,i,maxlevel,baselevel,pressure_value,base_pressure_value,perturb_amp,perturb_period,target_u,mean_exit_velocity,pressure_retuned,exit_flow,exit_liquid_area,liquid_volume,liquid_mass_balance_relative_error,max_active_front,max_active_front_Dh,max_interface_proxy,max_interface_growth,max_post_tag_count,max_detached_proxy_count,max_one_cell_debris_count,symmetry_leakage,width,height,Dh,area,external_Dh,diagnostic_dt,visual_dt,checkpoint_dt,raw_export,native_frames,facet_export,restored_from,stable_flag,liquid_inventory_change_fraction,cumulative_liquid_inflow,cumulative_liquid_outflow,liquid_mass_balance_residual,mass_balance_tolerance,source_sha256,schedule_version,schedule_sha256\n");
-  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%s,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%s,%s,%s\n",
+  fprintf(fp, "case_id,domain_mode,case_mode,t,i,maxlevel,baselevel,pressure_value,base_pressure_value,perturb_amp,perturb_period,target_u,mean_exit_velocity,pressure_retuned,exit_flow,exit_liquid_area,liquid_volume,liquid_mass_balance_relative_error,max_active_front,max_active_front_Dh,max_interface_proxy,max_interface_growth,max_post_tag_count,max_detached_proxy_count,max_one_cell_debris_count,symmetry_leakage,width,height,Dh,area,external_Dh,diagnostic_dt,visual_dt,checkpoint_dt,raw_export,native_frames,facet_export,restored_from,stable_flag,liquid_inventory_change_fraction,cumulative_liquid_inflow,cumulative_liquid_outflow,liquid_mass_balance_residual,mass_balance_tolerance,source_sha256,scientific_source_commit,schedule_version,schedule_sha256,initial_state,inlet_mode,precursor_pressure_mode,precursor_transfer_sha256\n");
+  fprintf(fp, "%s,%s,%d,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%.12g,%d,%d,%d,%s,%d,%.12g,%.12g,%.12g,%.12g,%.12g,%s,%s,%s,%s,%s,%s,%s,%s\n",
           case_id, domain_label(), case_mode, t, last_iter, maxlevel, baselevel,
           pressure_value, base_pressure_value, perturb_amp, perturb_period, target_u,
           final_mean_exit_velocity, fabs(base_pressure_value - 2524.75) > 1e-6 || perturb_amp != 0.,
@@ -2615,30 +3277,49 @@ event end (t = end_time) {
           restored_from[0] ? restored_from : "fresh", stable_flag,
           liquid_inventory_change_fraction, cumulative_liquid_inflow,
           cumulative_liquid_outflow, liquid_mass_balance_residual,
-          mass_balance_tolerance, source_sha, schedule_version, schedule_sha);
+          mass_balance_tolerance, source_sha, scientific_source_commit,
+          schedule_version, schedule_sha,
+          internal_nozzle_initial_state_label(),
+          internal_nozzle_inlet_mode_label(),
+          internal_nozzle_precursor_pressure_mode_label(),
+          internal_nozzle_transfer_sha256);
   fclose(fp);
 
   output_path(path, sizeof(path), "raw_export_manifest.json");
   fp = fopen(path, "w");
   fprintf(fp,
           "{\n"
+          "  \"schema\": \"internal_nozzle_raw_export_v1\",\n"
+          "  \"execution_id\": \"%s\",\n"
+          "  \"segment_id\": \"%s\",\n"
+          "  \"case_role\": \"%s\",\n"
           "  \"case_id\": \"%s\",\n"
           "  \"domain_mode\": \"%s\",\n"
-          "  \"selected_case\": \"W2_longer_duration\",\n"
-          "  \"pressure_driven_preserved\": true,\n"
+          "  \"selected_case\": \"%s\",\n"
+          "  \"initial_state\": \"%s\",\n"
+          "  \"inlet_mode\": \"%s\",\n"
+          "  \"precursor_pressure_mode\": \"%s\",\n"
+          "  \"precursor_transfer_sha256\": \"%s\",\n"
+          "  \"pressure_driven_preserved\": %s,\n"
           "  \"exit_velocity_imposed\": false,\n"
           "  \"gravity_enabled\": false,\n"
           "  \"maxlevel\": %d,\n"
-          "  \"end_time\": %.12g,\n"
+          "  \"end_time\": %.17g,\n"
           "  \"diagnostic_dt\": %.12g,\n"
           "  \"field_dt\": %.12g,\n"
           "  \"visual_dt\": %.12g,\n"
           "  \"checkpoint_dt\": %.12g,\n"
           "  \"source_sha256\": \"%s\",\n"
+          "  \"scientific_source_commit\": \"%s\",\n"
           "  \"schedule_version\": \"%s\",\n"
           "  \"schedule_sha256\": \"%s\",\n"
           "  \"master_tick_dt\": %.17g,\n"
           "  \"mass_balance\": {\"inventory_change_fraction\": %.12g, \"cumulative_inflow\": %.12g, \"cumulative_outflow\": %.12g, \"residual\": %.12g, \"relative_error\": %.12g, \"tolerance\": %.12g, \"passed\": %s},\n"
+          "  \"cumulative_nozzle_exit_discharge\": %.17g,\n"
+          "  \"cumulative_nozzle_exit_discharge_definition\": \"alias_of_cumulative_nozzle_exit_net_volume\",\n"
+          "  \"cumulative_nozzle_exit_net_volume\": %.17g,\n"
+          "  \"cumulative_discharged_liquid_volume\": %.17g,\n"
+          "  \"completion\": {\"reached_end_time\": %s, \"stable_flag\": %s, \"mass_balance_passed\": %s},\n"
           "  \"geometry\": {\"W\": %.12g, \"H\": %.12g, \"Dh\": %.12g, \"A0\": %.12g, \"nozzle_exit_x\": %.12g},\n"
           "  \"export_modes\": [\"post_projection_runtime_fields\", \"station_slab_raw_export\", \"interface_cloud_export\", \"component_diagnostics_export\", \"profile_exit_export\", \"native_vof_frames\", \"output_facets_surfaces\", \"checkpoint_dumps\"],\n"
           "  \"pressure_export\": {\"provenance\": \"runtime_cell_centered_p_after_centered_projection\", \"gauge_context\": \"outlet_dirichlet_zero_gauge\", \"min_frame_range\": %.12g, \"max_frame_range\": %.12g, \"zero_range_frames\": %d},\n"
@@ -2650,6 +3331,11 @@ event end (t = end_time) {
           "    \"component_summary\": \"raw_component_summary.csv\",\n"
           "    \"profile_exit_cells\": \"raw_profile_exit_cells.csv\",\n"
           "    \"reduced_cross_sections\": \"raw_reduced_cross_section_metrics.csv\",\n"
+          "    \"hydraulic_plane_metrics\": \"hydraulic_plane_metrics.csv\",\n"
+          "    \"hydraulic_plane_profiles\": \"hydraulic_plane_profiles.csv\",\n"
+          "    \"solver_health_metrics\": \"solver_health_metrics.csv\",\n"
+          "    \"scientific_runtime_contract\": \"scientific_runtime_contract.json\",\n"
+          "    \"initialization_contract\": \"initialization_contract.json\",\n"
           "    \"field_contract\": \"field_export_contract.json\",\n"
           "    \"field_manifest\": \"field_frame_manifest.csv\",\n"
           "    \"visual_manifest\": \"visual_frame_manifest.json\",\n"
@@ -2658,11 +3344,33 @@ event end (t = end_time) {
           "  },\n"
           "  \"claim_boundary\": \"internal restartable visual-output pipeline only; not validation or public media; fit_ready=false; public_ready=false\"\n"
           "}\n",
-          case_id, domain_label(), maxlevel, t, diagnostic_dt, field_dt, visual_dt, checkpoint_dt,
-          source_sha, schedule_version, schedule_sha, schedule_tick_dt,
+          execution_id, segment_id, case_role, case_id, domain_label(),
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+          "W2_profile_controlled_diagnostic",
+#else
+          "W2_pressure_driven",
+#endif
+          internal_nozzle_initial_state_label(),
+          internal_nozzle_inlet_mode_label(),
+          internal_nozzle_precursor_pressure_mode_label(),
+          internal_nozzle_transfer_sha256,
+#ifdef INTERNAL_NOZZLE_PROFILE_CONTROLLED
+          "false",
+#else
+          "true",
+#endif
+          maxlevel, t, diagnostic_dt, field_dt, visual_dt, checkpoint_dt,
+          source_sha, scientific_source_commit, schedule_version, schedule_sha,
+          schedule_tick_dt,
           liquid_inventory_change_fraction, cumulative_liquid_inflow,
           cumulative_liquid_outflow, liquid_mass_balance_residual,
           liquid_mass_balance_relative_error, mass_balance_tolerance,
+          liquid_mass_balance_relative_error <= mass_balance_tolerance ? "true" : "false",
+          cumulative_nozzle_exit_discharge,
+          cumulative_nozzle_exit_net_volume,
+          cumulative_discharged_liquid_volume,
+          t + schedule_time_tolerance >= end_time ? "true" : "false",
+          stable_flag ? "true" : "false",
           liquid_mass_balance_relative_error <= mass_balance_tolerance ? "true" : "false",
           Wrect, Hrect, Dhrect, A0, exit_x(),
           min_runtime_pressure_range < HUGE ? min_runtime_pressure_range : 0.,

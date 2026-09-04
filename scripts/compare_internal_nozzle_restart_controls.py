@@ -127,6 +127,22 @@ def compare_hydraulics(left_path: Path, right_path: Path) -> dict[str, object]:
     }
 
 
+def comparison_passes(
+    fields: dict[str, object], hydraulics: dict[str, object], tolerance: float
+) -> tuple[bool, bool]:
+    endpoint_equal = fields["left_time_iteration"] == fields["right_time_iteration"]
+    passed = bool(
+        endpoint_equal
+        and fields["left_only_rows"] == 0
+        and fields["right_only_rows"] == 0
+        and fields["field_relative_l2_max"] <= tolerance
+        and not hydraulics["left_only_planes"]
+        and not hydraulics["right_only_planes"]
+        and hydraulics["relative_difference_max"] <= tolerance
+    )
+    return passed, endpoint_equal
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--continuous-field", type=Path, required=True)
@@ -139,14 +155,8 @@ def main() -> int:
 
     fields = compare_fields(args.continuous_field, args.segmented_field)
     hydraulics = compare_hydraulics(args.continuous_hydraulics, args.segmented_hydraulics)
-    endpoint_equal = fields["left_time_iteration"] == fields["right_time_iteration"]
-    passed = bool(
-        endpoint_equal
-        and fields["left_only_rows"] == 0
-        and fields["right_only_rows"] == 0
-        and fields["field_relative_l2_max"] <= args.relative_tolerance
-        and not hydraulics["left_only_planes"]
-        and not hydraulics["right_only_planes"]
+    passed, endpoint_equal = comparison_passes(
+        fields, hydraulics, args.relative_tolerance
     )
     payload = {
         "schema": "internal_nozzle_restart_control_comparison_v1",

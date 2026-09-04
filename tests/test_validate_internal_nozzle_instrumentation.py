@@ -18,7 +18,7 @@ class InstrumentationValidatorTests(unittest.TestCase):
         root = Path(tempfile.mkdtemp())
         (root / "fields").mkdir()
         contract = {
-            "schema": "internal_nozzle_post_projection_fields_v1",
+            "schema": "internal_nozzle_post_projection_fields_v2",
             "pressure_provenance": validator.PRESSURE_PROVENANCE,
             "event_provenance": validator.EVENT_PROVENANCE,
             "gravity_enabled": False,

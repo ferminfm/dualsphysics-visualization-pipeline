@@ -149,7 +149,7 @@ def validate_run(run_dir: Path) -> dict[str, object]:
         and (run_dir / row["filename"]).stat().st_size > 0
         for row in fields
     )
-    if checkpoint_schema not in ("legacy_face_state", "v4"):
+    if checkpoint_schema not in ("legacy_face_state", "v4", "v5"):
         # Preserve the historical schedule-validator requirement and failure for
         # legacy indexes that predate the face-state column.
         checkpoints[0]["face_velocity_state_file"]
@@ -194,8 +194,11 @@ def validate_run(run_dir: Path) -> dict[str, object]:
             "passed": mass_ok,
         },
     }
-    if checkpoint_schema == "v4":
-        result["checkpoint_schema"] = "internal_nozzle_checkpoint_metadata_v4"
+    if checkpoint_schema in ("v4", "v5"):
+        result["checkpoint_schema"] = (
+            checkpoint_validations[-1]["metadata_schema"]
+            if checkpoint_validations else "not_applicable"
+        )
         result["reconstructed_checkpoint_manifest"] = reconstruct_checkpoint_manifest(
             checkpoints, checkpoint_schema, checkpoint_validations
         )
