@@ -114,9 +114,15 @@ def fixture(tmp_path: Path, role: str = "B") -> argparse.Namespace:
             "schema": "internal_nozzle_precursor_convergence_v1",
             "classification": "precursor_converged", "pass": True,
             "case_id": "precursor",
-            "inputs": [{"history": {"resolved_path": str(history.resolve()),
-                                      "sha256": digest(history),
-                                      "size_bytes": history.stat().st_size}}],
+            "inputs": [{"history": {
+                "path": str(history.resolve()),
+                "resolved_path": str(history.resolve()),
+                "sha256": digest(history),
+                "size_bytes": history.stat().st_size,
+                "rows": 1,
+                "first_t_star": 4.0,
+                "last_t_star": 4.0,
+            }}],
             "combined_unique_sample_count": 3,
             "window": {"end_t_star": 4.0}, "fixed_scientific_thresholds": {},
             "declared_operational_bounds": {}, "metrics": {}, "auxiliary": {},
@@ -268,6 +274,21 @@ def test_schedule_and_convergence_tampering_fail_closed(tmp_path: Path) -> None:
     args.schedule.write_text("{}", encoding="utf-8")
     args.schedule_sha256 = digest(args.schedule)
     with pytest.raises(ValueError, match="schedule"):
+        MODULE.build_contract(args)
+
+
+def test_convergence_history_summary_tampering_fails_closed(tmp_path: Path) -> None:
+    args = fixture(tmp_path)
+    report = json.loads(args.precursor_convergence_report.read_text(encoding="utf-8"))
+    report["inputs"][-1]["history"]["rows"] = 2
+    args.precursor_convergence_report.write_text(json.dumps(report), encoding="utf-8")
+    report_sha = digest(args.precursor_convergence_report)
+    args.precursor_convergence_report_sha256 = report_sha
+    manifest = json.loads(args.transfer_manifest.read_text(encoding="utf-8"))
+    manifest["precursor_convergence_report_sha256"] = report_sha
+    args.transfer_manifest.write_text(json.dumps(manifest), encoding="utf-8")
+    args.transfer_manifest_sha256 = digest(args.transfer_manifest)
+    with pytest.raises(ValueError, match="row count mismatch"):
         MODULE.build_contract(args)
 
 

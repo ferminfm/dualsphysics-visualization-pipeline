@@ -386,8 +386,10 @@ def load_convergence_bulk_target(
     history_record = inputs[-1].get("history")
     if not isinstance(history_record, dict):
         raise ValueError("precursor convergence report has no terminal history")
-    exact_keys(history_record, {"resolved_path", "sha256", "size_bytes"},
-               "precursor terminal history record")
+    exact_keys(history_record, {
+        "path", "resolved_path", "sha256", "size_bytes", "rows",
+        "first_t_star", "last_t_star",
+    }, "precursor terminal history record")
     history_sha = canonical_hex(
         str(history_record.get("sha256")), 64, "precursor terminal history SHA-256",
     )
@@ -395,6 +397,8 @@ def load_convergence_bulk_target(
         raise ValueError("transfer manifest/terminal history SHA-256 mismatch")
     history = regular(Path(str(history_record.get("resolved_path"))),
                       "precursor terminal history")
+    if str(history_record.get("path")) != str(history):
+        raise ValueError("precursor terminal history path identity mismatch")
     if sha256(history) != history_sha or history.stat().st_size != history_record.get("size_bytes"):
         raise ValueError("precursor terminal history identity mismatch")
     with history.open(newline="", encoding="utf-8") as stream:
@@ -404,6 +408,8 @@ def load_convergence_bulk_target(
         rows = list(reader)
     if not rows or any(None in row or any(item is None for item in row.values()) for row in rows):
         raise ValueError("precursor terminal history is empty or malformed")
+    if history_record.get("rows") != len(rows):
+        raise ValueError("precursor terminal history row count mismatch")
     terminal = rows[-1]
     if terminal["case_id"] != report.get("case_id"):
         raise ValueError("precursor terminal history case identity mismatch")
@@ -417,6 +423,17 @@ def load_convergence_bulk_target(
     if (not all(math.isfinite(value) for value in (terminal_t_star, flow, area, bulk))
             or flow <= 0.0 or area <= 0.0 or bulk <= 0.0):
         raise ValueError("precursor terminal history has invalid numeric data")
+    first_t_star = finite_number(
+        history_record.get("first_t_star"), "precursor history first_t_star",
+    )
+    last_t_star = finite_number(
+        history_record.get("last_t_star"), "precursor history last_t_star",
+    )
+    if (not math.isclose(float(rows[0]["t_star"]), first_t_star,
+                         rel_tol=0.0, abs_tol=1e-14)
+            or not math.isclose(terminal_t_star, last_t_star,
+                                rel_tol=0.0, abs_tol=1e-14)):
+        raise ValueError("precursor terminal history time bounds mismatch")
     window = report.get("window")
     if not isinstance(window, dict):
         raise ValueError("precursor convergence report window is malformed")
