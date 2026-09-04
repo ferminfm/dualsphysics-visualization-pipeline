@@ -363,6 +363,34 @@ def test_positive_discharge_coordinate_cannot_decrease(tmp_path: Path):
         MODULE.load(metrics, 1.0, "A", contract)
 
 
+def test_comparison_preserves_failed_cumulative_identity_as_unavailable(tmp_path: Path):
+    paths, packages = inputs(tmp_path)
+    rows = list(csv.DictReader(paths["A"].open(newline="", encoding="utf-8")))
+    for row in rows[1:]:
+        row["cumulative_nozzle_exit_net_volume"] = str(
+            float(row["cumulative_nozzle_exit_net_volume"]) - 0.01
+        )
+        row["cumulative_discharged_liquid_volume"] = str(
+            float(row["cumulative_discharged_liquid_volume"]) - 0.01
+        )
+    with paths["A"].open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+    refresh_package(packages["A"])
+    contract = MODULE.read_package(packages["A"], "A")
+    with pytest.raises(MODULE.CumulativeIntegrationMismatch):
+        MODULE.load(paths["A"], 1.0, "A", contract)
+    result = MODULE.compare(paths, packages, 1.0)
+    assert result["cumulative_coordinate_policy"]["status"] == (
+        "invalid_not_used_for_matching"
+    )
+    assert result["matched_states"][
+        "cumulative_discharged_liquid_volume_normalized"
+    ]["status"] == "insufficient_invalid_coordinate"
+    assert result["matched_states"]["Q_l"]["status"] == "matched_unique"
+
+
 def test_uncertainty_overlap_is_not_equivalence_without_predeclaration():
     def metric(slope, uncertainty):
         return {"robust_relative_slope_percent_per_t_star": slope,

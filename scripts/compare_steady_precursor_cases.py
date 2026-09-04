@@ -51,6 +51,10 @@ CASE_MODES: dict[str, dict[str, object]] = {
           "inlet_mode": "poiseuille_profile_controlled_diagnostic",
           "precursor_pressure_mode": "transferred", "pressure_driven_preserved": False},
 }
+
+
+class CumulativeIntegrationMismatch(ValueError):
+    """The sealed solver integral cannot be identified with sparse CSV Q_l."""
 REQUIRED_PACKAGE_MEMBERS = (
     "raw_export_manifest.json", "hydraulic_plane_metrics.csv",
     "hydraulic_plane_profiles.csv", "solver_health_metrics.csv",
@@ -679,7 +683,8 @@ def compatible_contracts(
     }
 
 
-def load(path: Path, dh: float, role: str, contract: dict[str, object]) -> tuple[
+def load(path: Path, dh: float, role: str, contract: dict[str, object], *,
+         allow_invalid_cumulative_coordinate: bool = False) -> tuple[
     list[dict[str, float]], dict[str, object]
 ]:
     resolved = regular_file(path, f"Case {role} hydraulic metrics")
@@ -717,6 +722,7 @@ def load(path: Path, dh: float, role: str, contract: dict[str, object]) -> tuple
         "precursor_transfer_sha256": contract["precursor_transfer_sha256"],
     }
     output: list[dict[str, float]] = []
+    cumulative_mismatches: list[dict[str, object]] = []
     previous: dict[str, float] | None = None
     seen_ticks: set[int] = set()
     valid_segments = set(contract["supervision_segment_ids"])
@@ -813,16 +819,34 @@ def load(path: Path, dh: float, role: str, contract: dict[str, object]) -> tuple
                 current["cumulative_discharged_liquid_volume"] -
                 previous["cumulative_discharged_liquid_volume"]
             )
+            mismatch_kinds = []
             if not math.isclose(
                 observed_net_increment, expected_net_increment,
                 rel_tol=5e-8, abs_tol=1e-12,
             ):
-                raise ValueError(f"{path}: signed net-discharge integration is inconsistent")
+                mismatch_kinds.append("signed_net")
             if not math.isclose(
                 observed_discharged_increment, expected_discharged_increment,
                 rel_tol=5e-8, abs_tol=1e-12,
             ):
-                raise ValueError(f"{path}: positive-discharge integration is inconsistent")
+                mismatch_kinds.append("positive_discharge")
+            if mismatch_kinds:
+                if not allow_invalid_cumulative_coordinate:
+                    label = (
+                        "signed net-discharge" if mismatch_kinds[0] == "signed_net"
+                        else "positive-discharge"
+                    )
+                    raise CumulativeIntegrationMismatch(
+                        f"{path}: {label} integration is inconsistent"
+                    )
+                cumulative_mismatches.append({
+                    "master_tick": current["master_tick"],
+                    "kinds": mismatch_kinds,
+                    "observed_net_increment": observed_net_increment,
+                    "sparse_q_trapezoid_net_increment": expected_net_increment,
+                    "observed_positive_increment": observed_discharged_increment,
+                    "sparse_q_trapezoid_positive_increment": expected_discharged_increment,
+                })
         output.append(current)
         previous = current
     if (output[0]["master_tick"] != 0 or abs(output[0]["t_star"]) > 1e-12 or
@@ -840,6 +864,11 @@ def load(path: Path, dh: float, role: str, contract: dict[str, object]) -> tuple
             "integral(max(Q_l,0),dt)/(A0*Dh)"
         ),
         "signed_net_coordinate": "integral(Q_l,dt)/(A0*Dh)",
+        "cumulative_coordinate_status": (
+            "invalid_sparse_q_vs_solver_integral"
+            if cumulative_mismatches else "valid"
+        ),
+        "cumulative_coordinate_mismatches": cumulative_mismatches,
     }
 
 
@@ -1162,7 +1191,18 @@ def compare(paths: dict[str, Path], package_paths: dict[str, Path], dh: float) -
         raise ValueError("dh must be positive and finite")
     contracts = {role: read_package(package_paths[role], role) for role in "ABC"}
     compatibility = compatible_contracts(contracts, dh)
-    loaded = {role: load(paths[role], dh, role, contracts[role]) for role in "ABC"}
+    loaded = {}
+    for role in "ABC":
+        try:
+            loaded[role] = load(paths[role], dh, role, contracts[role])
+        except CumulativeIntegrationMismatch:
+            # Keep the fixed identity check failed and exclude both cumulative
+            # coordinates. Equal-time and independently bracketed Q/J
+            # comparisons do not depend on this invalid coordinate.
+            loaded[role] = load(
+                paths[role], dh, role, contracts[role],
+                allow_invalid_cumulative_coordinate=True,
+            )
     full_series = {role: loaded[role][0] for role in "ABC"}
     metric_provenance = {role: loaded[role][1] for role in "ABC"}
     series, common_tick, common_end, horizon_disposition = common_horizon(full_series)
@@ -1173,10 +1213,26 @@ def compare(paths: dict[str, Path], package_paths: dict[str, Path], dh: float) -
         role: {field: rows[-1][field] for field in INTERPOLATED_FIELDS}
         for role, rows in series.items()
     }
-    matched = {coordinate: matched_state(series, coordinate) for coordinate in (
+    cumulative_valid = all(
+        metric_provenance[role]["cumulative_coordinate_status"] == "valid"
+        for role in "ABC"
+    )
+    matched = {}
+    for coordinate in (
         "cumulative_discharged_liquid_volume_normalized",
         "cumulative_nozzle_exit_net_volume_normalized", "Q_l",
-        "J_k_liquid", "J_total")}
+        "J_k_liquid", "J_total",
+    ):
+        if coordinate.startswith("cumulative_") and not cumulative_valid:
+            matched[coordinate] = {
+                "status": "insufficient_invalid_coordinate",
+                "reason": (
+                    "fixed sparse-Q versus sealed-solver-integral identity check failed; "
+                    "no cumulative-coordinate match was attempted"
+                ),
+            }
+        else:
+            matched[coordinate] = matched_state(series, coordinate)
     return {
         "schema": "steady_precursor_matched_comparison_v2",
         "interpolation": "linear_within_observed_brackets_only_no_extrapolation",
@@ -1196,6 +1252,7 @@ def compare(paths: dict[str, Path], package_paths: dict[str, Path], dh: float) -
         "last_common_t_star": common_end,
         "equal_t_star_metrics": equal_time, "matched_states": matched,
         "cumulative_coordinate_policy": {
+            "status": "valid" if cumulative_valid else "invalid_not_used_for_matching",
             "preferred_matching_coordinate": (
                 "cumulative_discharged_liquid_volume_normalized="
                 "integral(max(Q_l,0),dt)/(A0*Dh)"
