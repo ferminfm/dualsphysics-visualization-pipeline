@@ -277,10 +277,13 @@ def test_schedule_and_convergence_tampering_fail_closed(tmp_path: Path) -> None:
         MODULE.build_contract(args)
 
 
-def test_convergence_history_summary_tampering_fails_closed(tmp_path: Path) -> None:
+@pytest.mark.parametrize("bad_rows", [2, True])
+def test_convergence_history_summary_tampering_fails_closed(
+    tmp_path: Path, bad_rows: object,
+) -> None:
     args = fixture(tmp_path)
     report = json.loads(args.precursor_convergence_report.read_text(encoding="utf-8"))
-    report["inputs"][-1]["history"]["rows"] = 2
+    report["inputs"][-1]["history"]["rows"] = bad_rows
     args.precursor_convergence_report.write_text(json.dumps(report), encoding="utf-8")
     report_sha = digest(args.precursor_convergence_report)
     args.precursor_convergence_report_sha256 = report_sha
@@ -288,7 +291,7 @@ def test_convergence_history_summary_tampering_fails_closed(tmp_path: Path) -> N
     manifest["precursor_convergence_report_sha256"] = report_sha
     args.transfer_manifest.write_text(json.dumps(manifest), encoding="utf-8")
     args.transfer_manifest_sha256 = digest(args.transfer_manifest)
-    with pytest.raises(ValueError, match="row count mismatch"):
+    with pytest.raises(ValueError, match="rows|row count mismatch"):
         MODULE.build_contract(args)
 
 

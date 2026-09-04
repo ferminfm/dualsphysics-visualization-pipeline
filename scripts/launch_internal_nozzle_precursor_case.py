@@ -399,7 +399,10 @@ def load_convergence_bulk_target(
                       "precursor terminal history")
     if str(history_record.get("path")) != str(history):
         raise ValueError("precursor terminal history path identity mismatch")
-    if sha256(history) != history_sha or history.stat().st_size != history_record.get("size_bytes"):
+    history_size = exact_int(
+        history_record.get("size_bytes"), "precursor history size_bytes",
+    )
+    if sha256(history) != history_sha or history.stat().st_size != history_size:
         raise ValueError("precursor terminal history identity mismatch")
     with history.open(newline="", encoding="utf-8") as stream:
         reader = csv.DictReader(stream)
@@ -408,7 +411,7 @@ def load_convergence_bulk_target(
         rows = list(reader)
     if not rows or any(None in row or any(item is None for item in row.values()) for row in rows):
         raise ValueError("precursor terminal history is empty or malformed")
-    if history_record.get("rows") != len(rows):
+    if exact_int(history_record.get("rows"), "precursor history rows") != len(rows):
         raise ValueError("precursor terminal history row count mismatch")
     terminal = rows[-1]
     if terminal["case_id"] != report.get("case_id"):
