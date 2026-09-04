@@ -1048,10 +1048,11 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
         exit(2); \
       } \
       seen |= 1ULL << (bit); \
-      continue; \
+      matched_line = 1; \
     } \
   } while (0)
   while (fgets(line, sizeof(line), fp)) {
+    int matched_line = 0;
     TWO_PHASE_META_SCAN(0, sscanf(line, "schema=%127s", found_schema));
     TWO_PHASE_META_SCAN(1, sscanf(line, "case_id=%127s", found_case));
     TWO_PHASE_META_SCAN(2, sscanf(line, "source_sha256=%127s", found_source_sha));
@@ -1111,6 +1112,8 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     TWO_PHASE_META_SCAN(56, sscanf(line, "cumulative_discharged_liquid_volume=%lf", &found_discharged_volume));
     TWO_PHASE_META_SCAN(57, sscanf(line, "cumulative_nozzle_exit_discharge_definition=%127s", found_legacy_definition));
     TWO_PHASE_META_SCAN(58, sscanf(line, "profile_target_flow=%lf", &found_profile_target_flow));
+    if (matched_line)
+      continue;
     fprintf(stderr, "ERROR unknown or malformed two-phase checkpoint metadata key: %s", line);
     exit(2);
   }

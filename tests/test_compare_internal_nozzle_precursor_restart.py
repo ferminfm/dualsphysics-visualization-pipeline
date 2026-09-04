@@ -286,6 +286,18 @@ def test_two_phase_source_projects_homogeneous_transfer_correction_and_binds_clo
     assert "grid_maxdepth=%d" in source
     assert "ERROR duplicate two-phase checkpoint metadata key" in source
     assert "ERROR unknown or malformed two-phase checkpoint metadata key" in source
+    # A continue inside the macro's do/while would only continue that inner
+    # loop and reject every valid metadata line. Recognition is carried to
+    # the enclosing fgets loop explicitly.
+    parse_start = source.index("#define TWO_PHASE_META_SCAN")
+    matched_decl = source.index("int matched_line = 0;", parse_start)
+    matched_assignment = source.index("matched_line = 1;", parse_start)
+    outer_continue = source.index("if (matched_line)", matched_decl)
+    unknown_rejection = source.index(
+        "ERROR unknown or malformed two-phase checkpoint metadata key",
+        outer_continue,
+    )
+    assert matched_assignment < matched_decl < outer_continue < unknown_rejection
     # The v7 restart sidecar binds 59 exact keys, including execution,
     # segment, role, solver, predecessor, profile-flow, and cumulative-volume identity.
     assert "seen != ((1ULL << 59) - 1)" in source
