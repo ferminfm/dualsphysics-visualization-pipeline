@@ -64,5 +64,51 @@ static void internal_nozzle_state_audit (const char * phase, int iteration_value
     fputs("}}", fp);
   }
   fputs("]}\n", fp); fclose(fp);
+  /* Optional, bounded binary observations for independent keyed field norms.
+   * Explicit fwrite arrays avoid C-ABI padding; no solver state is changed. */
+  if (forensic_snapshot_end_time < 0. || t > forensic_snapshot_end_time + 1e-14)
+    return;
+  if (strcmp(phase, "post_checkpoint") && strcmp(phase, "stability_post_sidecar") &&
+      strcmp(phase, "before_advection_term") && strcmp(phase, "before_projection") &&
+      strcmp(phase, "post_projection") && strcmp(phase, "post_restore_pre_centered"))
+    return;
+  uint32_t endian = 1;
+  if (*(unsigned char *)&endian != 1 || sizeof(double) != 8 || sizeof(int32_t) != 4) {
+    fprintf(stderr, "ERROR unsupported field observation binary ABI\n"); exit(2);
+  }
+  char leaf[256];
+  snprintf(leaf, sizeof(leaf), "state_%s_t%.17e_i%07d.bin", phase, t, iter);
+  subdir_path(path, sizeof(path), forensic_dir, leaf);
+  fp = fopen(path, "wx");
+  if (!fp) { fprintf(stderr, "ERROR duplicate/unwritable field observation\n"); exit(2); }
+  fprintf(fp, "{\"schema\":\"internal_nozzle_keyed_state_v1\",\"endian\":\"little\",\"phase\":\"%s\",\"t\":%.17g,\"i\":%d,\"dt\":%.17g,\"exit_x\":%.17g,\"cell_count\":%llu,\"face_count\":%llu,\"cell_bytes\":168,\"face_bytes\":100}\n",
+          phase, t, iter, dt, exit_x(),
+          (unsigned long long)(counts[0] + counts[1] + counts[2]),
+          (unsigned long long)(face_counts[0] + face_counts[1] + face_counts[2]));
+  foreach_cell_all() {
+    int32_t key[] = {level, point.i, point.j, point.k,
+                    is_leaf(cell), is_active(cell), is_local(cell), is_boundary(cell)};
+    double values[17] = {x,y,z,Delta};
+    for (int k = 0; k < 13; k++)
+      values[k+4] = is_constant(fields[k]) ? constant(fields[k]) : val(fields[k],0,0,0);
+    if (fwrite(key, sizeof(int32_t), 8, fp) != 8 || fwrite(values, sizeof(double), 17, fp) != 17) {
+      fprintf(stderr, "ERROR incomplete cell observation write\n"); exit(2);
+    }
+  }
+#define INTERNAL_NOZZLE_SNAPSHOT_FACE(axis_value, component) do { \
+    int32_t key[] = {axis_value, level, point.i, point.j, point.k}; \
+    scalar * ff = (scalar *){uf.component, fs.component, fm.component, a.component, alpha.component, mu.component}; \
+    double values[10] = {x,y,z,Delta}; \
+    for (int k = 0; k < 6; k++) \
+      values[k+4] = is_constant(ff[k]) ? constant(ff[k]) : val(ff[k],0,0,0); \
+    if (fwrite(key, sizeof(int32_t), 5, fp) != 5 || fwrite(values, sizeof(double), 10, fp) != 10) { \
+      fprintf(stderr, "ERROR incomplete face observation write\n"); exit(2); \
+    } \
+  } while (0)
+  foreach_face(x, serial) INTERNAL_NOZZLE_SNAPSHOT_FACE(0,x);
+  foreach_face(y, serial) INTERNAL_NOZZLE_SNAPSHOT_FACE(1,y);
+  foreach_face(z, serial) INTERNAL_NOZZLE_SNAPSHOT_FACE(2,z);
+#undef INTERNAL_NOZZLE_SNAPSHOT_FACE
+  if (fclose(fp)) { fprintf(stderr, "ERROR field observation close failed\n"); exit(2); }
 }
 #endif

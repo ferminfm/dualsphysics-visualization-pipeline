@@ -170,6 +170,7 @@ int enable_forensic_probes = 0;
 int forensic_probe_index = 0;
 double forensic_start_time = -1.;
 double forensic_end_time = -1.;
+double forensic_snapshot_end_time = -1.;
 char forensic_dir[640] = "";
 int projection_trace_index = 0;
 char projection_trace_dir[700] = "";
@@ -1535,6 +1536,12 @@ static void parse_args (int argc, char **argv) {
       forensic_start_time = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--forensic-end-time"))
       forensic_end_time = atof(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--forensic-snapshot-end-time")) {
+      forensic_snapshot_end_time = atof(require_value(argc, argv, &a));
+      if (!isfinite(forensic_snapshot_end_time)) {
+        fprintf(stderr, "ERROR nonfinite forensic snapshot end time\n"); exit(2);
+      }
+    }
     else if (!strcmp(argv[a], "--restore")) {
       copy_string(restore_path, sizeof(restore_path), require_value(argc, argv, &a));
       restore_requested = 1;
