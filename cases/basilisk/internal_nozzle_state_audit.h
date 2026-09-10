@@ -76,9 +76,9 @@ static void internal_nozzle_state_audit (const char * phase, int iteration_value
   if (*(unsigned char *)&endian != 1 || sizeof(double) != 8 || sizeof(int32_t) != 4) {
     fprintf(stderr, "ERROR unsupported field observation binary ABI\n"); exit(2);
   }
-  char leaf[256];
-  snprintf(leaf, sizeof(leaf), "state_%s_t%.17e_i%07d.bin", phase, t, iter);
-  subdir_path(path, sizeof(path), forensic_dir, leaf);
+  char snapshot_leaf[256];
+  snprintf(snapshot_leaf, sizeof(snapshot_leaf), "state_%s_t%.17e_i%07d.bin", phase, t, iter);
+  subdir_path(path, sizeof(path), forensic_dir, snapshot_leaf);
   fp = fopen(path, "wx");
   if (!fp) { fprintf(stderr, "ERROR duplicate/unwritable field observation\n"); exit(2); }
   fprintf(fp, "{\"schema\":\"internal_nozzle_keyed_state_v1\",\"endian\":\"little\",\"phase\":\"%s\",\"t\":%.17g,\"i\":%d,\"dt\":%.17g,\"exit_x\":%.17g,\"cell_count\":%llu,\"face_count\":%llu,\"cell_bytes\":168,\"face_bytes\":100}\n",

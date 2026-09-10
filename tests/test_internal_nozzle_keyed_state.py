@@ -6,6 +6,11 @@ import pytest
 s=importlib.util.spec_from_file_location('keyed',Path(__file__).resolve().parents[1]/'scripts/compare_internal_nozzle_keyed_state.py')
 m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 
+def test_native_leaf_flag_not_shadowed():
+    source=(Path(__file__).resolve().parents[1]/'cases/basilisk/internal_nozzle_state_audit.h').read_text()
+    assert 'char leaf[' not in source # is_leaf(cell) expands using Basilisk's leaf flag
+    assert 'char snapshot_leaf[' in source
+
 def write(p,delta=0,key=1,bad=None):
     h={'schema':'internal_nozzle_keyed_state_v1','endian':'little','phase':'synthetic_only','t':1.,'i':2,'dt':.1,'exit_x':2.,'cell_count':2,'face_count':3,'cell_bytes':168,'face_bytes':100}
     if bad:h.update(bad)
