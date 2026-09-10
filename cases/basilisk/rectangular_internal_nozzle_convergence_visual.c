@@ -1234,10 +1234,11 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   current_master_tick = found_tick;
   current_target_time = found_target;
   current_actual_time = found_actual;
-  if (canonical_schedule_enabled())
-    restore_time = found_target;
+  /* Native restore time is already bitwise checked against found_actual.
+   * A nominal output target is a label, not restart state: replacing the
+   * native clock with it changes dtnext() even when they differ by one ULP. */
+  restore_time = found_actual;
   if (canonical_schedule_enabled()) {
-    t = found_target;
     recovered_checkpoint_iteration = found_iteration;
   }
   /* Every v4 checkpoint, including an accepted legacy-schedule generation,
@@ -3222,6 +3223,15 @@ event post_projection_hydraulics (i++, last) {
   hydraulic_metric_index++;
 }
 
+/* Keep a future canonical tick visible to native dtnext() at a segment's
+ * final sampled step. Without this non-mutating clock, that step uses DT
+ * rather than the same tick subdivision as an uninterrupted continuation.
+ * The explicit last-group stop below bounds this otherwise ongoing clock. */
+event canonical_schedule_clock
+  (t = 0.; t += diagnostic_dt; canonical_schedule_enabled()) {
+  return 0;
+}
+
 event diagnostics (t = 0.; t += diagnostic_dt; t <= end_time + 1e-12) {
   if (restored_ok && t <= restore_time + 1e-12)
     return 0;
@@ -3390,7 +3400,11 @@ event logfile (i++) {
   }
 }
 
-event end (t = end_time) {
+/* The canonical terminal condition is evaluated only after the accepted
+ * last-group step and its outputs. Do not add a separately rounded end_time
+ * to the time-event queue: segment horizon must not change the trajectory.
+ * Legacy non-canonical scheduling retains its original timed event. */
+event end (t = canonical_schedule_enabled() ? HUGE : end_time) {
   if (wrote_summary)
     return 0;
   wrote_summary = 1;
@@ -3513,4 +3527,12 @@ event end (t = end_time) {
           min_runtime_pressure_range < HUGE ? min_runtime_pressure_range : 0.,
           max_runtime_pressure_range, zero_range_pressure_frames);
   fclose(fp);
+}
+
+event canonical_terminal_stop (i++, last) {
+  if (!canonical_schedule_enabled() ||
+      t + schedule_time_tolerance < end_time)
+    return 0;
+  event("end");
+  return 1;
 }
