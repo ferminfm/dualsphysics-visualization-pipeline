@@ -1232,6 +1232,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
+    # The historical launcher remains usable for historical contracts, but is
+    # not an alternative successor entry point. Qualification precedes spawn.
+    from internal_nozzle_qualification import BATCH, scoped
+    if args.batch_id == BATCH or scoped(args.cwd):
+        raise ValueError("successor requires launch_internal_nozzle_qualified.py")
     payload = build_contract(args)
     atomic_json(args.output, payload)
     print(json.dumps({

@@ -154,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--segment-id")
     parser.add_argument("--source-commit", default="not_applicable")
     parser.add_argument("--source-sha256", default="not_applicable")
+    parser.add_argument("--qualification-ticket", type=Path)
     parser.add_argument(
         "--input-file-sha256",
         nargs=2,
@@ -174,6 +175,9 @@ def main(argv: list[str] | None = None) -> int:
     cwd = args.cwd.resolve()
     if not cwd.is_dir():
         parser.error("cwd is not a directory")
+    from internal_nozzle_qualification import scoped, supervisor_gate
+    if scoped(cwd) or args.qualification_ticket is not None:
+        supervisor_gate(args.qualification_ticket, command, cwd)
     try:
         verified_inputs = validate_inputs(args.input_file_sha256, cwd)
     except ValueError as exc:
@@ -291,6 +295,8 @@ def main(argv: list[str] | None = None) -> int:
         try:
             stdout = stdout_path.open("xb")
             stderr = stderr_path.open("xb")
+            if scoped(cwd) or args.qualification_ticket is not None:
+                supervisor_gate(args.qualification_ticket, command, cwd)
             child = subprocess.Popen(
                 command,
                 cwd=cwd,
