@@ -19,6 +19,9 @@ SOURCE_PATHS = (
     "cases/basilisk/internal_nozzle_precursor_geometry.h",
     "cases/basilisk/internal_nozzle_precursor_start.h",
     "cases/basilisk/internal_nozzle_checkpoint_v4.h",
+    "cases/basilisk/internal_nozzle_step_integral.h",
+    "cases/basilisk/internal_nozzle_step_metadata.h",
+    "cases/basilisk/internal_nozzle_step_io.h",
     "cases/basilisk/internal_nozzle_state_audit.h",
     "cases/basilisk/internal_nozzle_nonmutation_probe.h",
     "cases/basilisk/internal_nozzle_restartable_timestep.h",
@@ -28,6 +31,7 @@ SOURCE_PATHS = (
     "scripts/prepare_internal_nozzle_centered.py",
     "scripts/rectangular_poiseuille_reference.py",
     "scripts/evaluate_internal_nozzle_acceptance.py",
+    "scripts/verify_internal_nozzle_step_integral.py",
 )
 BUILD_ROLES = {
     "precursor": {

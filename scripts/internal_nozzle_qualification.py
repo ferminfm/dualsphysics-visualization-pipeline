@@ -18,6 +18,7 @@ import re
 import subprocess
 import tempfile
 import uuid
+from verify_internal_nozzle_step_integral import checkpoint_state_from_fields
 
 BATCH = "20260905-internal-nozzle-restart-diagnostic-qualification-r1"
 SCHEMA = "internal_nozzle_qualification_authority_v1"
@@ -36,6 +37,7 @@ CRITERIA = {"restart_core": 1e-7, "restart_profile": 1e-8,
             "transfer_velocity_impulse": .02, "transfer_pressure_change": .01}
 DH = (2.0 / 3.0) * math.sqrt(2.0 * math.pi / 144.0)
 GATE_FILES = {"scripts/internal_nozzle_qualification.py",
+              "scripts/verify_internal_nozzle_step_integral.py",
               "scripts/launch_internal_nozzle_qualified.py",
               "scripts/launch_internal_nozzle_precursor_case.py",
               "scripts/supervise_internal_nozzle_run.py"}
@@ -178,7 +180,9 @@ def historical_metadata(contract):
         k, v = line.split("=", 1)
         require(k not in fields, "duplicate historical metadata key")
         fields[k] = v
-    require(fields.get("schema") == "internal_nozzle_checkpoint_metadata_v7", "unsupported historical checkpoint")
+    require(fields.get("schema") in {"internal_nozzle_checkpoint_metadata_v7", "internal_nozzle_checkpoint_metadata_v8"}, "unsupported historical checkpoint")
+    if fields['schema']=='internal_nozzle_checkpoint_metadata_v8':
+        checkpoint_state_from_fields(fields)
     for key in DIAGNOSTIC_IDENTITY_OPTIONS.values():
         require(key in fields, "missing historical identity " + key)
         if key != "execution_id":
@@ -359,6 +363,14 @@ def validate(record_path, contract, now=None):
     else:
         raise ValueError("unsupported launch mode")
     present = [x for x in DIAGNOSTIC_IDENTITY_OPTIONS if x in contract["solver_argv"]]
+    if a['mode']=='production' and not present and contract.get('restore',{}).get('kind')=='checkpoint':
+        fields=historical_metadata(contract)
+        state=checkpoint_state_from_fields(fields)
+        require(state['source_commit']==contract['scientific_source_commit'] and
+                state['solver_sha256']==contract['solver']['sha256'] and
+                state['execution_id']==contract['execution_id'] and
+                state['case_role']==contract['case_role'],
+                'production accepted-step checkpoint identity mismatch')
     if present or "diagnostic_restore" in contract:
         require(a["mode"] == "diagnostic" and len(present) == len(DIAGNOSTIC_IDENTITY_OPTIONS), "historical restore forbidden for production or incomplete")
         fields = historical_metadata(contract)

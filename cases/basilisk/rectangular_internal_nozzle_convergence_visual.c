@@ -26,6 +26,8 @@ event init (i = 0) {
 #include <float.h>
 #include <sys/stat.h>
 #include <string.h>
+#include "internal_nozzle_step_metadata.h"
+static InternalNozzleStepIntegral accepted_step_state = {0};
 
 /*
  * Restartable native-VOF visual/checkpoint pipeline for the pressure-driven
@@ -1052,6 +1054,9 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   double found_legacy_discharge = HUGE, found_net_volume = HUGE;
   double found_discharged_volume = HUGE;
   unsigned long long seen = 0;
+  InternalNozzleStepIntegral found_step_state = {0};
+  unsigned step_seen = 0;
+  double found_step_scale = 0.;
 #define TWO_PHASE_META_SCAN(bit, expression) do { \
     if ((expression) == 1) { \
       if (seen & (1ULL << (bit))) { \
@@ -1063,6 +1068,13 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     } \
   } while (0)
   while (fgets(line, sizeof(line), fp)) {
+    int step_line = internal_nozzle_step_metadata_field
+      (line, &found_step_state, &step_seen, &found_step_scale);
+    if (step_line < 0) {
+      fprintf(stderr, "ERROR malformed/duplicate accepted-step metadata\n");
+      exit(2);
+    }
+    if (step_line == 1) continue;
     int matched_line = 0;
     TWO_PHASE_META_SCAN(0, sscanf(line, "schema=%127s", found_schema));
     TWO_PHASE_META_SCAN(1, sscanf(line, "case_id=%127s", found_case));
@@ -1144,7 +1156,8 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   const char * accepted_restore_solver = diagnostic_restore_solver_sha256[0] ?
     diagnostic_restore_solver_sha256 : solver_sha256;
   if (seen != ((1ULL << 59) - 1) ||
-      strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v7") ||
+      (strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v7") &&
+       strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v8")) ||
       strcmp(found_case, case_id) || found_level != maxlevel ||
       strcmp(found_execution_id, accepted_restore_execution) ||
       strcmp(found_segment_id, predecessor_segment_id) ||
@@ -1191,6 +1204,19 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     exit(2);
   }
   cumulative_nozzle_exit_net_volume = found_net_volume;
+  if (!strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v8")) {
+    if (!internal_nozzle_step_metadata_complete
+        (&found_step_state, step_seen, found_step_scale, A0*Dhrect,
+         found_iteration, found_actual + found_solver_dt)) {
+      fprintf(stderr, "ERROR incomplete/contradictory accepted-step checkpoint\n");
+      exit(2);
+    }
+    accepted_step_state = found_step_state;
+  }
+  else if (step_seen || !diagnostic_restore_source_commit[0]) {
+    fprintf(stderr, "ERROR metadata_v7 is diagnostic-only and has no qualified same-step prefix\n");
+    exit(2);
+  }
   cumulative_discharged_liquid_volume = found_discharged_volume;
   int found_fresh_segment = !strcmp(found_predecessor_segment_id, "not_applicable");
   if ((found_fresh_segment &&
@@ -1767,6 +1793,7 @@ static void hydraulic_plane_flow_and_pressure
   *liquid_flow = flow;
   *mean_pressure = pressure_integral/area;
 }
+#include "internal_nozzle_step_io.h"
 
 static void integrate_nozzle_exit_discharge_to_time
   (double actual_time, double exit_flow)
@@ -2548,6 +2575,12 @@ static void write_surface_facets (int iter_value) {
 }
 
 static void write_checkpoint_dump (int iter_value) {
+  if (!internal_nozzle_step_integral_valid(&accepted_step_state) ||
+      accepted_step_state.last_iteration != iter_value ||
+      accepted_step_state.time != t + dt) {
+    fprintf(stderr, "ERROR checkpoint requires complete accepted-step state\n");
+    exit(2);
+  }
   char leaf[256], path[1024], parent[512] = "fresh";
   internal_nozzle_probe_mark
     ("checkpoint_event_entry", "candidate_modified", "write_checkpoint_dump");
@@ -2621,7 +2654,7 @@ static void write_checkpoint_dump (int iter_value) {
     exit(2);
   }
   fprintf(metadata,
-          "schema=internal_nozzle_checkpoint_metadata_v7\n"
+          "schema=internal_nozzle_checkpoint_metadata_v8\n"
           "case_id=%s\n"
           "execution_id=%s\n"
           "segment_id=%s\n"
@@ -2705,6 +2738,9 @@ static void write_checkpoint_dump (int iter_value) {
           mgp.nrelax, mgpf.nrelax, mgu.nrelax, initial_interface_proxy,
           max_interface_growth, max_active_front, max_post_tag_count,
           max_detached_proxy_count, max_one_cell_debris_count, closure_state);
+  if (!internal_nozzle_step_metadata_write(metadata, &accepted_step_state, A0*Dhrect)) {
+    fprintf(stderr, "ERROR accepted-step metadata write\n"); exit(2);
+  }
   fclose(metadata);
   char csv[1024];
   output_path(csv, sizeof(csv), "checkpoint_index.csv");
@@ -2942,6 +2978,7 @@ event init (t = 0) {
     double indexed_time = checkpoint_time_from_index(restore_path);
     restore_time = indexed_time >= 0. ? indexed_time : t;
     recover_checkpoint_metadata(restore_path);
+    internal_nozzle_start_step_integral();
     internal_nozzle_write_initialization_contract();
     next_field_export_time = restore_time + field_dt;
     write_forensic_probe("post_restore_pre_centered", i);
@@ -3054,9 +3091,12 @@ static void internal_nozzle_record_transfer_projection (const char *phase) {
 }
 
 static void internal_nozzle_post_centered_init (void) {
-  if (restore_requested ||
-      internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START)
+  if (restore_requested)
     return;
+  if (internal_nozzle_initial_state != INTERNAL_NOZZLE_PRECURSOR_START) {
+    internal_nozzle_start_step_integral();
+    return;
+  }
   /* centered's generic init has now built the exact face velocity that would
    * otherwise be consumed by the first VOF/advection event.  Project a
    * homogeneous correction, not the transferred physical pressure field:
@@ -3102,6 +3142,13 @@ static void internal_nozzle_post_centered_init (void) {
   centered_gradient(p, g);
   boundary({u, un, p, pf, g});
   internal_nozzle_record_transfer_projection("post_initial_projection");
+  internal_nozzle_start_step_integral();
+}
+
+/* Same-name native hook: after projection, before adaptation. No output
+ * event advances this accumulator; the recorded interval is [t,t+dt]. */
+event end_timestep (i++, last) {
+  internal_nozzle_capture_accepted_step(iter);
 }
 
 /* Continue the closure record through the first two completed timesteps. */
@@ -3408,6 +3455,7 @@ event end (t = canonical_schedule_enabled() ? HUGE : end_time) {
   if (wrote_summary)
     return 0;
   wrote_summary = 1;
+  internal_nozzle_write_step_state("accepted_step_terminal_state.json");
   double mean_u = 0., flow = 0., area = 0., ps = 0., lv = 0., af = 0., ip = 0., growth = 1.;
   update_metrics(&mean_u, &flow, &area, &ps, &lv, &af, &ip, &growth);
 
