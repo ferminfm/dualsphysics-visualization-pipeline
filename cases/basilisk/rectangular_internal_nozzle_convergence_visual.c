@@ -3451,7 +3451,10 @@ event logfile (i++) {
  * last-group step and its outputs. Do not add a separately rounded end_time
  * to the time-event queue: segment horizon must not change the trajectory.
  * Legacy non-canonical scheduling retains its original timed event. */
-event end (t = canonical_schedule_enabled() ? HUGE : end_time) {
+/* Native event(name) invokes an action with (0,0), not the current clock.
+ * Keep terminal output in an explicit context-bearing function so a manual
+ * canonical stop never labels completed fields as time zero. */
+static int internal_nozzle_finish_at (int i, double t) {
   if (wrote_summary)
     return 0;
   wrote_summary = 1;
@@ -3575,12 +3578,17 @@ event end (t = canonical_schedule_enabled() ? HUGE : end_time) {
           min_runtime_pressure_range < HUGE ? min_runtime_pressure_range : 0.,
           max_runtime_pressure_range, zero_range_pressure_frames);
   fclose(fp);
+  return 0;
+}
+
+event end (t = canonical_schedule_enabled() ? HUGE : end_time) {
+  return internal_nozzle_finish_at(i, t);
 }
 
 event canonical_terminal_stop (i++, last) {
   if (!canonical_schedule_enabled() ||
       t + schedule_time_tolerance < end_time)
     return 0;
-  event("end");
+  internal_nozzle_finish_at(i, t);
   return 1;
 }
