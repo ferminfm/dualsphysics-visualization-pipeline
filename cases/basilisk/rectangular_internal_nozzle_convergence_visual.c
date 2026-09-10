@@ -1527,8 +1527,10 @@ static void parse_args (int argc, char **argv) {
       enable_native_frames = parse_bool_arg(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--facet-export"))
       enable_facet_export = parse_bool_arg(require_value(argc, argv, &a));
-    else if (!strcmp(argv[a], "--forensic-probes"))
-      enable_forensic_probes = parse_bool_arg(require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--forensic-probes")) {
+      const char * mode = require_value(argc, argv, &a);
+      enable_forensic_probes = !strcmp(mode, "2") ? 2 : parse_bool_arg(mode);
+    }
     else if (!strcmp(argv[a], "--forensic-start-time"))
       forensic_start_time = atof(require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--forensic-end-time"))
