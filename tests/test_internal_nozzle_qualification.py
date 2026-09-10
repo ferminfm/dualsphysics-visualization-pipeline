@@ -198,3 +198,32 @@ def test_start_ledger_fail_closed(tmp_path, monkeypatch, defect):
         with gate.reserve(f["a"], f["contract"], path, f["run"] / "qualification-ticket.synthetic-one.json"):
             pytest.fail("invalid/exhausted ledger accepted")
     assert not (f["run"] / "SPAWN_MARKER").exists()
+
+
+@pytest.mark.parametrize("mode", ["valid-diagnostic", "production", "wrong-identity", "duplicate-metadata"])
+def test_historical_diagnostic_identity_never_qualifies_production(tmp_path, monkeypatch, mode):
+    f = fixture(tmp_path, monkeypatch, mode == "production")
+    metadata = f["s"] / "historical.meta"
+    metadata.write_text("schema=internal_nozzle_checkpoint_metadata_v7\nsource_sha256=" + "a"*64 +
+        "\nscientific_source_commit=" + "b"*40 + "\nsolver_sha256=" + "c"*64 + "\nexecution_id=historic-test\n")
+    c=f["contract"]; a=f["authority"]
+    c["restore"]={"kind":"checkpoint", "metadata":{"path":str(metadata),"sha256":gate.digest(metadata)}}
+    if mode == "duplicate-metadata":
+        with metadata.open("a") as fp: fp.write("execution_id=ambiguous\n")
+        c["restore"]["metadata"]["sha256"]=gate.digest(metadata)
+        with pytest.raises(ValueError, match="duplicate historical"):
+            gate.bind_historical_diagnostic_restore(c)
+        return
+    gate.bind_historical_diagnostic_restore(c)
+    if mode == "wrong-identity":
+        i=c["solver_argv"].index("--diagnostic-restore-execution-id");c["solver_argv"][i+1]="forged"
+    a["binding"]=gate.binding(c)
+    a["material_files"].append(gate.file_record(metadata));a["material_sha256"]=gate.fingerprint(a["material_files"])
+    for k, row in a["checks"].items():
+        p=Path(row["path"]); check=gate.load(p);check["material_sha256"]=a["material_sha256"];write(p,check);a["checks"][k]=gate.file_record(p)
+    write(f["a"],a)
+    if mode == "valid-diagnostic": assert gate.validate(f["a"],c)["mode"] == "diagnostic"
+    else:
+        with pytest.raises(ValueError, match="historical restore forbidden|differs from pinned"):
+            gate.validate(f["a"],c)
+    assert not (f["run"] / "SPAWN_MARKER").exists()

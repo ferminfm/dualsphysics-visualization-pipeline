@@ -34,6 +34,9 @@ TARGET_CLAMP_RULE = (
     "clamp_only_when_target_leaf_strictly_straddles_geometric_outlet"
 )
 PROTECTED_SOLVER_OPTIONS = {
+    "--diagnostic-restore-source-commit",
+    "--diagnostic-restore-solver-sha256",
+    "--diagnostic-restore-execution-id",
     "--case-role",
     "--execution-id",
     "--segment-id",

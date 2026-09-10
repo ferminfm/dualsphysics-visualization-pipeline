@@ -159,6 +159,11 @@ char restore_metadata_sha256[128] = "not_applicable";
 char restore_closure_sha256[128] = "not_applicable";
 char predecessor_segment_id[128] = "not_applicable";
 char restore_source_sha[128] = "";
+/* Only the successor's checked bounded diagnostic launcher emits these exact
+ * predecessor identities. They never qualify a new production checkpoint. */
+char diagnostic_restore_source_commit[64] = "";
+char diagnostic_restore_solver_sha256[128] = "";
+char diagnostic_restore_execution_id[128] = "";
 char pending_prediction_closure_path[1200] = "";
 int pending_prediction_closure_restore = 0;
 int enable_forensic_probes = 0;
@@ -466,6 +471,7 @@ static void write_scientific_runtime_contract (void) {
 #define INTERNAL_NOZZLE_PROBE_VARIANT "frozen_candidate"
 #include "internal_nozzle_nonmutation_probe.h"
 #include "internal_nozzle_checkpoint_v4.h"
+#include "internal_nozzle_state_audit.h"
 
 static void ensure_dir (const char *path) {
   if (mkdir(path, 0775) != 0 && errno != EEXIST) {
@@ -504,6 +510,10 @@ static void write_forensic_probe (const char *phase, int iter_value) {
       (forensic_start_time >= 0. && t < forensic_start_time - 1e-14) ||
       (forensic_end_time >= 0. && t > forensic_end_time + 1e-14))
     return;
+  if (enable_forensic_probes == 2) {
+    internal_nozzle_state_audit(phase, iter_value);
+    return;
+  }
   char cell_path[1024], face_path[1024], manifest_path[1024];
   snprintf(cell_path, sizeof(cell_path), "%s/probe_%05d_%s_t%.9f_i%07d_cells.csv",
            forensic_dir, forensic_probe_index, phase, t, iter_value);
@@ -1128,13 +1138,17 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   }
   const char * accepted_restore_source = restore_source_sha[0] ?
     restore_source_sha : source_sha;
+  const char * accepted_restore_execution = diagnostic_restore_execution_id[0] ?
+    diagnostic_restore_execution_id : execution_id;
+  const char * accepted_restore_solver = diagnostic_restore_solver_sha256[0] ?
+    diagnostic_restore_solver_sha256 : solver_sha256;
   if (seen != ((1ULL << 59) - 1) ||
       strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v7") ||
       strcmp(found_case, case_id) || found_level != maxlevel ||
-      strcmp(found_execution_id, execution_id) ||
+      strcmp(found_execution_id, accepted_restore_execution) ||
       strcmp(found_segment_id, predecessor_segment_id) ||
       strcmp(found_case_role, case_role) ||
-      strcmp(found_solver_sha256, solver_sha256) ||
+      strcmp(found_solver_sha256, accepted_restore_solver) ||
       !canonical_identifier_string(found_segment_id) ||
       (strcmp(found_predecessor_segment_id, "not_applicable") &&
        !canonical_identifier_string(found_predecessor_segment_id)) ||
@@ -1196,7 +1210,9 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
             found_source_sha, accepted_restore_source);
     exit(2);
   }
-  if (strcmp(found_source_commit, scientific_source_commit)) {
+  const char * accepted_restore_commit = diagnostic_restore_source_commit[0] ?
+    diagnostic_restore_source_commit : scientific_source_commit;
+  if (strcmp(found_source_commit, accepted_restore_commit)) {
     fprintf(stderr,
             "ERROR checkpoint scientific commit mismatch: found %s, requested %s\n",
             found_source_commit, scientific_source_commit);
@@ -1475,6 +1491,15 @@ static void parse_args (int argc, char **argv) {
                   require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--restore-source-sha"))
       copy_string(restore_source_sha, sizeof(restore_source_sha),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--diagnostic-restore-source-commit"))
+      copy_string(diagnostic_restore_source_commit, sizeof(diagnostic_restore_source_commit),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--diagnostic-restore-solver-sha256"))
+      copy_string(diagnostic_restore_solver_sha256, sizeof(diagnostic_restore_solver_sha256),
+                  require_value(argc, argv, &a));
+    else if (!strcmp(argv[a], "--diagnostic-restore-execution-id"))
+      copy_string(diagnostic_restore_execution_id, sizeof(diagnostic_restore_execution_id),
                   require_value(argc, argv, &a));
     else if (!strcmp(argv[a], "--schedule-tolerance"))
       schedule_time_tolerance = atof(require_value(argc, argv, &a));
@@ -2828,6 +2853,21 @@ int main (int argc, char **argv) {
   Wrect = shared_geometry.width;
   Hrect = shared_geometry.height;
   Dhrect = shared_geometry.hydraulic_diameter;
+  if (diagnostic_restore_source_commit[0] || diagnostic_restore_solver_sha256[0] ||
+      diagnostic_restore_execution_id[0]) {
+    if (!restore_requested ||
+        !internal_nozzle_hex_string(diagnostic_restore_source_commit, 40) ||
+        !internal_nozzle_sha256_string(diagnostic_restore_solver_sha256) ||
+        !internal_nozzle_sha256_string(restore_source_sha) ||
+        !canonical_identifier_string(diagnostic_restore_execution_id) ||
+        end_time/Dhrect > 2.2 + 1e-12) {
+      fprintf(stderr, "ERROR invalid bounded historical diagnostic restore identity\n");
+      return 2;
+    }
+    fprintf(stderr, "DIAGNOSTIC_ONLY historical checkpoint source=%s solver=%s execution=%s; current source=%s solver=%s execution=%s; not production qualification\n",
+            diagnostic_restore_source_commit, diagnostic_restore_solver_sha256,
+            diagnostic_restore_execution_id, scientific_source_commit, solver_sha256, execution_id);
+  }
   plenum_Dh = shared_geometry.plenum_dh;
   contraction_Dh = shared_geometry.contraction_dh;
   straight_Dh = shared_geometry.straight_dh;
@@ -3090,6 +3130,21 @@ event pressure_update (i++) {
   else
     pressure_value = base_pressure_value;
   write_forensic_probe("pressure_update", i);
+}
+
+/* Same-name hooks retain centered's existing i++,last scheduling. Later
+ * declarations execute before the existing operator. No solver field writes. */
+event advection_term (i++, last) {
+  write_forensic_probe("before_advection_term", i);
+}
+event viscous_term (i++, last) {
+  write_forensic_probe("before_viscous_term", i);
+}
+event acceleration (i++, last) {
+  write_forensic_probe("before_acceleration", i);
+}
+event projection (i++, last) {
+  write_forensic_probe("before_projection", i);
 }
 
 /* Integrate signed liquid fluxes at both streamwise boundaries.  Inventory

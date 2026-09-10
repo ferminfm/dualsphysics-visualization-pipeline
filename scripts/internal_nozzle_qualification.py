@@ -159,6 +159,48 @@ def option(argv, key):
     return argv[indices[0] + 1]
 
 
+DIAGNOSTIC_IDENTITY_OPTIONS = {
+    "--restore-source-sha": "source_sha256",
+    "--diagnostic-restore-source-commit": "scientific_source_commit",
+    "--diagnostic-restore-solver-sha256": "solver_sha256",
+    "--diagnostic-restore-execution-id": "execution_id",
+}
+
+
+def historical_metadata(contract):
+    require(contract["restore"]["kind"] == "checkpoint", "historical diagnostic requires exact checkpoint")
+    r = contract["restore"]["metadata"]
+    p = regular(r["path"])
+    require(digest(p) == r["sha256"], "historical metadata changed")
+    fields = {}
+    for line in p.read_text().splitlines():
+        require("=" in line, "malformed historical metadata")
+        k, v = line.split("=", 1)
+        require(k not in fields, "duplicate historical metadata key")
+        fields[k] = v
+    require(fields.get("schema") == "internal_nozzle_checkpoint_metadata_v7", "unsupported historical checkpoint")
+    for key in DIAGNOSTIC_IDENTITY_OPTIONS.values():
+        require(key in fields, "missing historical identity " + key)
+        if key != "execution_id":
+            require(re.fullmatch("[0-9a-f]{%d}" % (40 if key == "scientific_source_commit" else 64), fields[key]), "bad historical identity")
+    return fields
+
+
+def bind_historical_diagnostic_restore(contract):
+    fields = historical_metadata(contract)
+    require(not any(x in contract["solver_argv"] for x in DIAGNOSTIC_IDENTITY_OPTIONS), "duplicate diagnostic identity")
+    tail = []
+    for option_name, field in DIAGNOSTIC_IDENTITY_OPTIONS.items():
+        tail.extend([option_name, fields[field]])
+    contract["solver_argv"].extend(tail)
+    contract["supervisor_argv"].extend(tail)
+    contract["diagnostic_restore"] = {
+        "classification": "historical_checkpoint_new_diagnostic_binary_not_production_qualification",
+        "metadata": file_record(contract["restore"]["metadata"]["path"]),
+        "predecessor_identity": {key: fields[key] for key in DIAGNOSTIC_IDENTITY_OPTIONS.values()},
+    }
+
+
 def binding(contract):
     """Full argv covers BCs, phase/geometry/mesh, schedule, restore and horizon.
 
@@ -316,6 +358,16 @@ def validate(record_path, contract, now=None):
             verify_check(r, name, a["material_sha256"])
     else:
         raise ValueError("unsupported launch mode")
+    present = [x for x in DIAGNOSTIC_IDENTITY_OPTIONS if x in contract["solver_argv"]]
+    if present or "diagnostic_restore" in contract:
+        require(a["mode"] == "diagnostic" and len(present) == len(DIAGNOSTIC_IDENTITY_OPTIONS), "historical restore forbidden for production or incomplete")
+        fields = historical_metadata(contract)
+        for flag, key in DIAGNOSTIC_IDENTITY_OPTIONS.items():
+            require(option(contract["solver_argv"], flag) == fields[key], "diagnostic identity differs from pinned metadata")
+        expected = {"classification": "historical_checkpoint_new_diagnostic_binary_not_production_qualification",
+                    "metadata": file_record(contract["restore"]["metadata"]["path"]),
+                    "predecessor_identity": {key: fields[key] for key in DIAGNOSTIC_IDENTITY_OPTIONS.values()}}
+        require(contract.get("diagnostic_restore") == expected, "missing diagnostic provenance")
     require(a["plan_t_star"] <= a["maximum_t_star"], "over-horizon launch")
     return a
 

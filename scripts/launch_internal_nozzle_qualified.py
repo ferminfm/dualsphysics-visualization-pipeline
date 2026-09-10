@@ -14,11 +14,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--qualification-record", type=Path)
     parser.add_argument("--inspect-binding", action="store_true")
+    parser.add_argument("--diagnostic-historical-restore", action="store_true")
     parser.add_argument("bound_argv", nargs=argparse.REMAINDER)
     opts = parser.parse_args(argv)
     rest = opts.bound_argv[1:] if opts.bound_argv[:1] == ["--"] else opts.bound_argv
     args = bound.parse_args(rest)
     contract = bound.build_contract(args)
+    if opts.diagnostic_historical_restore:
+        gate.bind_historical_diagnostic_restore(contract)
     if opts.inspect_binding:
         print(json.dumps({"binding": gate.binding(contract), "contract": contract}, sort_keys=True))
         return 0

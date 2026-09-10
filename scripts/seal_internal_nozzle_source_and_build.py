@@ -19,6 +19,7 @@ SOURCE_PATHS = (
     "cases/basilisk/internal_nozzle_precursor_geometry.h",
     "cases/basilisk/internal_nozzle_precursor_start.h",
     "cases/basilisk/internal_nozzle_checkpoint_v4.h",
+    "cases/basilisk/internal_nozzle_state_audit.h",
     "cases/basilisk/internal_nozzle_nonmutation_probe.h",
     "cases/basilisk/internal_nozzle_restartable_timestep.h",
     "cases/basilisk/internal_nozzle_projection_trace.h",
