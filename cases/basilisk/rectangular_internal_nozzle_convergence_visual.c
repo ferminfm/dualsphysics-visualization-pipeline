@@ -481,7 +481,8 @@ static InternalNozzleStencilMetadata internal_nozzle_capture_stencil_metadata (v
 {
   InternalNozzleStencilMetadata state = {.seen = 3u};
   scalar * fields = (scalar *){u, g, cs};
-  for (int k = 0; k < 7; k++) state.bc[k] = fields[k].stencil.bc;
+  int k = 0;
+  for (scalar s in fields) state.bc[k++] = s.stencil.bc;
   if (!internal_nozzle_stencil_metadata_complete(&state)) {
     fprintf(stderr, "ERROR unsupported native stencil-validity bits\n"); exit(2);
   }
@@ -495,7 +496,8 @@ static void internal_nozzle_apply_stencil_metadata (void)
     fprintf(stderr, "ERROR incomplete pending stencil metadata\n"); exit(2);
   }
   scalar * fields = (scalar *){u, g, cs};
-  for (int k = 0; k < 7; k++) fields[k].stencil.bc = pending_stencil_metadata.bc[k];
+  int k = 0;
+  for (scalar s in fields) s.stencil.bc = pending_stencil_metadata.bc[k++];
 }
 
 static void internal_nozzle_stencil_trace (const char * stage, int iteration_value)

@@ -50,7 +50,9 @@ def test_source_uses_recorded_flags_after_exact_value_restoration():
     s=(ROOT/'cases/basilisk/rectangular_internal_nozzle_convergence_visual.c').read_text()
     block=s.split('event stability (i++, last) {',1)[1].split('event pressure_update',1)[0]
     assert block.index('internal_nozzle_restore_prediction_closure_v4')<block.index('internal_nozzle_write_prediction_closure_v4')<block.index('internal_nozzle_apply_stencil_metadata')<block.index('write_forensic_probe')
-    assert 'fields[k].stencil.bc = pending_stencil_metadata.bc[k]' in s
+    assert 'for (scalar s in fields) s.stencil.bc = pending_stencil_metadata.bc[k++]' in s
+    assert 'for (scalar s in fields) state.bc[k++] = s.stencil.bc' in s
+    assert 'fields[k].stencil' not in s
     assert 'metadata without stencil closure is historical-diagnostic-only' in s
     prior=subprocess.check_output(['git','show','0cf0732d761d3a2cffdaae83087343533bf89491:cases/basilisk/rectangular_internal_nozzle_convergence_visual.c'],cwd=ROOT,text=True)
     assert 'internal_nozzle_apply_stencil_metadata' not in prior
