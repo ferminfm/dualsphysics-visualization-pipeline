@@ -180,8 +180,8 @@ def historical_metadata(contract):
         k, v = line.split("=", 1)
         require(k not in fields, "duplicate historical metadata key")
         fields[k] = v
-    require(fields.get("schema") in {"internal_nozzle_checkpoint_metadata_v7", "internal_nozzle_checkpoint_metadata_v8"}, "unsupported historical checkpoint")
-    if fields['schema']=='internal_nozzle_checkpoint_metadata_v8':
+    require(fields.get("schema") in {"internal_nozzle_checkpoint_metadata_v7", "internal_nozzle_checkpoint_metadata_v8", "internal_nozzle_checkpoint_metadata_v9"}, "unsupported historical checkpoint")
+    if fields['schema'] in {'internal_nozzle_checkpoint_metadata_v8','internal_nozzle_checkpoint_metadata_v9'}:
         checkpoint_state_from_fields(fields)
     for key in DIAGNOSTIC_IDENTITY_OPTIONS.values():
         require(key in fields, "missing historical identity " + key)

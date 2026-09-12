@@ -474,6 +474,41 @@ static void write_scientific_runtime_contract (void) {
 #define INTERNAL_NOZZLE_PROBE_VARIANT "frozen_candidate"
 #include "internal_nozzle_nonmutation_probe.h"
 #include "internal_nozzle_checkpoint_v4.h"
+#include "internal_nozzle_stencil_metadata.h"
+static InternalNozzleStencilMetadata pending_stencil_metadata = {0};
+
+static InternalNozzleStencilMetadata internal_nozzle_capture_stencil_metadata (void)
+{
+  InternalNozzleStencilMetadata state = {.seen = 3u};
+  scalar * fields = (scalar *){u, g, cs};
+  for (int k = 0; k < 7; k++) state.bc[k] = fields[k].stencil.bc;
+  if (!internal_nozzle_stencil_metadata_complete(&state)) {
+    fprintf(stderr, "ERROR unsupported native stencil-validity bits\n"); exit(2);
+  }
+  return state;
+}
+
+static void internal_nozzle_apply_stencil_metadata (void)
+{
+  if (!pending_stencil_metadata.seen) return; /* explicitly historical diagnostic */
+  if (!internal_nozzle_stencil_metadata_complete(&pending_stencil_metadata)) {
+    fprintf(stderr, "ERROR incomplete pending stencil metadata\n"); exit(2);
+  }
+  scalar * fields = (scalar *){u, g, cs};
+  for (int k = 0; k < 7; k++) fields[k].stencil.bc = pending_stencil_metadata.bc[k];
+}
+
+static void internal_nozzle_stencil_trace (const char * stage, int iteration_value)
+{
+  InternalNozzleStencilMetadata state = internal_nozzle_capture_stencil_metadata();
+  char path[1024]; output_path(path, sizeof(path), "stencil_state.jsonl");
+  FILE * fp = fopen(path, "a");
+  if (!fp) { fprintf(stderr, "ERROR stencil trace open\n"); exit(2); }
+  fprintf(fp, "{\"schema\":\"internal_nozzle_stencil_observation_v1\",\"phase\":\"%s\",\"t\":%.17g,\"i\":%d,\"iter\":%d,\"bc_order\":[\"ux\",\"uy\",\"uz\",\"gx\",\"gy\",\"gz\",\"cs\"],\"bc\":[%d,%d,%d,%d,%d,%d,%d]}\n",
+          stage,t,iteration_value,iter,state.bc[0],state.bc[1],state.bc[2],
+          state.bc[3],state.bc[4],state.bc[5],state.bc[6]);
+  if (fclose(fp)) { fprintf(stderr, "ERROR stencil trace close\n"); exit(2); }
+}
 #include "internal_nozzle_state_audit.h"
 
 static void ensure_dir (const char *path) {
@@ -514,6 +549,7 @@ static void write_forensic_probe (const char *phase, int iter_value) {
       (forensic_end_time >= 0. && t > forensic_end_time + 1e-14))
     return;
   if (enable_forensic_probes == 2) {
+    internal_nozzle_stencil_trace(phase, iter_value);
     internal_nozzle_state_audit(phase, iter_value);
     return;
   }
@@ -700,6 +736,7 @@ void internal_nozzle_prediction_trace_stage
   /* Mode 2 uses the existing observation-only keyed audit, bounded by the
    * caller's snapshot window. Do not allocate unbounded per-cycle CSVs. */
   if (enable_forensic_probes == 2) {
+    internal_nozzle_stencil_trace(stage, iter);
     if (forensic_snapshot_end_time >= 0. && t <= forensic_snapshot_end_time + 1e-14)
       internal_nozzle_state_audit(stage, iter);
     return;
@@ -1076,6 +1113,7 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
   InternalNozzleStepIntegral found_step_state = {0};
   unsigned step_seen = 0;
   double found_step_scale = 0.;
+  InternalNozzleStencilMetadata found_stencil_metadata = {0};
 #define TWO_PHASE_META_SCAN(bit, expression) do { \
     if ((expression) == 1) { \
       if (seen & (1ULL << (bit))) { \
@@ -1087,6 +1125,11 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     } \
   } while (0)
   while (fgets(line, sizeof(line), fp)) {
+    int stencil_line = internal_nozzle_stencil_metadata_field(line, &found_stencil_metadata);
+    if (stencil_line < 0) {
+      fprintf(stderr, "ERROR malformed/duplicate stencil checkpoint metadata\n"); exit(2);
+    }
+    if (stencil_line == 1) continue;
     int step_line = internal_nozzle_step_metadata_field
       (line, &found_step_state, &step_seen, &found_step_scale);
     if (step_line < 0) {
@@ -1176,7 +1219,8 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     diagnostic_restore_solver_sha256 : solver_sha256;
   if (seen != ((1ULL << 59) - 1) ||
       (strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v7") &&
-       strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v8")) ||
+       strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v8") &&
+       strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v9")) ||
       strcmp(found_case, case_id) || found_level != maxlevel ||
       strcmp(found_execution_id, accepted_restore_execution) ||
       strcmp(found_segment_id, predecessor_segment_id) ||
@@ -1223,7 +1267,17 @@ static void recover_checkpoint_metadata (const char *checkpoint) {
     exit(2);
   }
   cumulative_nozzle_exit_net_volume = found_net_volume;
-  if (!strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v8")) {
+  if (!strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v9")) {
+    if (!internal_nozzle_stencil_metadata_complete(&found_stencil_metadata)) {
+      fprintf(stderr, "ERROR incomplete native stencil checkpoint state\n"); exit(2);
+    }
+    pending_stencil_metadata = found_stencil_metadata;
+  }
+  else if (found_stencil_metadata.seen || !diagnostic_restore_source_commit[0]) {
+    fprintf(stderr, "ERROR metadata without stencil closure is historical-diagnostic-only\n"); exit(2);
+  }
+  if (!strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v8") ||
+      !strcmp(found_schema, "internal_nozzle_checkpoint_metadata_v9")) {
     if (!internal_nozzle_step_metadata_complete
         (&found_step_state, step_seen, found_step_scale, A0*Dhrect,
          found_iteration, found_actual + found_solver_dt)) {
@@ -2673,7 +2727,7 @@ static void write_checkpoint_dump (int iter_value) {
     exit(2);
   }
   fprintf(metadata,
-          "schema=internal_nozzle_checkpoint_metadata_v8\n"
+          "schema=internal_nozzle_checkpoint_metadata_v9\n"
           "case_id=%s\n"
           "execution_id=%s\n"
           "segment_id=%s\n"
@@ -2759,6 +2813,10 @@ static void write_checkpoint_dump (int iter_value) {
           max_detached_proxy_count, max_one_cell_debris_count, closure_state);
   if (!internal_nozzle_step_metadata_write(metadata, &accepted_step_state, A0*Dhrect)) {
     fprintf(stderr, "ERROR accepted-step metadata write\n"); exit(2);
+  }
+  InternalNozzleStencilMetadata stencil_state = internal_nozzle_capture_stencil_metadata();
+  if (!internal_nozzle_stencil_metadata_write(metadata, &stencil_state)) {
+    fprintf(stderr, "ERROR stencil metadata write\n"); exit(2);
   }
   fclose(metadata);
   char csv[1024];
@@ -3192,6 +3250,10 @@ event stability (i++, last) {
     output_path(closure_probe, sizeof(closure_probe),
                 "restored_prediction_closure_probe.v4");
     internal_nozzle_write_prediction_closure_v4(closure_probe);
+    /* Restore recorded validity only after the exact keyed values, geometry,
+     * properties and probe serialization. Dirty bits remain dirty when the
+     * continuing checkpoint required boundary/restriction at the next read. */
+    internal_nozzle_apply_stencil_metadata();
     fprintf(stderr,
             "restored prediction-closure-v4 and timestep-ramp history %.17g before resumed advection; probe=%s\n",
             internal_nozzle_timestep_previous, closure_probe);

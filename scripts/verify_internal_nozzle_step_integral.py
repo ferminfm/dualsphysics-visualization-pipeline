@@ -43,9 +43,21 @@ prediction_closure_schema prediction_closure_state'''.split())
 CHECKPOINT_STEP_KEYS = {'accepted_step_schema','accepted_step_count','accepted_step_iteration',
  'accepted_step_time','accepted_step_previous_Q','accepted_step_net_volume',
  'accepted_step_positive_volume','accepted_step_nozzle_scale'}
+CHECKPOINT_STENCIL_KEYS = {'stencil_closure_schema','stencil_bc'}
+
+def checkpoint_stencil_from_fields(fields):
+    if fields.get('stencil_closure_schema')!='internal_nozzle_stencil_bc_v1' or not re.fullmatch(r'[0-7](,[0-7]){6}',fields.get('stencil_bc','')):
+        raise ValueError('malformed native stencil-validity metadata')
+    return [int(v) for v in fields['stencil_bc'].split(',')]
 
 def checkpoint_state_from_fields(fields):
-    if set(fields)!=CHECKPOINT_BASE_KEYS|CHECKPOINT_STEP_KEYS or fields['schema']!='internal_nozzle_checkpoint_metadata_v8':
+    expected=CHECKPOINT_BASE_KEYS|CHECKPOINT_STEP_KEYS
+    if fields.get('schema')=='internal_nozzle_checkpoint_metadata_v9':
+        expected=expected|CHECKPOINT_STENCIL_KEYS
+        checkpoint_stencil_from_fields(fields)
+    elif fields.get('schema')!='internal_nozzle_checkpoint_metadata_v8':
+        raise ValueError('unsupported accepted-step checkpoint metadata')
+    if set(fields)!=expected:
         raise ValueError('unsupported/incomplete accepted-step checkpoint metadata')
     state=initial_state({'schema':fields['accepted_step_schema'],
         'accepted_steps':fields['accepted_step_count'],'last_iteration':fields['accepted_step_iteration'],

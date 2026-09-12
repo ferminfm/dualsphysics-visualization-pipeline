@@ -21,6 +21,7 @@ SOURCE_PATHS = (
     "cases/basilisk/internal_nozzle_checkpoint_v4.h",
     "cases/basilisk/internal_nozzle_step_integral.h",
     "cases/basilisk/internal_nozzle_step_metadata.h",
+    "cases/basilisk/internal_nozzle_stencil_metadata.h",
     "cases/basilisk/internal_nozzle_step_io.h",
     "cases/basilisk/internal_nozzle_state_audit.h",
     "cases/basilisk/internal_nozzle_nonmutation_probe.h",
