@@ -181,6 +181,17 @@ def test_direct_supervisor_and_historical_entry_rejected(tmp_path, monkeypatch):
     assert not (f["run"] / "SPAWN_MARKER").exists()
 
 
+def test_successor_identity_does_not_promote_predecessor_permit(tmp_path, monkeypatch):
+    assert gate.BATCH == "20260912-internal-nozzle-restart-state-closure-r1"
+    f = fixture(tmp_path, monkeypatch)
+    assert gate.scoped(f["run"])
+    wrong = copy.deepcopy(f["contract"])
+    wrong["batch_identity"]["batch_id"] = "20260905-internal-nozzle-restart-diagnostic-qualification-r1"
+    with pytest.raises(ValueError, match="wrong batch"):
+        gate.binding(wrong)
+    assert not (f["run"] / "SPAWN_MARKER").exists()
+
+
 @pytest.mark.parametrize("defect", ["permit_exhausted", "full_budget", "boolean_resolution", "corrupt_hash", "duplicate_segment", "alternate_ledger"])
 def test_start_ledger_fail_closed(tmp_path, monkeypatch, defect):
     f = fixture(tmp_path, monkeypatch)

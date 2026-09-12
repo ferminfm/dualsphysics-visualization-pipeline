@@ -697,6 +697,13 @@ void internal_nozzle_prediction_trace_stage
 {
   if (!projection_trace_active(pf))
     return;
+  /* Mode 2 uses the existing observation-only keyed audit, bounded by the
+   * caller's snapshot window. Do not allocate unbounded per-cycle CSVs. */
+  if (enable_forensic_probes == 2) {
+    if (forensic_snapshot_end_time >= 0. && t <= forensic_snapshot_end_time + 1e-14)
+      internal_nozzle_state_audit(stage, iter);
+    return;
+  }
   char cell_path[1024], face_path[1024], boundary_path[1024], manifest_path[1024];
   snprintf(cell_path, sizeof(cell_path), "%s/prediction_%s_cells.csv",
            projection_trace_dir, stage);
@@ -765,6 +772,14 @@ void internal_nozzle_projection_trace_stage
 {
   if (!projection_trace_active(pressure_trace))
     return;
+  if (enable_forensic_probes == 2) {
+    if (forensic_snapshot_end_time >= 0. && t <= forensic_snapshot_end_time + 1e-14) {
+      char phase[160];
+      snprintf(phase, sizeof(phase), "project_%s_%s", pressure_trace.name, stage);
+      internal_nozzle_state_audit(phase, iter);
+    }
+    return;
+  }
   char data_path[1024], boundary_path[1024];
   snprintf(data_path, sizeof(data_path), "%s/trace_%05d_project_%s_%s_cells.csv",
            projection_trace_dir, projection_trace_index, pressure_trace.name, stage);
@@ -803,6 +818,8 @@ void internal_nozzle_poisson_trace_stage
 {
   if (!projection_trace_active(pressure_trace))
     return;
+  if (enable_forensic_probes == 2)
+    return; /* Predictor/project entry fingerprints precede multigrid tracing. */
   char data_path[1024], boundary_path[1024];
   snprintf(data_path, sizeof(data_path), "%s/trace_%05d_poisson_%s_%s.csv",
            projection_trace_dir, projection_trace_index, pressure_trace.name, stage);
@@ -854,6 +871,8 @@ void internal_nozzle_mg_trace_stage
   scalar solution = solution_list[0];
   if (!projection_trace_active(solution) || !residual_list || !correction_list)
     return;
+  if (enable_forensic_probes == 2)
+    return; /* No large per-cycle observations in the bounded compact lane. */
   scalar rhs = rhs_list ? rhs_list[0] : residual_list[0];
   scalar residual_trace = residual_list[0];
   scalar correction_trace = correction_list[0];

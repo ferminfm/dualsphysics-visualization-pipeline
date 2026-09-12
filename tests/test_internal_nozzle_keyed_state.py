@@ -11,6 +11,20 @@ def test_native_leaf_flag_not_shadowed():
     assert 'char leaf[' not in source # is_leaf(cell) expands using Basilisk's leaf flag
     assert 'char snapshot_leaf[' in source
 
+def test_compact_operator_hooks_are_bounded_observations():
+    root=Path(__file__).resolve().parents[1]/'cases/basilisk'
+    source=(root/'rectangular_internal_nozzle_convergence_visual.c').read_text()
+    for name in ('prediction','projection'):
+        body=source.split('void internal_nozzle_'+name+'_trace_stage',1)[1]
+        compact=body.split('if (enable_forensic_probes == 2) {',1)[1].split('return;',1)[0]
+        assert 'forensic_snapshot_end_time >= 0.' in compact
+        assert 'internal_nozzle_state_audit(' in compact
+        assert all(call not in compact for call in ('boundary(', 'restriction(', 'event(', 'project('))
+    audit=(root/'internal_nozzle_state_audit.h').read_text()
+    assert 'strcmp(phase, "before_prediction")' in audit
+    assert 'strcmp(phase, "after_prediction_pre_projection")' in audit
+    assert 't > forensic_snapshot_end_time + 1e-14' in audit
+
 def write(p,delta=0,key=1,bad=None):
     h={'schema':'internal_nozzle_keyed_state_v1','endian':'little','phase':'synthetic_only','t':1.,'i':2,'dt':.1,'exit_x':2.,'cell_count':2,'face_count':3,'cell_bytes':168,'face_bytes':100}
     if bad:h.update(bad)

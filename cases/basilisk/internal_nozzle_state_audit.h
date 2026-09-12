@@ -70,7 +70,8 @@ static void internal_nozzle_state_audit (const char * phase, int iteration_value
     return;
   if (strcmp(phase, "post_checkpoint") && strcmp(phase, "stability_post_sidecar") &&
       strcmp(phase, "before_advection_term") && strcmp(phase, "before_projection") &&
-      strcmp(phase, "post_projection") && strcmp(phase, "post_restore_pre_centered"))
+      strcmp(phase, "post_projection") && strcmp(phase, "post_restore_pre_centered") &&
+      strcmp(phase, "before_prediction") && strcmp(phase, "after_prediction_pre_projection"))
     return;
   uint32_t endian = 1;
   if (*(unsigned char *)&endian != 1 || sizeof(double) != 8 || sizeof(int32_t) != 4) {

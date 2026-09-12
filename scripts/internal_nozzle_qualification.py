@@ -20,7 +20,7 @@ import tempfile
 import uuid
 from verify_internal_nozzle_step_integral import checkpoint_state_from_fields
 
-BATCH = "20260905-internal-nozzle-restart-diagnostic-qualification-r1"
+BATCH = "20260912-internal-nozzle-restart-state-closure-r1"
 SCHEMA = "internal_nozzle_qualification_authority_v1"
 CHECKS = {"precursor", "transfer_projection_impulse", "restart_tstar_1",
           "restart_tstar_2", "cumulative_same_step", "solver_health_identity",
