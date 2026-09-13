@@ -182,11 +182,11 @@ def test_direct_supervisor_and_historical_entry_rejected(tmp_path, monkeypatch):
 
 
 def test_successor_identity_does_not_promote_predecessor_permit(tmp_path, monkeypatch):
-    assert gate.BATCH == "20260912-internal-nozzle-restart-state-closure-r1"
+    assert gate.BATCH == "20260912-internal-nozzle-pressure-repeatability-restart-closure-r1"
     f = fixture(tmp_path, monkeypatch)
     assert gate.scoped(f["run"])
     wrong = copy.deepcopy(f["contract"])
-    wrong["batch_identity"]["batch_id"] = "20260905-internal-nozzle-restart-diagnostic-qualification-r1"
+    wrong["batch_identity"]["batch_id"] = "20260912-internal-nozzle-restart-state-closure-r1"
     with pytest.raises(ValueError, match="wrong batch"):
         gate.binding(wrong)
     assert not (f["run"] / "SPAWN_MARKER").exists()
@@ -199,7 +199,7 @@ def test_start_ledger_fail_closed(tmp_path, monkeypatch, defect):
            "ticket_path": str(f["run"] / "old.json"), "full_target_resolution": True}
     rows = [row]
     if defect == "full_budget":
-        rows = [{**row, "record_sha256": "a" * 64, "segment_id": "past-" + str(i)} for i in range(12)]
+        rows = [{**row, "record_sha256": "a" * 64, "segment_id": "past-" + str(i)} for i in range(10)]
     elif defect == "boolean_resolution": row["full_target_resolution"] = 1
     elif defect == "corrupt_hash": row["record_sha256"] = True
     elif defect == "duplicate_segment": rows = [row, dict(row)]

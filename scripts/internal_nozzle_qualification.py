@@ -20,7 +20,16 @@ import tempfile
 import uuid
 from verify_internal_nozzle_step_integral import checkpoint_state_from_fields
 
-BATCH = "20260912-internal-nozzle-restart-state-closure-r1"
+BATCH = "20260912-internal-nozzle-pressure-repeatability-restart-closure-r1"
+FROZEN_REFERENCE_SOURCE = "6fd43a5960954ddb2ea606d80c8405c224e190ba"
+FROZEN_REFERENCE_BINARY = "daba9cd1af9254337e0b9fb00a6596b128ce6a32f6d2614c665138f70d28a33b"
+FROZEN_REFERENCE_BUNDLE = "d16991ef0b97fc399f7b6ca20a72fd9d0271761cab7bfc471c83fcd5fd00fb93"
+FROZEN_CONTROLLER_PATHS = {
+    "scripts/internal_nozzle_qualification.py",
+    "tests/test_internal_nozzle_qualification.py",
+    "tests/test_internal_nozzle_frozen_repeatability_controller.py",
+    "docs/restart-pressure-repeatability-controller.md",
+}
 SCHEMA = "internal_nozzle_qualification_authority_v1"
 CHECKS = {"precursor", "transfer_projection_impulse", "restart_tstar_1",
           "restart_tstar_2", "cumulative_same_step", "solver_health_identity",
@@ -293,14 +302,44 @@ def verify_check(record, name, material_id):
                 and check["comparisons"][0]["criterion"] == "exact_count", "gate regression not passing")
 
 
+def verify_frozen_reference_controller(a, contract, root, head):
+    """Bind the new controller separately; never relabel the frozen CFD build.
+
+    Only the first fresh-repeat diagnostic may retain the exact predecessor
+    science/build identity while its successor-scoped launch gate is committed
+    later. Production, restore and changed CFD code cannot use this route.
+    """
+    require(a.get("control_source_commit") == head, "wrong frozen controller commit")
+    require(a["mode"] == "diagnostic" and a["purpose"] == "instrumentation_equivalence"
+            and a["maximum_starts"] == 1 and a["maximum_t_star"] <= 1.1,
+            "frozen controller is only the bounded first fresh-repeat diagnostic")
+    require(a["source_commit"] == FROZEN_REFERENCE_SOURCE
+            and contract["scientific_source_commit"] == FROZEN_REFERENCE_SOURCE
+            and contract.get("restore", {}).get("kind") == "fresh"
+            and contract["solver"]["sha256"] == FROZEN_REFERENCE_BINARY
+            and contract["source_bundle_manifest"]["sha256"] == FROZEN_REFERENCE_BUNDLE,
+            "frozen reference science/build/initial-state identity mismatch")
+    require(a["synthetic_root"] is None, "synthetic claim cannot authorize frozen science")
+    require(subprocess.run(["git", "merge-base", "--is-ancestor", FROZEN_REFERENCE_SOURCE, head],
+                           cwd=root, check=False).returncode == 0,
+            "frozen controller is not a source descendant")
+    changed = subprocess.check_output(["git", "diff", "--name-status", FROZEN_REFERENCE_SOURCE, head],
+                                      cwd=root, text=True).splitlines()
+    require(changed and all(row.split("\t")[0] in {"A", "M"}
+                            and len(row.split("\t")) == 2
+                            and row.split("\t")[1] in FROZEN_CONTROLLER_PATHS for row in changed),
+            "frozen controller contains non-controller source changes")
+
+
 def validate(record_path, contract, now=None):
     a = load(record_path)
+    frozen_control = "control_source_commit" in a
     exact(a, {"schema", "mode", "purpose", "binding", "material_sha256", "material_files", "source_root", "source_commit",
               "expires_utc", "maximum_starts", "maximum_t_star", "maximum_wall_seconds", "plan_end_time", "plan_t_star",
-              "checks", "synthetic_root"}, "qualification authority")
+              "checks", "synthetic_root"} | ({"control_source_commit"} if frozen_control else set()), "qualification authority")
     require(a["schema"] == SCHEMA, "unsupported authority schema")
     require(a["binding"] == binding(contract), "stale/wrong launch binding")
-    integer(a["maximum_starts"], 1, 48, "maximum starts")
+    integer(a["maximum_starts"], 1, 16, "maximum starts")
     number(a["maximum_wall_seconds"], 0.001, 28800, "wall cap")
     number(a["plan_end_time"], 0, 1e3, "end time")
     number(a["plan_t_star"], 0, 4, "plan t_star")
@@ -316,9 +355,12 @@ def validate(record_path, contract, now=None):
     require(root.is_dir() and not root.is_symlink(), "wrong source root")
     require(a["source_commit"] == contract["scientific_source_commit"], "wrong source commit")
     head = subprocess.check_output(["git", "--no-optional-locks", "rev-parse", "HEAD"], cwd=root, text=True).strip()
-    require(head == a["source_commit"], "source HEAD changed")
+    if frozen_control:
+        verify_frozen_reference_controller(a, contract, root, head)
+    else:
+        require(head == a["source_commit"], "source HEAD changed")
     bundle = load(contract["source_bundle_manifest"]["path"])
-    require(bundle.get("scientific_commit") == head, "source bundle commit mismatch")
+    require(bundle.get("scientific_commit") == a["source_commit"], "source bundle commit mismatch")
     required = {r["path"] for r in contract["verified_inputs"]}
     required.update(str(root / rel) for rel in GATE_FILES)
     for rel in GATE_FILES:
@@ -406,7 +448,7 @@ def reserve(record_path, contract, ledger_path, ticket_path):
         ledger = load(ledger_path) if ledger_path.exists() else {"schema": "nozzle_gate_start_ledger_v1", "starts": []}
         exact(ledger, {"schema", "starts"}, "start ledger")
         require(ledger["schema"] == "nozzle_gate_start_ledger_v1" and isinstance(ledger["starts"], list), "corrupt start ledger")
-        require(len(ledger["starts"]) < 48, "global process-start budget exhausted")
+        require(len(ledger["starts"]) < 16, "global process-start budget exhausted")
         for row in ledger["starts"]:
             exact(row, {"record_sha256", "segment_id", "ticket_path", "full_target_resolution"}, "prior start")
             require(type(row["full_target_resolution"]) is bool, "corrupt resolution counter")
@@ -417,7 +459,7 @@ def reserve(record_path, contract, ledger_path, ticket_path):
             require(row["segment_id"] != contract["segment_id"], "segment already consumed")
         require(len({r["segment_id"] for r in ledger["starts"]}) == len(ledger["starts"]), "duplicate historical segments")
         full = option(contract["solver_argv"], "--maxlevel") == "8"
-        require(not full or sum(r["full_target_resolution"] for r in ledger["starts"]) < 12, "full-resolution process budget exhausted")
+        require(not full or sum(r["full_target_resolution"] for r in ledger["starts"]) < 10, "full-resolution process budget exhausted")
         require(sum(row["record_sha256"] == key for row in ledger["starts"]) < a["maximum_starts"], "permit start budget exhausted")
         ticket = {"schema": "nozzle_gate_ticket_v1", "run_id": str(uuid.uuid4()), "parent_pid": os.getpid(),
                   "record": file_record(record_path), "contract": contract, "state": "reserved"}
