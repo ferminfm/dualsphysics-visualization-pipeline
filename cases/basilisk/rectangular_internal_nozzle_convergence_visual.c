@@ -735,12 +735,11 @@ void internal_nozzle_prediction_trace_stage
 {
   if (!projection_trace_active(pf))
     return;
-  /* Mode 2 uses the existing observation-only keyed audit, bounded by the
-   * caller's snapshot window. Do not allocate unbounded per-cycle CSVs. */
+  /* Mode 2 uses the observation-only keyed audit, bounded by the forensic
+   * event window above. Bulk snapshot enablement is independent. */
   if (enable_forensic_probes == 2) {
     internal_nozzle_stencil_trace(stage, iter);
-    if (forensic_snapshot_end_time >= 0. && t <= forensic_snapshot_end_time + 1e-14)
-      internal_nozzle_state_audit(stage, iter);
+    internal_nozzle_state_audit(stage, iter);
     return;
   }
   char cell_path[1024], face_path[1024], boundary_path[1024], manifest_path[1024];
@@ -812,11 +811,9 @@ void internal_nozzle_projection_trace_stage
   if (!projection_trace_active(pressure_trace))
     return;
   if (enable_forensic_probes == 2) {
-    if (forensic_snapshot_end_time >= 0. && t <= forensic_snapshot_end_time + 1e-14) {
-      char phase[160];
-      snprintf(phase, sizeof(phase), "project_%s_%s", pressure_trace.name, stage);
-      internal_nozzle_state_audit(phase, iter);
-    }
+    char phase[160];
+    snprintf(phase, sizeof(phase), "project_%s_%s", pressure_trace.name, stage);
+    internal_nozzle_state_audit(phase, iter);
     return;
   }
   char data_path[1024], boundary_path[1024];
