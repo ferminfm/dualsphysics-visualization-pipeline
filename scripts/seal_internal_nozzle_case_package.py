@@ -378,7 +378,7 @@ def validate_bound_build(
             "source_bundle_sha256", "build_role", "entry_source",
             "required_defines", "compile_identity_semantics", "compile_run_id",
             "compile_argv", "compile_terminal", "binary", "verified_input_count",
-    }:
+    } | ({"operator_observation_overlay"} if payload.get("schema") == "internal_nozzle_observable_qcc_build_operator_v2" else set()):
         raise ValueError(f"{context}: observable qcc build key set mismatch")
     expected_entry = (
         "cases/basilisk/rectangular_internal_nozzle_convergence_visual.c"
@@ -387,7 +387,7 @@ def validate_bound_build(
     if expected_role == "profile_controlled":
         expected_defines.append("INTERNAL_NOZZLE_PROFILE_CONTROLLED=1")
     compile_terminal = payload.get("compile_terminal")
-    if (payload.get("schema") != "internal_nozzle_observable_qcc_build_v1" or
+    if (payload.get("schema") not in {"internal_nozzle_observable_qcc_build_v1", "internal_nozzle_observable_qcc_build_operator_v2"} or
             payload.get("scientific_commit") != source_commit or
             payload.get("source_bundle_path") !=
             input_map["source_bundle_manifest"]["path"] or
@@ -412,6 +412,12 @@ def validate_bound_build(
             not isinstance(payload.get("verified_input_count"), int) or
             payload.get("verified_input_count") <= 0):
         raise ValueError(f"{context}: observable qcc build identity mismatch")
+    bundle = load_json(Path(input_map["source_bundle_manifest"]["path"]), context + " source bundle")
+    if payload["schema"] != "internal_nozzle_observable_qcc_build_v1" or bundle["schema"] != "internal_nozzle_source_bundle_v1":
+        from verify_internal_nozzle_operand_build import verify_operator_overlay
+        for row in verify_operator_overlay(payload,bundle):
+            if input_map.get(row["label"]) != {"path":row["path"],"sha256":row["sha256"]}:
+                raise ValueError("operator input is not source-bound")
 
 
 def validate_profile_acceptance(

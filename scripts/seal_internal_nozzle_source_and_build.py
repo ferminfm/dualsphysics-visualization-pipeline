@@ -34,6 +34,15 @@ SOURCE_PATHS = (
     "scripts/evaluate_internal_nozzle_acceptance.py",
     "scripts/verify_internal_nozzle_step_integral.py",
 )
+OPERATOR_SOURCE_PATHS = (
+    "cases/basilisk/internal_nozzle_operand_runtime.h",
+    "scripts/instrument_internal_nozzle_operator.py",
+    "scripts/compile_internal_nozzle_operand_overlay.py",
+    "scripts/read_internal_nozzle_operand_trace.py",
+    "scripts/compare_internal_nozzle_operand_traces.py",
+    "scripts/verify_internal_nozzle_operand_build.py",
+    "scripts/seal_internal_nozzle_source_and_build.py",
+)
 BUILD_ROLES = {
     "precursor": {
         "entry_source": "cases/basilisk/rectangular_internal_nozzle_steady_precursor.c",
@@ -125,7 +134,7 @@ def validate_source_bundle(bundle: dict[str, object]) -> None:
         "tracked_behavior_files", "tracked_behavior_file_count",
         "prepared_centered", "basilisk", "source_identity_semantics",
     }, "source bundle")
-    if (bundle.get("schema") != "internal_nozzle_source_bundle_v1" or
+    if (bundle.get("schema") not in {"internal_nozzle_source_bundle_v1", "internal_nozzle_source_bundle_operator_v2"} or
             bundle.get("source_identity_semantics") !=
             "sha256_of_this_complete_manifest_file"):
         raise ValueError("unsupported source-bundle schema/semantics")
@@ -154,7 +163,10 @@ def validate_source_bundle(bundle: dict[str, object]) -> None:
         if (isinstance(row.get("size_bytes"), bool) or
                 not isinstance(row.get("size_bytes"), int) or row["size_bytes"] <= 0):
             raise ValueError("source bundle tracked size is invalid")
-    if seen != set(SOURCE_PATHS):
+    required_paths = set(SOURCE_PATHS)
+    if bundle["schema"] == "internal_nozzle_source_bundle_operator_v2":
+        required_paths.update(OPERATOR_SOURCE_PATHS)
+    if seen != required_paths:
         raise ValueError("source bundle does not contain the exact behavior-file set")
     prepared = bundle.get("prepared_centered")
     basilisk = bundle.get("basilisk")
@@ -258,7 +270,7 @@ def prepared_centered_bytes(basilisk_src: Path) -> tuple[bytes, dict[str, object
 
 def seal_source(
     repo_root: Path, expected_commit: str, basilisk_src: Path,
-    qcc_path: Path, prepared_centered: Path,
+    qcc_path: Path, prepared_centered: Path, *, operator_overlay: bool = False,
 ) -> dict[str, object]:
     if not re.fullmatch(r"[0-9a-f]{40}", expected_commit):
         raise ValueError("expected commit must be 40 lowercase hex digits")
@@ -270,7 +282,7 @@ def seal_source(
     if git(root, "status", "--porcelain=v1", "--untracked-files=all"):
         raise ValueError("scientific worktree must be clean before source sealing")
     records: list[dict[str, object]] = []
-    for relative in SOURCE_PATHS:
+    for relative in (*SOURCE_PATHS, *(OPERATOR_SOURCE_PATHS if operator_overlay else ())):
         candidate = root / relative
         resolved = regular(candidate, f"tracked source {relative}")
         listing = git(root, "ls-tree", expected_commit, "--", relative).split()
@@ -297,7 +309,7 @@ def seal_source(
         raise ValueError("prepared centered header is not the exact authorized transform")
     qcc = regular(qcc_path, "qcc", executable=True)
     return {
-        "schema": "internal_nozzle_source_bundle_v1",
+        "schema": "internal_nozzle_source_bundle_operator_v2" if operator_overlay else "internal_nozzle_source_bundle_v1",
         "scientific_commit": expected_commit,
         "repository_root_name": root.name,
         "tracked_behavior_files": records,
@@ -405,7 +417,33 @@ def seal_build(
                 row.get("observed_sha256_after") != digest or row.get("verified") is not True or
                 row.get("unchanged_during_run") is not True):
             raise ValueError(f"qcc source input was not immutably verified: {path}")
-    return {
+    overlay_record = None
+    if bundle["schema"] == "internal_nozzle_source_bundle_operator_v2":
+        overlay_path = regular(binary.parent / "operand-overlay/site-manifest.json", "operator overlay manifest")
+        overlay = load_json(overlay_path, "operator overlay")
+        source_hashes = {r["path"]: r["sha256"] for r in files}
+        if (overlay.get("schema") != "post_qcc_operand_overlay_v1" or
+                overlay.get("compiler_returncode") != 0 or
+                overlay.get("binary_sha256") != sha256_file(binary) or
+                overlay.get("runtime_sha256") != source_hashes["cases/basilisk/internal_nozzle_operand_runtime.h"] or
+                overlay.get("transformer_sha256") != source_hashes["scripts/instrument_internal_nozzle_operator.py"] or
+                overlay.get("adapter_sha256") != source_hashes["scripts/compile_internal_nozzle_operand_overlay.py"]):
+            raise ValueError("operator overlay source/build binding mismatch")
+        for label in ("generated", "instrumented", "compiler"):
+            p = regular(Path(overlay[label + "_path"]), "overlay " + label)
+            if sha256_file(p) != overlay[label + "_sha256"]:
+                raise ValueError("changed operator overlay " + label)
+        # Regenerate the observation overlay from the retained qcc output.
+        # No historical script or uncommitted module is executed here.
+        import instrument_internal_nozzle_operator as operand_transform
+        generated = Path(overlay["generated_path"]).read_text()
+        rewritten, sites = operand_transform.transform(generated)
+        runtime = (cwd / "cases/basilisk/internal_nozzle_operand_runtime.h").read_text()
+        if (Path(overlay["instrumented_path"]).read_text() != rewritten + "\n" + runtime or
+                overlay.get("sites") != sites or overlay.get("site_count") != len(sites)):
+            raise ValueError("operator overlay is not exact reproducible transformation")
+        overlay_record = {"path": str(overlay_path), "sha256": sha256_file(overlay_path)}
+    result = {
         "schema": "internal_nozzle_observable_qcc_build_v1",
         "scientific_commit": bundle["scientific_commit"],
         "source_bundle_path": str(bundle_path),
@@ -427,6 +465,10 @@ def seal_build(
         },
         "verified_input_count": len(expected),
     }
+    if overlay_record is not None:
+        result["schema"] = "internal_nozzle_observable_qcc_build_operator_v2"
+        result["operator_observation_overlay"] = overlay_record
+    return result
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -439,6 +481,7 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--qcc", type=Path, required=True)
     source.add_argument("--prepared-centered", type=Path, required=True)
     source.add_argument("--output", type=Path, required=True)
+    source.add_argument("--operator-overlay", action="store_true")
     build = subparsers.add_parser("build")
     build.add_argument("--source-bundle", type=Path, required=True)
     build.add_argument("--source-bundle-sha256", required=True)
@@ -450,7 +493,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "source":
         payload = seal_source(
             args.repo_root, args.expected_commit, args.basilisk_src,
-            args.qcc, args.prepared_centered,
+            args.qcc, args.prepared_centered, operator_overlay=args.operator_overlay,
         )
     else:
         if not re.fullmatch(r"[0-9a-f]{64}", args.source_bundle_sha256):

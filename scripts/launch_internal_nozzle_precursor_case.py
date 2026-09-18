@@ -119,7 +119,7 @@ def load_source_bundle(
         "prepared_centered", "basilisk", "source_identity_semantics",
     }
     exact_keys(payload, expected_keys, "source-bundle manifest")
-    if (payload.get("schema") != "internal_nozzle_source_bundle_v1" or
+    if (payload.get("schema") not in {"internal_nozzle_source_bundle_v1", "internal_nozzle_source_bundle_operator_v2"} or
             payload.get("scientific_commit") != expected_commit or
             payload.get("source_identity_semantics") !=
             "sha256_of_this_complete_manifest_file"):
@@ -152,6 +152,9 @@ def load_source_bundle(
     }
     if not required_paths.issubset(seen):
         raise ValueError("source-bundle lacks required launch behavior files")
+    if payload["schema"] == "internal_nozzle_source_bundle_operator_v2":
+        from seal_internal_nozzle_source_and_build import validate_source_bundle
+        validate_source_bundle(payload)
     return resolved, payload
 
 
@@ -168,7 +171,7 @@ def load_build_manifest(
         "source_bundle_sha256", "build_role", "entry_source",
         "required_defines", "compile_identity_semantics", "compile_run_id",
         "compile_argv", "compile_terminal", "binary", "verified_input_count",
-    }, "observable qcc build manifest")
+    } | ({"operator_observation_overlay"} if payload.get("schema") == "internal_nozzle_observable_qcc_build_operator_v2" else set()), "observable qcc build manifest")
     role_contracts = {
         "precursor": (
             "cases/basilisk/rectangular_internal_nozzle_steady_precursor.c",
@@ -187,7 +190,7 @@ def load_build_manifest(
     expected_entry, expected_defines = role_contracts[expected_role]
     binary = payload.get("binary")
     terminal = payload.get("compile_terminal")
-    if (payload.get("schema") != "internal_nozzle_observable_qcc_build_v1" or
+    if (payload.get("schema") not in {"internal_nozzle_observable_qcc_build_v1", "internal_nozzle_observable_qcc_build_operator_v2"} or
             payload.get("scientific_commit") != source_commit or
             payload.get("source_bundle_path") != str(source_bundle) or
             payload.get("source_bundle_sha256") != source_bundle_sha256 or
@@ -209,6 +212,10 @@ def load_build_manifest(
     argv = payload.get("compile_argv")
     if not isinstance(argv, list) or not argv or not all(isinstance(item, str) for item in argv):
         raise ValueError("observable qcc build argv is malformed")
+    _, bundle = load_object(source_bundle, "source bundle")
+    if payload["schema"] != "internal_nozzle_observable_qcc_build_v1" or bundle["schema"] != "internal_nozzle_source_bundle_v1":
+        from verify_internal_nozzle_operand_build import verify_operator_overlay
+        verify_operator_overlay(payload, bundle)
     return resolved, payload
 
 
@@ -620,7 +627,7 @@ def build_contract(args: argparse.Namespace) -> dict[str, object]:
     source_bundle_sha = canonical_hex(
         args.source_bundle_manifest_sha256, 64, "source-bundle manifest SHA-256",
     )
-    source_bundle, _ = load_source_bundle(
+    source_bundle, source_bundle_record = load_source_bundle(
         args.source_bundle_manifest, source_bundle_sha, source_commit,
     )
     if source_sha != source_bundle_sha:
@@ -708,6 +715,9 @@ def build_contract(args: argparse.Namespace) -> dict[str, object]:
         (schedule_path, schedule_sha, "launch_schedule"),
         (supervisor, supervisor_sha, "supervisor"),
     ]
+    if build_record["schema"] == "internal_nozzle_observable_qcc_build_operator_v2":
+        from verify_internal_nozzle_operand_build import verify_operator_overlay
+        verified.extend((Path(r["path"]),r["sha256"],r["label"]) for r in verify_operator_overlay(build_record,source_bundle_record))
     transfer_record: dict[str, object]
     bulk_target: dict[str, object] | str = "not_applicable"
     if args.case_role == "A":

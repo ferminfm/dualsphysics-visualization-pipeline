@@ -88,6 +88,23 @@ def test_wrong_commit_and_prepared_header_fail(
         MODULE.seal_source(repo, commit, basilisk, qcc, prepared)
 
 
+def test_explicit_operator_source_closure_preserves_legacy(tmp_path, monkeypatch):
+    repo, commit, basilisk, qcc, prepared = fixture(tmp_path, monkeypatch)
+    (repo / 'overlay.c').write_text('/* SYNTHETIC observation helper */\n')
+    git(repo, 'add', 'overlay.c'); git(repo, 'commit', '-qm', 'SYNTHETIC overlay')
+    commit = git(repo, 'rev-parse', 'HEAD')
+    monkeypatch.setattr(MODULE, 'OPERATOR_SOURCE_PATHS', ('overlay.c',))
+    legacy = MODULE.seal_source(repo, commit, basilisk, qcc, prepared)
+    extended = MODULE.seal_source(repo, commit, basilisk, qcc, prepared, operator_overlay=True)
+    assert legacy['schema'] == 'internal_nozzle_source_bundle_v1'
+    assert extended['schema'] == 'internal_nozzle_source_bundle_operator_v2'
+    assert extended['tracked_behavior_file_count'] == 2
+    MODULE.validate_source_bundle(legacy); MODULE.validate_source_bundle(extended)
+    extended['tracked_behavior_files'].pop(); extended['tracked_behavior_file_count'] = 1
+    with pytest.raises(ValueError, match='exact behavior-file set'):
+        MODULE.validate_source_bundle(extended)
+
+
 def test_build_seal_requires_complete_immutable_compile_inputs(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -20,7 +20,7 @@ import tempfile
 import uuid
 from verify_internal_nozzle_step_integral import checkpoint_state_from_fields
 
-BATCH = "20260912-internal-nozzle-pressure-repeatability-restart-closure-r1"
+BATCH = "20260913-internal-nozzle-aux-projection-state-provenance-r1"
 FROZEN_REFERENCE_SOURCE = "6fd43a5960954ddb2ea606d80c8405c224e190ba"
 FROZEN_REFERENCE_BINARY = "daba9cd1af9254337e0b9fb00a6596b128ce6a32f6d2614c665138f70d28a33b"
 FROZEN_REFERENCE_BUNDLE = "d16991ef0b97fc399f7b6ca20a72fd9d0271761cab7bfc471c83fcd5fd00fb93"
@@ -46,6 +46,7 @@ CRITERIA = {"restart_core": 1e-7, "restart_profile": 1e-8,
             "transfer_velocity_impulse": .02, "transfer_pressure_change": .01}
 DH = (2.0 / 3.0) * math.sqrt(2.0 * math.pi / 144.0)
 GATE_FILES = {"scripts/internal_nozzle_qualification.py",
+              "scripts/verify_internal_nozzle_operand_build.py",
               "scripts/verify_internal_nozzle_step_integral.py",
               "scripts/launch_internal_nozzle_qualified.py",
               "scripts/launch_internal_nozzle_precursor_case.py",
@@ -448,7 +449,7 @@ def reserve(record_path, contract, ledger_path, ticket_path):
         ledger = load(ledger_path) if ledger_path.exists() else {"schema": "nozzle_gate_start_ledger_v1", "starts": []}
         exact(ledger, {"schema", "starts"}, "start ledger")
         require(ledger["schema"] == "nozzle_gate_start_ledger_v1" and isinstance(ledger["starts"], list), "corrupt start ledger")
-        require(len(ledger["starts"]) < 16, "global process-start budget exhausted")
+        require(len(ledger["starts"]) < 10, "global process-start budget exhausted")
         for row in ledger["starts"]:
             exact(row, {"record_sha256", "segment_id", "ticket_path", "full_target_resolution"}, "prior start")
             require(type(row["full_target_resolution"]) is bool, "corrupt resolution counter")
@@ -459,7 +460,7 @@ def reserve(record_path, contract, ledger_path, ticket_path):
             require(row["segment_id"] != contract["segment_id"], "segment already consumed")
         require(len({r["segment_id"] for r in ledger["starts"]}) == len(ledger["starts"]), "duplicate historical segments")
         full = option(contract["solver_argv"], "--maxlevel") == "8"
-        require(not full or sum(r["full_target_resolution"] for r in ledger["starts"]) < 10, "full-resolution process budget exhausted")
+        require(not full or sum(r["full_target_resolution"] for r in ledger["starts"]) < 8, "full-resolution process budget exhausted")
         require(sum(row["record_sha256"] == key for row in ledger["starts"]) < a["maximum_starts"], "permit start budget exhausted")
         ticket = {"schema": "nozzle_gate_ticket_v1", "run_id": str(uuid.uuid4()), "parent_pid": os.getpid(),
                   "record": file_record(record_path), "contract": contract, "state": "reserved"}
